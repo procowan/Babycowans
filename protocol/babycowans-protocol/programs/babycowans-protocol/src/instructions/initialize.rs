@@ -23,7 +23,7 @@ pub struct InitializeProtocol<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitializeProtocol>) -> Result<()> {
+pub fn initialize_protocol_handler(ctx: Context<InitializeProtocol>) -> Result<()> {
     let protocol_config = &mut ctx.accounts.protocol_config;
     let clock = Clock::get()?;
 
