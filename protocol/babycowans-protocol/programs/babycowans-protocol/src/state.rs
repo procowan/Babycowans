@@ -71,3 +71,243 @@ impl AssetConfig {
         8 +                    // registered_at
         1;                     // bump
 }
+
+#[derive(
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ApplicationStatus {
+    Pending,
+    Active,
+    Suspended,
+    Disabled,
+}
+
+impl ApplicationStatus {
+    pub const SPACE: usize = 1;
+}
+
+#[account]
+pub struct Application {
+    pub version: u16,
+    pub application_id: u64,
+    pub authority: Pubkey,
+    pub pending_authority: Option<Pubkey>,
+    pub status: ApplicationStatus,
+    pub name: String,
+    pub bump: u8,
+}
+
+impl Application {
+    pub const MAX_NAME_LENGTH: usize = 64;
+
+    pub const SPACE: usize =
+        8 +                     // discriminator
+        2 +                     // version
+        8 +                     // application_id
+        32 +                    // authority
+        33 +                    // pending_authority
+        ApplicationStatus::SPACE +
+        4 + Self::MAX_NAME_LENGTH +
+        1;                      // bump
+}
+
+#[account]
+pub struct ApplicationAsset {
+    pub version: u16,
+    pub application: Pubkey,
+    pub asset_config: Pubkey,
+    pub mint: Pubkey,
+    pub token_program: Pubkey,
+    pub payment_destination: Pubkey,
+    pub payments_enabled: bool,
+    pub gating_enabled: bool,
+    pub rewards_enabled: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+impl ApplicationAsset {
+    pub const SPACE: usize =
+        8 +  // discriminator
+        2 +  // version
+        32 + // application
+        32 + // asset_config
+        32 + // mint
+        32 + // token_program
+        32 + // payment_destination
+        1 +  // payments_enabled
+        1 +  // gating_enabled
+        1 +  // rewards_enabled
+        8 +  // created_at
+        8 +  // updated_at
+        1;   // bump
+}
+
+#[derive(
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum Role {
+    Owner,
+    Admin,
+    Operator,
+    Auditor,
+}
+
+impl Role {
+    pub const SPACE: usize = 1;
+
+    pub fn can_manage(self) -> bool {
+        matches!(self, Self::Owner | Self::Admin)
+    }
+
+    pub fn can_operate(self) -> bool {
+        matches!(self, Self::Owner | Self::Admin | Self::Operator)
+    }
+
+    pub fn can_audit(self) -> bool {
+        true
+    }
+}
+
+#[account]
+pub struct ApplicationRole {
+    pub version: u16,
+    pub application: Pubkey,
+    pub member: Pubkey,
+    pub role: Role,
+    pub active: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+impl ApplicationRole {
+    pub const SPACE: usize =
+        8 +  // discriminator
+        2 +  // version
+        32 + // application
+        32 + // member
+        Role::SPACE +
+        1 +  // active
+        8 +  // created_at
+        8 +  // updated_at
+        1;   // bump
+
+    pub fn can_manage(&self) -> bool {
+        self.active && self.role.can_manage()
+    }
+
+    pub fn can_operate(&self) -> bool {
+        self.active && self.role.can_operate()
+    }
+
+    pub fn can_audit(&self) -> bool {
+        self.active && self.role.can_audit()
+    }
+}
+
+#[derive(
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum MembershipStatus {
+    Active,
+    Expired,
+    Suspended,
+}
+
+impl MembershipStatus {
+    pub const SPACE: usize = 1;
+}
+
+#[account]
+pub struct Membership {
+    pub version: u16,
+    pub application: Pubkey,
+    pub member: Pubkey,
+    pub asset: Pubkey,
+    pub tier: u16,
+    pub status: MembershipStatus,
+    pub expires_at: i64,
+    pub created_at: i64,
+    pub bump: u8,
+}
+
+impl Membership {
+    pub const SPACE: usize =
+        8 +
+        2 +
+        32 +
+        32 +
+        32 +
+        2 +
+        MembershipStatus::SPACE +
+        8 +
+        8 +
+        1;
+}
+
+#[derive(
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum RewardStatus {
+    Pending,
+    Claimable,
+    Claimed,
+    Cancelled,
+}
+
+impl RewardStatus {
+    pub const SPACE: usize = 1;
+}
+
+#[account]
+pub struct Reward {
+    pub version: u16,
+    pub application: Pubkey,
+    pub beneficiary: Pubkey,
+    pub asset: Pubkey,
+    pub amount: u64,
+    pub status: RewardStatus,
+    pub created_at: i64,
+    pub claimed_at: i64,
+    pub bump: u8,
+}
+
+impl Reward {
+    pub const SPACE: usize =
+        8 +
+        2 +
+        32 +
+        32 +
+        32 +
+        8 +
+        RewardStatus::SPACE +
+        8 +
+        8 +
+        1;
+}
