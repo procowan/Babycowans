@@ -1,4 +1,5 @@
 pub mod constants;
+pub mod canonical_assets;
 pub mod error;
 pub mod events;
 pub mod instructions;
