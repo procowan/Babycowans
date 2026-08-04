@@ -127,7 +127,9 @@ IntellectualPropertyAndLuxury
 TradeAndLogistics
 EntertainmentAndExperiences
 ManufacturingAndSupplyChain
-```### Validation
+```
+
+### Validation
 
 Registration must verify:
 
