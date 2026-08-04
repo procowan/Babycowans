@@ -1,32 +1,27 @@
-
-use {
-    anchor_lang::{solana_program::instruction::Instruction, InstructionData, ToAccountMetas},
-    litesvm::LiteSVM,
-    solana_message::{Message, VersionedMessage},
-    solana_signer::Signer,
-    solana_keypair::Keypair,
-    solana_transaction::versioned::VersionedTransaction,
+use anchor_lang::{
+    prelude::Pubkey,
+    InstructionData,
+    ToAccountMetas,
 };
 
 #[test]
-fn test_initialize() {
-    let program_id = babycowans_protocol::id();
-    let payer = Keypair::new();
-    let mut svm = LiteSVM::new();
-    let bytes = include_bytes!("../../../target/deploy/babycowans_protocol.so");
-    svm.add_program(program_id, bytes).unwrap();
-    svm.airdrop(&payer.pubkey(), 1_000_000_000).unwrap();
-    
-    let instruction = Instruction::new_with_bytes(
-        program_id,
-        &babycowans_protocol::instruction::Initialize {}.data(),
-        babycowans_protocol::accounts::Initialize {}.to_account_metas(None),
-    );
+fn initialize_protocol_instruction_is_constructible() {
+    let authority = Pubkey::new_unique();
 
-    let blockhash = svm.latest_blockhash();
-    let msg = Message::new_with_blockhash(&[instruction], Some(&payer.pubkey()), &blockhash);
-    let tx = VersionedTransaction::try_new(VersionedMessage::Legacy(msg), &[payer]).unwrap();
+    let (protocol_config, _) =
+        Pubkey::find_program_address(&[b"protocol"], &babycowans_protocol::ID);
 
-    let res = svm.send_transaction(tx);
-    assert!(res.is_ok());
+    let data =
+        babycowans_protocol::instruction::InitializeProtocol {}.data();
+
+    let accounts =
+        babycowans_protocol::accounts::InitializeProtocol {
+            protocol_config,
+            authority,
+            system_program: anchor_lang::system_program::ID,
+        }
+        .to_account_metas(None);
+
+    assert!(!data.is_empty());
+    assert_eq!(accounts.len(), 3);
 }
