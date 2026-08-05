@@ -16,7 +16,16 @@
     "test:pda": "tsx tests/pda.test.ts",
     "test:instructions": "tsx tests/instructions.test.ts",
     "test:idl": "tsx tests/idl-consistency.test.ts",
-    "test:decoder": "tsx tests/decoder-layout.test.ts"
+    "test:decoder": "tsx tests/decoder-layout.test.ts",
+    "test:e2e:initialize": "tsx tests/e2e-initialize.test.ts",
+    "test:e2e:application": "tsx tests/e2e-register-application.test.ts",
+    "test:e2e:asset": "tsx tests/e2e-register-asset.test.ts",
+    "test:e2e:configure": "tsx tests/e2e-configure-application-asset.test.ts",
+    "test:e2e:payment": "tsx tests/e2e-process-payment.test.ts",
+    "test:e2e:membership": "tsx tests/e2e-register-membership.test.ts",
+    "test:e2e:reward": "tsx tests/e2e-reward.test.ts",
+    "test:e2e:audit": "tsx tests/e2e-audit-log.test.ts",
+    "test:e2e": "yarn test:e2e:initialize && yarn test:e2e:application && yarn test:e2e:asset && yarn test:e2e:configure && yarn test:e2e:payment && yarn test:e2e:membership && yarn test:e2e:reward && yarn test:e2e:audit"
   },
   "dependencies": {
     "@anchor-lang/core": "1.0.2",
