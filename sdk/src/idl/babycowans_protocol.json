@@ -1,0 +1,2738 @@
+{
+  "address": "BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp",
+  "metadata": {
+    "name": "babycowans_protocol",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "accept_application_authority",
+      "discriminator": [
+        126,
+        30,
+        122,
+        195,
+        27,
+        144,
+        192,
+        189
+      ],
+      "accounts": [
+        {
+          "name": "application",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "accept_protocol_authority",
+      "discriminator": [
+        237,
+        122,
+        6,
+        39,
+        53,
+        202,
+        141,
+        113
+      ],
+      "accounts": [
+        {
+          "name": "protocol_config",
+          "writable": true
+        },
+        {
+          "name": "pending_authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "assign_application_role",
+      "discriminator": [
+        95,
+        167,
+        104,
+        81,
+        97,
+        109,
+        109,
+        87
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_role",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  108,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "member"
+              }
+            ]
+          }
+        },
+        {
+          "name": "member"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "role",
+          "type": {
+            "defined": {
+              "name": "Role"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "claim_reward",
+      "discriminator": [
+        149,
+        95,
+        181,
+        242,
+        94,
+        90,
+        158,
+        162
+      ],
+      "accounts": [
+        {
+          "name": "reward",
+          "writable": true
+        },
+        {
+          "name": "beneficiary",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "configure_application_asset",
+      "discriminator": [
+        238,
+        116,
+        161,
+        154,
+        180,
+        145,
+        249,
+        187
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "asset_config"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "application_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  108,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payment_destination"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "payments_enabled",
+          "type": "bool"
+        },
+        {
+          "name": "gating_enabled",
+          "type": "bool"
+        },
+        {
+          "name": "rewards_enabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "configure_token_gate",
+      "discriminator": [
+        157,
+        201,
+        177,
+        104,
+        166,
+        162,
+        63,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_asset"
+        },
+        {
+          "name": "token_gate",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "application_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "gate_type",
+          "type": {
+            "defined": {
+              "name": "GateType"
+            }
+          }
+        },
+        {
+          "name": "minimum_amount",
+          "type": "u64"
+        },
+        {
+          "name": "minimum_tier",
+          "type": "u16"
+        },
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "create_reward",
+      "discriminator": [
+        55,
+        169,
+        173,
+        212,
+        11,
+        55,
+        47,
+        130
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "reward",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  119,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "arg",
+                "path": "beneficiary"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "beneficiary",
+          "type": "pubkey"
+        },
+        {
+          "name": "asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_protocol",
+      "discriminator": [
+        188,
+        233,
+        252,
+        106,
+        134,
+        146,
+        202,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "protocol_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "nominate_application_authority",
+      "discriminator": [
+        64,
+        115,
+        11,
+        198,
+        81,
+        16,
+        224,
+        172
+      ],
+      "accounts": [
+        {
+          "name": "application",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_authority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "nominate_protocol_authority",
+      "discriminator": [
+        192,
+        86,
+        207,
+        142,
+        233,
+        44,
+        11,
+        234
+      ],
+      "accounts": [
+        {
+          "name": "protocol_config",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "protocol_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_authority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "process_payment",
+      "discriminator": [
+        189,
+        81,
+        30,
+        198,
+        139,
+        186,
+        115,
+        23
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_asset"
+        },
+        {
+          "name": "asset_config"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "payer_token_account",
+          "writable": true
+        },
+        {
+          "name": "destination_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "record_audit_log",
+      "discriminator": [
+        235,
+        78,
+        216,
+        109,
+        162,
+        17,
+        153,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "audit_log",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  100,
+                  105,
+                  116,
+                  95,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "arg",
+                "path": "nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nonce",
+          "type": "u64"
+        },
+        {
+          "name": "action",
+          "type": {
+            "defined": {
+              "name": "AuditAction"
+            }
+          }
+        },
+        {
+          "name": "reference",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "register_application",
+      "discriminator": [
+        0,
+        213,
+        216,
+        252,
+        200,
+        84,
+        146,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "protocol_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "application",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  108,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "arg",
+                "path": "application_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "application_id",
+          "type": "u64"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "register_asset",
+      "discriminator": [
+        21,
+        80,
+        155,
+        149,
+        117,
+        207,
+        235,
+        16
+      ],
+      "accounts": [
+        {
+          "name": "protocol_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  115,
+                  115,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "protocol_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset_code",
+          "type": {
+            "array": [
+              "u8",
+              3
+            ]
+          }
+        },
+        {
+          "name": "domain",
+          "type": {
+            "defined": {
+              "name": "AssetDomain"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "register_membership",
+      "discriminator": [
+        38,
+        244,
+        185,
+        186,
+        24,
+        153,
+        102,
+        153
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "membership",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114,
+                  115,
+                  104,
+                  105,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "arg",
+                "path": "member"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "member",
+          "type": "pubkey"
+        },
+        {
+          "name": "asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "tier",
+          "type": "u16"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "set_protocol_pause",
+      "discriminator": [
+        19,
+        235,
+        135,
+        250,
+        184,
+        114,
+        209,
+        89
+      ],
+      "accounts": [
+        {
+          "name": "protocol_config",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "protocol_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "update_application_role",
+      "discriminator": [
+        167,
+        188,
+        117,
+        213,
+        250,
+        155,
+        35,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_role",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  108,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "application_role.member",
+                "account": "ApplicationRole"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "role",
+          "type": {
+            "defined": {
+              "name": "Role"
+            }
+          }
+        },
+        {
+          "name": "active",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "update_membership",
+      "discriminator": [
+        65,
+        135,
+        71,
+        147,
+        188,
+        135,
+        235,
+        28
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "membership",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "tier",
+          "type": "u16"
+        },
+        {
+          "name": "status",
+          "type": {
+            "defined": {
+              "name": "MembershipStatus"
+            }
+          }
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "verify_gate_access",
+      "discriminator": [
+        203,
+        118,
+        167,
+        218,
+        43,
+        101,
+        142,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_asset"
+        },
+        {
+          "name": "token_gate"
+        },
+        {
+          "name": "wallet",
+          "signer": true
+        },
+        {
+          "name": "user_token_account"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Application",
+      "discriminator": [
+        219,
+        9,
+        27,
+        113,
+        208,
+        126,
+        203,
+        30
+      ]
+    },
+    {
+      "name": "ApplicationAsset",
+      "discriminator": [
+        128,
+        36,
+        160,
+        207,
+        119,
+        91,
+        226,
+        35
+      ]
+    },
+    {
+      "name": "ApplicationRole",
+      "discriminator": [
+        223,
+        12,
+        26,
+        160,
+        92,
+        112,
+        131,
+        31
+      ]
+    },
+    {
+      "name": "AssetConfig",
+      "discriminator": [
+        57,
+        112,
+        247,
+        166,
+        247,
+        64,
+        140,
+        23
+      ]
+    },
+    {
+      "name": "AuditLog",
+      "discriminator": [
+        230,
+        207,
+        176,
+        233,
+        170,
+        130,
+        101,
+        244
+      ]
+    },
+    {
+      "name": "Membership",
+      "discriminator": [
+        231,
+        141,
+        180,
+        98,
+        109,
+        168,
+        175,
+        166
+      ]
+    },
+    {
+      "name": "ProtocolConfig",
+      "discriminator": [
+        207,
+        91,
+        250,
+        28,
+        152,
+        179,
+        215,
+        209
+      ]
+    },
+    {
+      "name": "Reward",
+      "discriminator": [
+        174,
+        129,
+        42,
+        212,
+        190,
+        18,
+        45,
+        34
+      ]
+    },
+    {
+      "name": "TokenGate",
+      "discriminator": [
+        74,
+        136,
+        19,
+        108,
+        254,
+        148,
+        57,
+        179
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ApplicationAssetConfigured",
+      "discriminator": [
+        176,
+        230,
+        147,
+        235,
+        70,
+        28,
+        101,
+        175
+      ]
+    },
+    {
+      "name": "ApplicationAuthorityNominated",
+      "discriminator": [
+        241,
+        5,
+        201,
+        78,
+        64,
+        12,
+        50,
+        183
+      ]
+    },
+    {
+      "name": "ApplicationAuthorityTransferred",
+      "discriminator": [
+        133,
+        25,
+        16,
+        242,
+        227,
+        148,
+        44,
+        87
+      ]
+    },
+    {
+      "name": "ApplicationRegistered",
+      "discriminator": [
+        221,
+        135,
+        172,
+        203,
+        193,
+        254,
+        65,
+        211
+      ]
+    },
+    {
+      "name": "ApplicationRoleAssigned",
+      "discriminator": [
+        233,
+        99,
+        55,
+        122,
+        20,
+        112,
+        14,
+        154
+      ]
+    },
+    {
+      "name": "ApplicationRoleUpdated",
+      "discriminator": [
+        235,
+        8,
+        233,
+        3,
+        132,
+        210,
+        202,
+        153
+      ]
+    },
+    {
+      "name": "AssetRegistered",
+      "discriminator": [
+        252,
+        56,
+        47,
+        89,
+        8,
+        180,
+        249,
+        254
+      ]
+    },
+    {
+      "name": "AuditLogRecorded",
+      "discriminator": [
+        21,
+        226,
+        39,
+        220,
+        179,
+        116,
+        221,
+        112
+      ]
+    },
+    {
+      "name": "GateAccessVerified",
+      "discriminator": [
+        125,
+        200,
+        14,
+        151,
+        214,
+        197,
+        161,
+        61
+      ]
+    },
+    {
+      "name": "MembershipRegistered",
+      "discriminator": [
+        106,
+        132,
+        75,
+        199,
+        38,
+        61,
+        64,
+        80
+      ]
+    },
+    {
+      "name": "MembershipUpdated",
+      "discriminator": [
+        177,
+        18,
+        230,
+        102,
+        147,
+        175,
+        185,
+        24
+      ]
+    },
+    {
+      "name": "PaymentProcessed",
+      "discriminator": [
+        22,
+        109,
+        191,
+        213,
+        83,
+        63,
+        120,
+        219
+      ]
+    },
+    {
+      "name": "ProtocolAuthorityNominated",
+      "discriminator": [
+        215,
+        9,
+        172,
+        92,
+        40,
+        237,
+        126,
+        219
+      ]
+    },
+    {
+      "name": "ProtocolAuthorityTransferred",
+      "discriminator": [
+        161,
+        166,
+        124,
+        109,
+        213,
+        33,
+        94,
+        248
+      ]
+    },
+    {
+      "name": "ProtocolInitialized",
+      "discriminator": [
+        173,
+        122,
+        168,
+        254,
+        9,
+        118,
+        76,
+        132
+      ]
+    },
+    {
+      "name": "ProtocolPauseChanged",
+      "discriminator": [
+        67,
+        33,
+        235,
+        73,
+        71,
+        124,
+        172,
+        110
+      ]
+    },
+    {
+      "name": "RewardClaimed",
+      "discriminator": [
+        49,
+        28,
+        87,
+        84,
+        158,
+        48,
+        229,
+        175
+      ]
+    },
+    {
+      "name": "RewardCreated",
+      "discriminator": [
+        50,
+        139,
+        48,
+        88,
+        212,
+        150,
+        75,
+        90
+      ]
+    },
+    {
+      "name": "TokenGateConfigured",
+      "discriminator": [
+        58,
+        29,
+        143,
+        16,
+        114,
+        181,
+        252,
+        6
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAuthority",
+      "msg": "The provided authority is invalid."
+    },
+    {
+      "code": 6001,
+      "name": "InvalidPda",
+      "msg": "The provided PDA is invalid."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidVersion",
+      "msg": "The account version is invalid."
+    },
+    {
+      "code": 6003,
+      "name": "ProtocolPaused",
+      "msg": "The protocol is currently paused."
+    },
+    {
+      "code": 6004,
+      "name": "UnsupportedMint",
+      "msg": "The provided mint is not a canonical Babycowans asset."
+    },
+    {
+      "code": 6005,
+      "name": "MaximumAssetsReached",
+      "msg": "The maximum number of canonical assets has been reached."
+    },
+    {
+      "code": 6006,
+      "name": "InvalidApplicationName",
+      "msg": "The application name is invalid or too long."
+    },
+    {
+      "code": 6007,
+      "name": "InvalidApplication",
+      "msg": "The application is invalid or inactive."
+    },
+    {
+      "code": 6008,
+      "name": "InvalidAsset",
+      "msg": "The asset configuration is invalid or disabled."
+    },
+    {
+      "code": 6009,
+      "name": "InvalidPaymentDestination",
+      "msg": "The payment destination token account is invalid."
+    },
+    {
+      "code": 6010,
+      "name": "InvalidTokenProgram",
+      "msg": "The token program does not match the registered asset."
+    },
+    {
+      "code": 6011,
+      "name": "PaymentsDisabled",
+      "msg": "Payments are disabled for this application asset."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidAmount",
+      "msg": "The payment amount must be greater than zero."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidRoleMember",
+      "msg": "The role member public key is invalid."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidExpiration",
+      "msg": "The membership expiration timestamp is invalid."
+    },
+    {
+      "code": 6015,
+      "name": "InvalidRewardStatus",
+      "msg": "The reward status does not allow this operation."
+    },
+    {
+      "code": 6016,
+      "name": "GatingDisabled",
+      "msg": "Token gating is disabled for this application asset."
+    },
+    {
+      "code": 6017,
+      "name": "InvalidGate",
+      "msg": "The token gate is invalid."
+    },
+    {
+      "code": 6018,
+      "name": "GateDisabled",
+      "msg": "The token gate is disabled."
+    },
+    {
+      "code": 6019,
+      "name": "UnsupportedGateType",
+      "msg": "This gate type is not supported by Version 1."
+    },
+    {
+      "code": 6020,
+      "name": "InsufficientTokenBalance",
+      "msg": "The wallet token balance is insufficient."
+    },
+    {
+      "code": 6021,
+      "name": "InvalidAuditReference",
+      "msg": "The audit reference public key is invalid."
+    },
+    {
+      "code": 6022,
+      "name": "ArithmeticOverflow",
+      "msg": "An arithmetic operation overflowed."
+    }
+  ],
+  "types": [
+    {
+      "name": "Application",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application_id",
+            "type": "u64"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "pending_authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ApplicationStatus"
+              }
+            }
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationAsset",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_config",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "payment_destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "payments_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "gating_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "rewards_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationAssetConfigured",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_config",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "payment_destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "payments_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "gating_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "rewards_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationAuthorityNominated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "current_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "pending_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationAuthorityTransferred",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "previous_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_id",
+            "type": "u64"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationRole",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": {
+              "defined": {
+                "name": "Role"
+              }
+            }
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationRoleAssigned",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": {
+              "defined": {
+                "name": "Role"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationRoleUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": {
+              "defined": {
+                "name": "Role"
+              }
+            }
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Suspended"
+          },
+          {
+            "name": "Disabled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AssetConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_code",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "domain",
+            "type": {
+              "defined": {
+                "name": "AssetDomain"
+              }
+            }
+          },
+          {
+            "name": "decimals",
+            "type": "u8"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "registered_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AssetDomain",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ArtificialIntelligenceAndIoT"
+          },
+          {
+            "name": "HealthcareAndInsurance"
+          },
+          {
+            "name": "IntellectualPropertyAndLuxury"
+          },
+          {
+            "name": "TradeAndLogistics"
+          },
+          {
+            "name": "EntertainmentAndExperiences"
+          },
+          {
+            "name": "ManufacturingAndSupplyChain"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AssetRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_code",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "domain",
+            "type": {
+              "defined": {
+                "name": "AssetDomain"
+              }
+            }
+          },
+          {
+            "name": "decimals",
+            "type": "u8"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuditAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InitializeProtocol"
+          },
+          {
+            "name": "RegisterApplication"
+          },
+          {
+            "name": "RegisterAsset"
+          },
+          {
+            "name": "ConfigureAsset"
+          },
+          {
+            "name": "ProcessPayment"
+          },
+          {
+            "name": "RegisterMembership"
+          },
+          {
+            "name": "CreateReward"
+          },
+          {
+            "name": "ClaimReward"
+          },
+          {
+            "name": "AssignRole"
+          },
+          {
+            "name": "ConfigureGate"
+          },
+          {
+            "name": "PauseProtocol"
+          },
+          {
+            "name": "TransferAuthority"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuditLog",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "action",
+            "type": {
+              "defined": {
+                "name": "AuditAction"
+              }
+            }
+          },
+          {
+            "name": "reference",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuditLogRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "audit_log",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "action",
+            "type": {
+              "defined": {
+                "name": "AuditAction"
+              }
+            }
+          },
+          {
+            "name": "reference",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GateAccessVerified",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "balance",
+            "type": "u64"
+          },
+          {
+            "name": "minimum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GateType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "HoldAmount"
+          },
+          {
+            "name": "NFTCollection"
+          },
+          {
+            "name": "MembershipTier"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Membership",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u16"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MembershipStatus"
+              }
+            }
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MembershipRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u16"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MembershipStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Expired"
+          },
+          {
+            "name": "Suspended"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MembershipUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u16"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MembershipStatus"
+              }
+            }
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PaymentProcessed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolAuthorityNominated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "current_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "pending_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolAuthorityTransferred",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "previous_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "pending_authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "application_count",
+            "type": "u64"
+          },
+          {
+            "name": "asset_count",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolPauseChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reward",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "RewardStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "claimed_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Claimable"
+          },
+          {
+            "name": "Claimed"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Role",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Owner"
+          },
+          {
+            "name": "Admin"
+          },
+          {
+            "name": "Operator"
+          },
+          {
+            "name": "Auditor"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenGate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "gate_type",
+            "type": {
+              "defined": {
+                "name": "GateType"
+              }
+            }
+          },
+          {
+            "name": "minimum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "minimum_tier",
+            "type": "u16"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenGateConfigured",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "gate_type",
+            "type": {
+              "defined": {
+                "name": "GateType"
+              }
+            }
+          },
+          {
+            "name": "minimum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "minimum_tier",
+            "type": "u16"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
