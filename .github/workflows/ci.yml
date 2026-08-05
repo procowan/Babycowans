@@ -1,0 +1,86 @@
+name: Babycowans CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  protocol:
+    name: Protocol Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: protocol/babycowans-protocol
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read Rust toolchain
+        run: rustc --version && cargo --version
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            protocol/babycowans-protocol/target
+          key: protocol-${{ runner.os }}-${{ hashFiles('protocol/babycowans-protocol/**/Cargo.toml', 'protocol/babycowans-protocol/rust-toolchain.toml') }}
+          restore-keys: |
+            protocol-${{ runner.os }}-
+
+      - name: Run protocol tests
+        run: cargo test --workspace --all-targets --locked
+
+  sdk:
+    name: SDK Build and Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: sdk/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --non-interactive
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Test PDA utilities
+        run: yarn test:pda
+
+      - name: Test instruction builders
+        run: yarn test:instructions
+
+      - name: Test IDL consistency
+        run: yarn test:idl
+
+      - name: Test account decoder
+        run: yarn test:decoder
+
+      - name: Audit runtime dependencies
+        run: yarn audit --groups dependencies
