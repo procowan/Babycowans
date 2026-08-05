@@ -119,3 +119,55 @@ pub struct RewardClaimed {
     pub amount: u64,
     pub timestamp: i64,
 }
+
+#[event]
+pub struct TokenGateConfigured {
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub gate_type: crate::state::GateType,
+    pub minimum_amount: u64,
+    pub minimum_tier: u16,
+    pub enabled: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct GateAccessVerified {
+    pub application: Pubkey,
+    pub wallet: Pubkey,
+    pub mint: Pubkey,
+    pub balance: u64,
+    pub minimum_amount: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct ProtocolPauseChanged {
+    pub authority: Pubkey,
+    pub paused: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct ProtocolAuthorityNominated {
+    pub current_authority: Pubkey,
+    pub pending_authority: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct ProtocolAuthorityTransferred {
+    pub previous_authority: Pubkey,
+    pub new_authority: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct AuditLogRecorded {
+    pub audit_log: Pubkey,
+    pub authority: Pubkey,
+    pub application: Pubkey,
+    pub action: crate::state::AuditAction,
+    pub reference: Pubkey,
+    pub timestamp: i64,
+}

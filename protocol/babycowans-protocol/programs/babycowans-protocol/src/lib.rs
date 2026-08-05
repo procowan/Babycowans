@@ -6,6 +6,8 @@ pub mod instructions;
 pub mod state;
 
 use anchor_lang::prelude::*;
+use crate::state::AuditAction;
+use crate::state::GateType;
 use crate::state::{AssetDomain, MembershipStatus, Role};
 
 pub use instructions::*;
@@ -134,6 +136,62 @@ pub mod babycowans_protocol {
         ctx: Context<ClaimReward>,
     ) -> Result<()> {
         claim_reward_handler(ctx)
+    }
+
+    pub fn configure_token_gate(
+        ctx: Context<ConfigureTokenGate>,
+        gate_type: GateType,
+        minimum_amount: u64,
+        minimum_tier: u16,
+        enabled: bool,
+    ) -> Result<()> {
+        configure_token_gate_handler(
+            ctx,
+            gate_type,
+            minimum_amount,
+            minimum_tier,
+            enabled,
+        )
+    }
+
+    pub fn verify_gate_access(
+        ctx: Context<VerifyGateAccess>,
+    ) -> Result<()> {
+        verify_gate_access_handler(ctx)
+    }
+
+    pub fn set_protocol_pause(
+        ctx: Context<SetProtocolPause>,
+        paused: bool,
+    ) -> Result<()> {
+        set_protocol_pause_handler(ctx, paused)
+    }
+
+    pub fn nominate_protocol_authority(
+        ctx: Context<NominateProtocolAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
+        nominate_protocol_authority_handler(ctx, new_authority)
+    }
+
+    pub fn accept_protocol_authority(
+        ctx: Context<AcceptProtocolAuthority>,
+    ) -> Result<()> {
+        accept_protocol_authority_handler(ctx)
+    }
+
+    pub fn record_audit_log(
+        ctx: Context<RecordAuditLog>,
+        nonce: u64,
+        action: AuditAction,
+        reference: Pubkey,
+    ) -> Result<()> {
+        record_audit_log_handler(
+            ctx,
+            nonce,
+            action,
+            reference,
+        )
     }
 
 }

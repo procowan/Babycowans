@@ -1,0 +1,33 @@
+{
+  "name": "@babycowans/core-sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for the Babycowans Protocol.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist",
+    "test:pda": "tsx tests/pda.test.ts",
+    "test:instructions": "tsx tests/instructions.test.ts",
+    "test:idl": "tsx tests/idl-consistency.test.ts",
+    "test:decoder": "tsx tests/decoder-layout.test.ts"
+  },
+  "dependencies": {
+    "@anchor-lang/core": "1.0.2",
+    "@solana/web3.js": "^1.98.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "^5.8.0",
+    "tsx": "^4.20.3"
+  },
+  "resolutions": {
+    "uuid": "11.1.1"
+  }
+}

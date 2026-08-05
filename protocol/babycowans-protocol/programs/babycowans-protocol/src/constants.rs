@@ -11,3 +11,7 @@ pub const APPLICATION_ROLE_SEED: &[u8] = b"application_role";
 pub const MEMBERSHIP_SEED: &[u8] = b"membership";
 
 pub const REWARD_SEED: &[u8] = b"reward";
+
+pub const TOKEN_GATE_SEED: &[u8] = b"token_gate";
+
+pub const AUDIT_LOG_SEED: &[u8] = b"audit_log";

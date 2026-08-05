@@ -30,3 +30,18 @@ pub use create_reward::*;
 
 pub mod claim_reward;
 pub use claim_reward::*;
+
+pub mod configure_token_gate;
+pub use configure_token_gate::*;
+
+pub mod verify_gate_access;
+pub use verify_gate_access::*;
+
+pub mod set_protocol_pause;
+pub use set_protocol_pause::*;
+
+pub mod protocol_authority;
+pub use protocol_authority::*;
+
+pub mod record_audit_log;
+pub use record_audit_log::*;

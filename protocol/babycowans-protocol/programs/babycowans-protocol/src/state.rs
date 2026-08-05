@@ -311,3 +311,102 @@ impl Reward {
         8 +
         1;
 }
+
+#[derive(
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum GateType {
+    HoldAmount,
+    NFTCollection,
+    MembershipTier,
+}
+
+impl GateType {
+    pub const SPACE: usize = 1;
+}
+
+#[account]
+pub struct TokenGate {
+    pub version: u16,
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub gate_type: GateType,
+    pub minimum_amount: u64,
+    pub minimum_tier: u16,
+    pub enabled: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+impl TokenGate {
+    pub const SPACE: usize =
+        8 +
+        2 +
+        32 +
+        32 +
+        GateType::SPACE +
+        8 +
+        2 +
+        1 +
+        8 +
+        8 +
+        1;
+}
+
+#[derive(
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum AuditAction {
+    InitializeProtocol,
+    RegisterApplication,
+    RegisterAsset,
+    ConfigureAsset,
+    ProcessPayment,
+    RegisterMembership,
+    CreateReward,
+    ClaimReward,
+    AssignRole,
+    ConfigureGate,
+    PauseProtocol,
+    TransferAuthority,
+}
+
+impl AuditAction {
+    pub const SPACE: usize = 1;
+}
+
+#[account]
+pub struct AuditLog {
+    pub version: u16,
+    pub authority: Pubkey,
+    pub application: Pubkey,
+    pub action: AuditAction,
+    pub reference: Pubkey,
+    pub created_at: i64,
+    pub bump: u8,
+}
+
+impl AuditLog {
+    pub const SPACE: usize =
+        8 +
+        2 +
+        32 +
+        32 +
+        AuditAction::SPACE +
+        32 +
+        8 +
+        1;
+}

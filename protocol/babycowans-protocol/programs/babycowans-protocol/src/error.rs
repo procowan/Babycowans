@@ -51,6 +51,24 @@ pub enum BabycowansError {
     #[msg("The reward status does not allow this operation.")]
     InvalidRewardStatus,
 
+    #[msg("Token gating is disabled for this application asset.")]
+    GatingDisabled,
+
+    #[msg("The token gate is invalid.")]
+    InvalidGate,
+
+    #[msg("The token gate is disabled.")]
+    GateDisabled,
+
+    #[msg("This gate type is not supported by Version 1.")]
+    UnsupportedGateType,
+
+    #[msg("The wallet token balance is insufficient.")]
+    InsufficientTokenBalance,
+
+    #[msg("The audit reference public key is invalid.")]
+    InvalidAuditReference,
+
     #[msg("An arithmetic operation overflowed.")]
     ArithmeticOverflow,
 }
