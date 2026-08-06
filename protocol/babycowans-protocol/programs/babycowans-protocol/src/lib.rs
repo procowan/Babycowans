@@ -10,7 +10,12 @@ use anchor_lang::prelude::*;
 use crate::canonical_ecosystems::CanonicalEcosystem;
 use crate::state::AuditAction;
 use crate::state::GateType;
-use crate::state::{AssetDomain, MembershipStatus, Role};
+use crate::state::{
+    ApplicationStatus,
+    AssetDomain,
+    MembershipStatus,
+    Role,
+};
 
 pub use instructions::*;
 
@@ -60,6 +65,16 @@ pub mod babycowans_protocol {
     ) -> Result<()> {
         accept_application_authority_handler(ctx)
     }
+    pub fn update_application_status(
+        ctx: Context<UpdateApplicationStatus>,
+        new_status: ApplicationStatus,
+    ) -> Result<()> {
+        update_application_status_handler(
+            ctx,
+            new_status,
+        )
+    }
+
     pub fn configure_application_asset(
         ctx: Context<ConfigureApplicationAsset>,
         payments_enabled: bool,

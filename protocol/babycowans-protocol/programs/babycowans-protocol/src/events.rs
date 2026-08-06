@@ -30,6 +30,15 @@ pub struct ApplicationRegistered {
 }
 
 #[event]
+pub struct ApplicationStatusChanged {
+    pub application: Pubkey,
+    pub authority: Pubkey,
+    pub previous_status: crate::state::ApplicationStatus,
+    pub new_status: crate::state::ApplicationStatus,
+    pub timestamp: i64,
+}
+
+#[event]
 pub struct ApplicationAuthorityNominated {
     pub application: Pubkey,
     pub current_authority: Pubkey,

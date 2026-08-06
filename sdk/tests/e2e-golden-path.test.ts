@@ -21,6 +21,7 @@ import {
     buildRegisterApplicationInstruction,
     buildRegisterAssetInstruction,
     buildRegisterMembershipInstruction,
+    buildUpdateApplicationStatusInstruction,
     buildVerifyGateAccessInstruction,
     findApplicationAssetPda,
     findApplicationPda,
@@ -304,6 +305,7 @@ await send(
     [authority],
 );
 
+
 const [assetConfig] = findAssetConfigPda(
     PROGRAM_ID,
     CANONICAL_MINT,
@@ -352,6 +354,53 @@ const payerTokenAccount = createTokenAccount(
     PAYER_KEYPAIR_PATH,
 );
 
+const [applicationAsset] = findApplicationAssetPda(
+    PROGRAM_ID,
+    application,
+    CANONICAL_MINT,
+);
+
+await send(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newStatus: 2,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildConfigureApplicationAssetInstruction({
+        programId: PROGRAM_ID,
+        application,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        applicationAsset,
+        paymentDestination: destinationTokenAccount,
+        authority: authority.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        paymentsEnabled: true,
+        gatingEnabled: true,
+        rewardsEnabled: true,
+    }),
+    [authority],
+    "InvalidApplication",
+);
+
+await send(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newStatus: 1,
+    }),
+    [authority],
+);
+
 runCommand("spl-token", [
     "mint",
     CANONICAL_MINT.toBase58(),
@@ -361,11 +410,6 @@ runCommand("spl-token", [
     RPC_URL,
 ]);
 
-const [applicationAsset] = findApplicationAssetPda(
-    PROGRAM_ID,
-    application,
-    CANONICAL_MINT,
-);
 
 await send(
     connection,
@@ -602,6 +646,57 @@ await send(
     [payer],
 );
 
+await expectInstructionFailure(
+    connection,
+    buildClaimRewardInstruction({
+        programId: PROGRAM_ID,
+        reward,
+        beneficiary: payer.publicKey,
+    }),
+    [payer],
+    "InvalidRewardStatus",
+);
+
+await send(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newStatus: 2,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "InvalidApplication",
+);
+
+await send(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newStatus: 1,
+    }),
+    [authority],
+);
+
 const auditNonce = BigInt(Date.now());
 
 const [auditLog] = findAuditLogPda(
@@ -655,6 +750,10 @@ console.log("✓ Unified Golden Path completed successfully");
 console.log("✓ Token Gate access succeeded");
 console.log("✓ Insufficient balance was rejected");
 console.log("✓ Mismatched mint was rejected");
+console.log("✓ Suspended application rejected asset configuration");
+console.log("✓ Suspended application rejected payment");
+console.log("✓ Application reactivation succeeded");
+console.log("✓ Double reward claim was rejected");
 console.log(`✓ Ecosystem: ${phase.fullName} — ${phase.ticker}`);
 console.log(`✓ Application: ${application.toBase58()}`);
 console.log(`✓ Application Asset: ${applicationAsset.toBase58()}`);

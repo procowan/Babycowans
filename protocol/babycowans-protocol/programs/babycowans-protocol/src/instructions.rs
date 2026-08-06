@@ -2,6 +2,7 @@ pub mod initialize;
 pub mod register_asset;
 pub mod register_application;
 pub mod application_authority;
+pub mod update_application_status;
 
 pub use initialize::*;
 pub use register_asset::*;
@@ -9,6 +10,7 @@ pub use register_asset::*;
 pub use register_application::*;
 
 pub use application_authority::*;
+pub use update_application_status::*;
 
 pub mod configure_application_asset;
 pub use configure_application_asset::*;

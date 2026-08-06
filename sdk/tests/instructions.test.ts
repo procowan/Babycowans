@@ -13,6 +13,7 @@ import {
     buildConfigureApplicationAssetInstruction,
     buildProcessPaymentInstruction,
     buildRegisterMembershipInstruction,
+    buildUpdateApplicationStatusInstruction,
     buildCreateRewardInstruction,
     buildClaimRewardInstruction,
     instructionDiscriminator,
@@ -85,6 +86,37 @@ expect(
 expect(
     registerApplicationIx.keys.length === 4,
     "register_application account count",
+);
+
+const updateApplicationStatusIx =
+    buildUpdateApplicationStatusInstruction({
+        programId,
+        application,
+        authority,
+        newStatus: 2,
+    });
+
+expect(
+    sameBuffer(
+        updateApplicationStatusIx.data.subarray(0, 8),
+        instructionDiscriminator("update_application_status"),
+    ),
+    "update_application_status discriminator mismatch",
+);
+
+expect(
+    updateApplicationStatusIx.keys.length === 2,
+    "update_application_status account count",
+);
+
+expect(
+    updateApplicationStatusIx.keys[0].isWritable,
+    "application must be writable",
+);
+
+expect(
+    updateApplicationStatusIx.keys[1].isSigner,
+    "application authority must sign",
 );
 
 const registerAssetIx = buildRegisterAssetInstruction({

@@ -7,6 +7,7 @@ use crate::{
     state::{
         Application,
         ApplicationAsset,
+        ApplicationStatus,
         GateType,
         TokenGate,
     },
@@ -14,12 +15,18 @@ use crate::{
 
 #[derive(Accounts)]
 pub struct ConfigureTokenGate<'info> {
-    #[account(has_one = authority)]
+    #[account(
+        has_one = authority,
+        constraint = application.status == ApplicationStatus::Active
+            @ BabycowansError::InvalidApplication
+    )]
     pub application: Account<'info, Application>,
 
     #[account(
         constraint = application_asset.application == application.key()
-            @ BabycowansError::InvalidApplication
+            @ BabycowansError::InvalidApplication,
+        constraint = application_asset.gating_enabled
+            @ BabycowansError::GatingDisabled
     )]
     pub application_asset: Account<'info, ApplicationAsset>,
 

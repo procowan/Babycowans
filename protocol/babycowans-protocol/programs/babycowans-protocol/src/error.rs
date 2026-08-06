@@ -27,6 +27,9 @@ pub enum BabycowansError {
     #[msg("The application is invalid or inactive.")]
     InvalidApplication,
 
+    #[msg("The requested application status transition is invalid.")]
+    InvalidApplicationStatusTransition,
+
     #[msg("The asset configuration is invalid or disabled.")]
     InvalidAsset,
 

@@ -416,6 +416,29 @@ export function buildUpdateApplicationRoleInstruction(
     });
 }
 
+export interface UpdateApplicationStatusInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    authority: PublicKey;
+    newStatus: number;
+}
+
+export function buildUpdateApplicationStatusInstruction(
+    params: UpdateApplicationStatusInstructionParams,
+): TransactionInstruction {
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createWritableKey(params.application),
+            createSignerKey(params.authority),
+        ],
+        data: Buffer.concat([
+            instructionDiscriminator("update_application_status"),
+            encodeEnum(params.newStatus),
+        ]),
+    });
+}
+
 export interface SetProtocolPauseInstructionParams {
     programId: PublicKey;
     protocolConfig: PublicKey;
