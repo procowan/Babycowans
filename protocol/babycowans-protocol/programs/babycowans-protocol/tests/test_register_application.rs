@@ -4,6 +4,8 @@ use anchor_lang::{
     ToAccountMetas,
 };
 
+use babycowans_protocol::canonical_ecosystems::CanonicalEcosystem;
+
 #[test]
 fn register_application_instruction_is_constructible() {
     let authority = Pubkey::new_unique();
@@ -22,6 +24,7 @@ fn register_application_instruction_is_constructible() {
     let data = babycowans_protocol::instruction::RegisterApplication {
         application_id,
         name: "Example App".to_string(),
+        selected_ecosystem: CanonicalEcosystem::BabyReptile,
     }
     .data();
 

@@ -4,6 +4,8 @@ import {
     SystemProgram,
 } from "@solana/web3.js";
 
+import { CanonicalEcosystem } from "../src/ecosystems/index.js";
+
 import {
     buildInitializeProtocolInstruction,
     buildRegisterApplicationInstruction,
@@ -69,6 +71,7 @@ const registerApplicationIx = buildRegisterApplicationInstruction({
     authority,
     applicationId: 1n,
     name: "Example App",
+    selectedEcosystem: CanonicalEcosystem.BabyReptile,
 });
 
 expect(

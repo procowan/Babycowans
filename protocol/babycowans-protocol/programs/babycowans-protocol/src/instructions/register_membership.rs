@@ -41,7 +41,6 @@ pub struct RegisterMembership<'info> {
 pub fn register_membership_handler(
     ctx: Context<RegisterMembership>,
     member: Pubkey,
-    asset: Pubkey,
     tier: u16,
     expires_at: i64,
 ) -> Result<()> {
@@ -51,12 +50,14 @@ pub fn register_membership_handler(
     );
 
     let clock = Clock::get()?;
+    let selected_ecosystem =
+        ctx.accounts.application.selected_ecosystem;
+    let token_address = selected_ecosystem.token_address();
     let membership = &mut ctx.accounts.membership;
 
     membership.version = ACCOUNT_VERSION;
     membership.application = ctx.accounts.application.key();
     membership.member = member;
-    membership.asset = asset;
     membership.tier = tier;
     membership.status = MembershipStatus::Active;
     membership.expires_at = expires_at;
@@ -66,7 +67,8 @@ pub fn register_membership_handler(
     emit!(MembershipRegistered {
         application: membership.application,
         member,
-        asset,
+        selected_ecosystem,
+        token_address,
         tier,
         expires_at,
         timestamp: clock.unix_timestamp,

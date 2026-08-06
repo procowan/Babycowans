@@ -33,6 +33,9 @@ pub struct ConfigureApplicationAsset<'info> {
         constraint = asset_config.enabled
             @ BabycowansError::InvalidAsset,
         constraint = asset_config.mint == mint.key()
+            @ BabycowansError::InvalidAsset,
+        constraint = asset_config.mint
+            == application.selected_ecosystem.token_address()
             @ BabycowansError::InvalidAsset
     )]
     pub asset_config: Account<'info, AssetConfig>,

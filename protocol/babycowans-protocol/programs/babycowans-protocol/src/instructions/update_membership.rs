@@ -46,10 +46,14 @@ pub fn update_membership_handler(
     membership.status = status;
     membership.expires_at = expires_at;
 
+    let selected_ecosystem =
+        ctx.accounts.application.selected_ecosystem;
+
     emit!(MembershipUpdated {
         application: membership.application,
         member: membership.member,
-        asset: membership.asset,
+        selected_ecosystem,
+        token_address: selected_ecosystem.token_address(),
         tier,
         status,
         expires_at,

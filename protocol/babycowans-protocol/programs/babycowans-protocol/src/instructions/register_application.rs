@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
+    canonical_ecosystems::CanonicalEcosystem,
     constants::{ACCOUNT_VERSION, PROTOCOL_SEED},
     error::BabycowansError,
     events::ApplicationRegistered,
@@ -10,7 +11,11 @@ use crate::{
 pub const APPLICATION_SEED: &[u8] = b"application";
 
 #[derive(Accounts)]
-#[instruction(application_id: u64, name: String)]
+#[instruction(
+    application_id: u64,
+    name: String,
+    selected_ecosystem: CanonicalEcosystem,
+)]
 pub struct RegisterApplication<'info> {
     #[account(
         mut,
@@ -42,6 +47,7 @@ pub fn register_application_handler(
     ctx: Context<RegisterApplication>,
     application_id: u64,
     name: String,
+    selected_ecosystem: CanonicalEcosystem,
 ) -> Result<()> {
     require!(
         name.len() <= Application::MAX_NAME_LENGTH,
@@ -58,6 +64,7 @@ pub fn register_application_handler(
     application.application_id = application_id;
     application.authority = ctx.accounts.authority.key();
     application.pending_authority = None;
+    application.selected_ecosystem = selected_ecosystem;
     application.status = ApplicationStatus::Active;
     application.name = name;
     application.bump = ctx.bumps.application;
@@ -71,6 +78,7 @@ pub fn register_application_handler(
         application: application.key(),
         authority: application.authority,
         application_id: application.application_id,
+        selected_ecosystem: application.selected_ecosystem,
         name: application.name.clone(),
         timestamp: Clock::get()?.unix_timestamp,
     });

@@ -1,11 +1,13 @@
 pub mod constants;
 pub mod canonical_assets;
+pub mod canonical_ecosystems;
 pub mod error;
 pub mod events;
 pub mod instructions;
 pub mod state;
 
 use anchor_lang::prelude::*;
+use crate::canonical_ecosystems::CanonicalEcosystem;
 use crate::state::AuditAction;
 use crate::state::GateType;
 use crate::state::{AssetDomain, MembershipStatus, Role};
@@ -36,8 +38,14 @@ pub mod babycowans_protocol {
         ctx: Context<RegisterApplication>,
         application_id: u64,
         name: String,
+        selected_ecosystem: CanonicalEcosystem,
     ) -> Result<()> {
-        register_application_handler(ctx, application_id, name)
+        register_application_handler(
+            ctx,
+            application_id,
+            name,
+            selected_ecosystem,
+        )
     }
 
     pub fn nominate_application_authority(
@@ -91,14 +99,12 @@ pub mod babycowans_protocol {
     pub fn register_membership(
         ctx: Context<RegisterMembership>,
         member: Pubkey,
-        asset: Pubkey,
         tier: u16,
         expires_at: i64,
     ) -> Result<()> {
         register_membership_handler(
             ctx,
             member,
-            asset,
             tier,
             expires_at,
         )

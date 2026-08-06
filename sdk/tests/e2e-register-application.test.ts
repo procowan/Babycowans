@@ -9,6 +9,7 @@ import {
 } from "@solana/web3.js";
 
 import {
+    CanonicalEcosystem,
     buildRegisterApplicationInstruction,
     findApplicationPda,
     findProtocolConfigPda,
@@ -57,6 +58,7 @@ const instruction = buildRegisterApplicationInstruction({
     authority: authority.publicKey,
     applicationId,
     name: applicationName,
+    selectedEcosystem: CanonicalEcosystem.BabyReptile,
 });
 
 const transaction = new Transaction().add(instruction);

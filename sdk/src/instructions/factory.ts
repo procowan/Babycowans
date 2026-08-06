@@ -3,6 +3,7 @@ import {
     SystemProgram,
     TransactionInstruction,
 } from "@solana/web3.js";
+import { CanonicalEcosystem } from "../ecosystems/index.js";
 
 import {
     createReadonlyKey,
@@ -52,6 +53,7 @@ export interface RegisterApplicationInstructionParams {
     authority: PublicKey;
     applicationId: bigint;
     name: string;
+    selectedEcosystem: CanonicalEcosystem;
 }
 
 export function buildRegisterApplicationInstruction(
@@ -69,6 +71,7 @@ export function buildRegisterApplicationInstruction(
         instructionDiscriminator("register_application"),
         encodeU64(params.applicationId),
         encodeString(params.name),
+        encodeEnum(params.selectedEcosystem),
     ]);
 
     return new TransactionInstruction({
@@ -208,7 +211,6 @@ export interface RegisterMembershipInstructionParams {
     membership: PublicKey;
     authority: PublicKey;
     member: PublicKey;
-    asset: PublicKey;
     tier: number;
     expiresAt: bigint;
 }
@@ -220,7 +222,6 @@ export function buildRegisterMembershipInstruction(
         instructionDiscriminator("register_membership"),
         Buffer.concat([
             params.member.toBuffer(),
-            params.asset.toBuffer(),
             Buffer.from(Uint8Array.of(
                 params.tier & 0xff,
                 (params.tier >> 8) & 0xff,

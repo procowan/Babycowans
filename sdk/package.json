@@ -25,7 +25,11 @@
     "test:e2e:membership": "tsx tests/e2e-register-membership.test.ts",
     "test:e2e:reward": "tsx tests/e2e-reward.test.ts",
     "test:e2e:audit": "tsx tests/e2e-audit-log.test.ts",
-    "test:e2e": "yarn test:e2e:initialize && yarn test:e2e:application && yarn test:e2e:asset && yarn test:e2e:configure && yarn test:e2e:payment && yarn test:e2e:membership && yarn test:e2e:reward && yarn test:e2e:audit"
+    "test:e2e": "yarn test:e2e:initialize && yarn test:e2e:application && yarn test:e2e:asset && yarn test:e2e:configure && yarn test:e2e:payment && yarn test:e2e:membership && yarn test:e2e:reward && yarn test:e2e:audit",
+    "onboard": "tsx src/onboarding/DeveloperOnboarding.ts",
+    "test:e2e:golden": "tsx tests/e2e-golden-path.test.ts",
+    "test:god:phase": "tsx tests/e2e-golden-path.test.ts",
+    "test:god": "BABYCOWANS_PHASE=BRC yarn test:god:phase && BABYCOWANS_PHASE=BEC yarn test:god:phase && BABYCOWANS_PHASE=BGC yarn test:god:phase && BABYCOWANS_PHASE=BLC yarn test:god:phase && BABYCOWANS_PHASE=BBC yarn test:god:phase && BABYCOWANS_PHASE=BAC yarn test:god:phase"
   },
   "dependencies": {
     "@anchor-lang/core": "1.0.2",
@@ -38,5 +42,8 @@
   },
   "resolutions": {
     "uuid": "11.1.1"
+  },
+  "bin": {
+    "babycowans": "dist/onboarding/DeveloperOnboarding.js"
   }
 }

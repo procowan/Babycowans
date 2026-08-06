@@ -1,0 +1,38 @@
+{
+  "BabyReptile": {
+    "fullName": "Baby Reptile Coin",
+    "ticker": "$BRC",
+    "tokenAddress": "25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump",
+    "mission": "This meme coin has come to revolutionize human interactions with the aim of tokenizing all kinds of entertainment and pleasure without any boundaries."
+  },
+  "BabyEagle": {
+    "fullName": "Baby Eagle Coin",
+    "ticker": "$BEC",
+    "tokenAddress": "BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump",
+    "mission": "This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of trades; Import / Export businesses and Logistics without any boundaries."
+  },
+  "BabyGoat": {
+    "fullName": "Baby Goat Coin",
+    "ticker": "$BGC",
+    "tokenAddress": "BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump",
+    "mission": "This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Intellectual property rights (IPR) & Luxury without any boundaries."
+  },
+  "BabyLion": {
+    "fullName": "Baby Lion Coin",
+    "ticker": "$BLC",
+    "tokenAddress": "GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump",
+    "mission": "This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of manufacturing infrastructures and supply-chains, without any boundaries."
+  },
+  "BabyBee": {
+    "fullName": "Baby Bee Coin",
+    "ticker": "$BBC",
+    "tokenAddress": "2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump",
+    "mission": "This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Medical services & Health insurance without any boundaries."
+  },
+  "BabyAgent": {
+    "fullName": "Baby Agent Coin",
+    "ticker": "$BAC",
+    "tokenAddress": "DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump",
+    "mission": "This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Ai services along with IOT and Web3 without any boundaries."
+  }
+}

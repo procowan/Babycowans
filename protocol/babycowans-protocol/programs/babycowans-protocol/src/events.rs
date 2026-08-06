@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::canonical_ecosystems::CanonicalEcosystem;
+
 #[event]
 pub struct ProtocolInitialized {
     pub authority: Pubkey,
@@ -22,6 +24,7 @@ pub struct ApplicationRegistered {
     pub application: Pubkey,
     pub authority: Pubkey,
     pub application_id: u64,
+    pub selected_ecosystem: CanonicalEcosystem,
     pub name: String,
     pub timestamp: i64,
 }
@@ -85,7 +88,8 @@ pub struct ApplicationRoleUpdated {
 pub struct MembershipRegistered {
     pub application: Pubkey,
     pub member: Pubkey,
-    pub asset: Pubkey,
+    pub selected_ecosystem: CanonicalEcosystem,
+    pub token_address: Pubkey,
     pub tier: u16,
     pub expires_at: i64,
     pub timestamp: i64,
@@ -95,7 +99,8 @@ pub struct MembershipRegistered {
 pub struct MembershipUpdated {
     pub application: Pubkey,
     pub member: Pubkey,
-    pub asset: Pubkey,
+    pub selected_ecosystem: CanonicalEcosystem,
+    pub token_address: Pubkey,
     pub tier: u16,
     pub status: crate::state::MembershipStatus,
     pub expires_at: i64,

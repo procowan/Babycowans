@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::canonical_ecosystems::CanonicalEcosystem;
+
 #[account]
 pub struct ProtocolConfig {
     pub version: u16,
@@ -98,6 +100,7 @@ pub struct Application {
     pub application_id: u64,
     pub authority: Pubkey,
     pub pending_authority: Option<Pubkey>,
+    pub selected_ecosystem: CanonicalEcosystem,
     pub status: ApplicationStatus,
     pub name: String,
     pub bump: u8,
@@ -112,6 +115,7 @@ impl Application {
         8 +                     // application_id
         32 +                    // authority
         33 +                    // pending_authority
+        CanonicalEcosystem::SPACE +
         ApplicationStatus::SPACE +
         4 + Self::MAX_NAME_LENGTH +
         1;                      // bump
@@ -243,7 +247,6 @@ pub struct Membership {
     pub version: u16,
     pub application: Pubkey,
     pub member: Pubkey,
-    pub asset: Pubkey,
     pub tier: u16,
     pub status: MembershipStatus,
     pub expires_at: i64,
@@ -253,16 +256,15 @@ pub struct Membership {
 
 impl Membership {
     pub const SPACE: usize =
-        8 +
-        2 +
-        32 +
-        32 +
-        32 +
-        2 +
+        8 +                     // discriminator
+        2 +                     // version
+        32 +                    // application
+        32 +                    // member
+        2 +                     // tier
         MembershipStatus::SPACE +
-        8 +
-        8 +
-        1;
+        8 +                     // expires_at
+        8 +                     // created_at
+        1;                      // bump
 }
 
 #[derive(
