@@ -47,6 +47,21 @@ export interface ApplicationAssetAccount {
     bump: number;
 }
 
+export interface ApplicationPaymentPolicyAccount {
+    version: number;
+    application: PublicKey;
+    applicationAsset: PublicKey;
+    minimumAmount: bigint;
+    maximumAmount: bigint;
+    paymentsEnabled: boolean;
+    protocolFeeBps: number;
+    applicationFeeBps: number;
+    treasury: PublicKey;
+    createdAt: bigint;
+    updatedAt: bigint;
+    bump: number;
+}
+
 export interface ApplicationRoleAccount {
     version: number;
     application: PublicKey;

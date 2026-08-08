@@ -22,6 +22,7 @@ import {
 
 import {
     findApplicationAssetPda,
+    findPaymentPolicyPda,
     findApplicationPda,
     findAssetConfigPda,
     findProtocolConfigPda,
@@ -168,6 +169,106 @@ export function buildConfigureApplicationAssetInstruction(
     });
 }
 
+export interface ConfigurePaymentPolicyInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    applicationAsset: PublicKey;
+    authority: PublicKey;
+    minimumAmount: bigint;
+    maximumAmount: bigint;
+    paymentsEnabled: boolean;
+    protocolFeeBps: number;
+    applicationFeeBps: number;
+    treasury: PublicKey;
+}
+
+export function buildConfigurePaymentPolicyInstruction(
+    params: ConfigurePaymentPolicyInstructionParams,
+): TransactionInstruction {
+    const [paymentPolicy] = findPaymentPolicyPda(
+        params.programId,
+        params.application,
+        params.applicationAsset,
+    );
+
+    const protocolFeeBps = Buffer.alloc(2);
+    protocolFeeBps.writeUInt16LE(params.protocolFeeBps);
+
+    const applicationFeeBps = Buffer.alloc(2);
+    applicationFeeBps.writeUInt16LE(params.applicationFeeBps);
+
+    const data = Buffer.concat([
+        instructionDiscriminator("configure_payment_policy"),
+        encodeU64(params.minimumAmount),
+        encodeU64(params.maximumAmount),
+        encodeBool(params.paymentsEnabled),
+        protocolFeeBps,
+        applicationFeeBps,
+        params.treasury.toBuffer(),
+    ]);
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createReadonlyKey(params.applicationAsset),
+            createWritableKey(paymentPolicy),
+            createSignerKey(params.authority),
+            createReadonlyKey(SystemProgram.programId),
+        ],
+        data,
+    });
+}
+
+export interface UpdatePaymentPolicyInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    applicationAsset: PublicKey;
+    authority: PublicKey;
+    minimumAmount: bigint;
+    maximumAmount: bigint;
+    paymentsEnabled: boolean;
+    protocolFeeBps: number;
+    applicationFeeBps: number;
+    treasury: PublicKey;
+}
+
+export function buildUpdatePaymentPolicyInstruction(
+    params: UpdatePaymentPolicyInstructionParams,
+): TransactionInstruction {
+    const [paymentPolicy] = findPaymentPolicyPda(
+        params.programId,
+        params.application,
+        params.applicationAsset,
+    );
+
+    const protocolFeeBps = Buffer.alloc(2);
+    protocolFeeBps.writeUInt16LE(params.protocolFeeBps);
+
+    const applicationFeeBps = Buffer.alloc(2);
+    applicationFeeBps.writeUInt16LE(params.applicationFeeBps);
+
+    const data = Buffer.concat([
+        instructionDiscriminator("update_payment_policy"),
+        encodeU64(params.minimumAmount),
+        encodeU64(params.maximumAmount),
+        encodeBool(params.paymentsEnabled),
+        protocolFeeBps,
+        applicationFeeBps,
+        params.treasury.toBuffer(),
+    ]);
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(paymentPolicy),
+            createSignerKey(params.authority),
+        ],
+        data,
+    });
+}
+
 export interface ProcessPaymentInstructionParams {
     programId: PublicKey;
     application: PublicKey;
@@ -177,6 +278,7 @@ export interface ProcessPaymentInstructionParams {
     payer: PublicKey;
     payerTokenAccount: PublicKey;
     destinationTokenAccount: PublicKey;
+    treasuryTokenAccount: PublicKey;
     tokenProgram: PublicKey;
     amount: bigint;
 }
@@ -184,6 +286,13 @@ export interface ProcessPaymentInstructionParams {
 export function buildProcessPaymentInstruction(
     params: ProcessPaymentInstructionParams,
 ): TransactionInstruction {
+    const [protocolConfig] = findProtocolConfigPda(params.programId);
+    const [paymentPolicy] = findPaymentPolicyPda(
+        params.programId,
+        params.application,
+        params.applicationAsset,
+    );
+
     const data = Buffer.concat([
         instructionDiscriminator("process_payment"),
         encodeU64(params.amount),
@@ -192,13 +301,16 @@ export function buildProcessPaymentInstruction(
     return new TransactionInstruction({
         programId: params.programId,
         keys: [
+            createReadonlyKey(protocolConfig),
             createReadonlyKey(params.application),
             createReadonlyKey(params.applicationAsset),
+            createReadonlyKey(paymentPolicy),
             createReadonlyKey(params.assetConfig),
             createReadonlyKey(params.mint),
             createSignerKey(params.payer),
             createWritableKey(params.payerTokenAccount),
             createWritableKey(params.destinationTokenAccount),
+            createWritableKey(params.treasuryTokenAccount),
             createReadonlyKey(params.tokenProgram),
         ],
         data,

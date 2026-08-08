@@ -1,7 +1,7 @@
-pub mod initialize;
-pub mod register_asset;
-pub mod register_application;
 pub mod application_authority;
+pub mod initialize;
+pub mod register_application;
+pub mod register_asset;
 pub mod update_application_status;
 
 pub use initialize::*;
@@ -17,6 +17,9 @@ pub use configure_application_asset::*;
 
 pub mod process_payment;
 pub use process_payment::*;
+
+pub mod configure_payment_policy;
+pub use configure_payment_policy::*;
 
 pub mod manage_application_role;
 pub use manage_application_role::*;
@@ -47,3 +50,6 @@ pub use protocol_authority::*;
 
 pub mod record_audit_log;
 pub use record_audit_log::*;
+
+pub mod update_payment_policy;
+pub use update_payment_policy::*;

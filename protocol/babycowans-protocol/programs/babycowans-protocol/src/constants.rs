@@ -4,7 +4,7 @@ pub const ASSET_SEED: &[u8] = b"asset";
 pub const MAX_CANONICAL_ASSETS: u16 = 6;
 
 pub const APPLICATION_ASSET_SEED: &[u8] = b"application_asset";
-
+pub const PAYMENT_POLICY_SEED: &[u8] = b"payment_policy";
 
 pub const APPLICATION_ROLE_SEED: &[u8] = b"application_role";
 

@@ -67,12 +67,30 @@ pub struct ApplicationAssetConfigured {
 }
 
 #[event]
+pub struct PaymentPolicyConfigured {
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub payment_policy: Pubkey,
+    pub minimum_amount: u64,
+    pub maximum_amount: u64,
+    pub payments_enabled: bool,
+    pub protocol_fee_bps: u16,
+    pub application_fee_bps: u16,
+    pub treasury: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
 pub struct PaymentProcessed {
     pub application: Pubkey,
     pub payer: Pubkey,
     pub mint: Pubkey,
     pub destination: Pubkey,
+    pub treasury: Pubkey,
     pub amount: u64,
+    pub net_amount: u64,
+    pub protocol_fee: u64,
+    pub application_fee: u64,
     pub timestamp: i64,
 }
 

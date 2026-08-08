@@ -4,6 +4,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const ASSET_SEED = Buffer.from("asset");
 const APPLICATION_SEED = Buffer.from("application");
 const APPLICATION_ASSET_SEED = Buffer.from("application_asset");
+const PAYMENT_POLICY_SEED = Buffer.from("payment_policy");
 const APPLICATION_ROLE_SEED = Buffer.from("application_role");
 const MEMBERSHIP_SEED = Buffer.from("membership");
 const REWARD_SEED = Buffer.from("reward");
@@ -57,6 +58,21 @@ export function findApplicationAssetPda(
             APPLICATION_ASSET_SEED,
             application.toBuffer(),
             mint.toBuffer(),
+        ],
+        programId,
+    );
+}
+
+export function findPaymentPolicyPda(
+    programId: PublicKey,
+    application: PublicKey,
+    applicationAsset: PublicKey,
+): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+        [
+            PAYMENT_POLICY_SEED,
+            application.toBuffer(),
+            applicationAsset.toBuffer(),
         ],
         programId,
     );

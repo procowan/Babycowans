@@ -14,26 +14,17 @@ pub struct ProtocolConfig {
 }
 
 impl ProtocolConfig {
-    pub const SPACE: usize =
-        8 +  // Anchor discriminator
+    pub const SPACE: usize = 8 +  // Anchor discriminator
         2 +  // version
         32 + // authority
         33 + // pending_authority
         1 +  // paused
         8 +  // application_count
         2 +  // asset_count
-        1;   // bump
+        1; // bump
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AssetDomain {
     ArtificialIntelligenceAndIoT,
     HealthcareAndInsurance,
@@ -61,8 +52,7 @@ pub struct AssetConfig {
 }
 
 impl AssetConfig {
-    pub const SPACE: usize =
-        8 +                    // Anchor discriminator
+    pub const SPACE: usize = 8 +                    // Anchor discriminator
         2 +                    // version
         32 +                   // mint
         32 +                   // token_program
@@ -71,18 +61,10 @@ impl AssetConfig {
         1 +                    // decimals
         1 +                    // enabled
         8 +                    // registered_at
-        1;                     // bump
+        1; // bump
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ApplicationStatus {
     Pending,
     Active,
@@ -109,8 +91,7 @@ pub struct Application {
 impl Application {
     pub const MAX_NAME_LENGTH: usize = 64;
 
-    pub const SPACE: usize =
-        8 +                     // discriminator
+    pub const SPACE: usize = 8 +                     // discriminator
         2 +                     // version
         8 +                     // application_id
         32 +                    // authority
@@ -118,7 +99,7 @@ impl Application {
         CanonicalEcosystem::SPACE +
         ApplicationStatus::SPACE +
         4 + Self::MAX_NAME_LENGTH +
-        1;                      // bump
+        1; // bump
 }
 
 #[account]
@@ -138,8 +119,7 @@ pub struct ApplicationAsset {
 }
 
 impl ApplicationAsset {
-    pub const SPACE: usize =
-        8 +  // discriminator
+    pub const SPACE: usize = 8 +  // discriminator
         2 +  // version
         32 + // application
         32 + // asset_config
@@ -151,18 +131,42 @@ impl ApplicationAsset {
         1 +  // rewards_enabled
         8 +  // created_at
         8 +  // updated_at
-        1;   // bump
+        1; // bump
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[account]
+pub struct ApplicationPaymentPolicy {
+    pub version: u16,
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub minimum_amount: u64,
+    pub maximum_amount: u64,
+    pub payments_enabled: bool,
+    pub protocol_fee_bps: u16,
+    pub application_fee_bps: u16,
+    pub treasury: Pubkey,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+impl ApplicationPaymentPolicy {
+    pub const SPACE: usize = 8 +  // discriminator
+        2 +  // version
+        32 + // application
+        32 + // application_asset
+        8 +  // minimum_amount
+        8 +  // maximum_amount
+        1 +  // payments_enabled
+        2 +  // protocol_fee_bps
+        2 +  // application_fee_bps
+        32 + // treasury
+        8 +  // created_at
+        8 +  // updated_at
+        1; // bump
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Role {
     Owner,
     Admin,
@@ -199,8 +203,7 @@ pub struct ApplicationRole {
 }
 
 impl ApplicationRole {
-    pub const SPACE: usize =
-        8 +  // discriminator
+    pub const SPACE: usize = 8 +  // discriminator
         2 +  // version
         32 + // application
         32 + // member
@@ -208,7 +211,7 @@ impl ApplicationRole {
         1 +  // active
         8 +  // created_at
         8 +  // updated_at
-        1;   // bump
+        1; // bump
 
     pub fn can_manage(&self) -> bool {
         self.active && self.role.can_manage()
@@ -223,15 +226,7 @@ impl ApplicationRole {
     }
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MembershipStatus {
     Active,
     Expired,
@@ -255,8 +250,7 @@ pub struct Membership {
 }
 
 impl Membership {
-    pub const SPACE: usize =
-        8 +                     // discriminator
+    pub const SPACE: usize = 8 +                     // discriminator
         2 +                     // version
         32 +                    // application
         32 +                    // member
@@ -264,18 +258,10 @@ impl Membership {
         MembershipStatus::SPACE +
         8 +                     // expires_at
         8 +                     // created_at
-        1;                      // bump
+        1; // bump
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RewardStatus {
     Pending,
     Claimable,
@@ -301,28 +287,10 @@ pub struct Reward {
 }
 
 impl Reward {
-    pub const SPACE: usize =
-        8 +
-        2 +
-        32 +
-        32 +
-        32 +
-        8 +
-        RewardStatus::SPACE +
-        8 +
-        8 +
-        1;
+    pub const SPACE: usize = 8 + 2 + 32 + 32 + 32 + 8 + RewardStatus::SPACE + 8 + 8 + 1;
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GateType {
     HoldAmount,
     NFTCollection,
@@ -348,29 +316,10 @@ pub struct TokenGate {
 }
 
 impl TokenGate {
-    pub const SPACE: usize =
-        8 +
-        2 +
-        32 +
-        32 +
-        GateType::SPACE +
-        8 +
-        2 +
-        1 +
-        8 +
-        8 +
-        1;
+    pub const SPACE: usize = 8 + 2 + 32 + 32 + GateType::SPACE + 8 + 2 + 1 + 8 + 8 + 1;
 }
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AuditAction {
     InitializeProtocol,
     RegisterApplication,
@@ -402,13 +351,5 @@ pub struct AuditLog {
 }
 
 impl AuditLog {
-    pub const SPACE: usize =
-        8 +
-        2 +
-        32 +
-        32 +
-        AuditAction::SPACE +
-        32 +
-        8 +
-        1;
+    pub const SPACE: usize = 8 + 2 + 32 + 32 + AuditAction::SPACE + 32 + 8 + 1;
 }

@@ -1,39 +1,38 @@
-use anchor_lang::{
-    prelude::Pubkey,
-    InstructionData,
-    ToAccountMetas,
-};
+use anchor_lang::{prelude::Pubkey, InstructionData, ToAccountMetas};
 
 #[test]
 fn process_payment_instruction_is_constructible() {
+    let protocol_config = Pubkey::new_unique();
     let application = Pubkey::new_unique();
     let application_asset = Pubkey::new_unique();
+    let payment_policy = Pubkey::new_unique();
     let asset_config = Pubkey::new_unique();
     let mint = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
     let payer_token_account = Pubkey::new_unique();
     let destination_token_account = Pubkey::new_unique();
+    let treasury_token_account = Pubkey::new_unique();
     let token_program = Pubkey::new_unique();
 
-    let data =
-        babycowans_protocol::instruction::ProcessPayment {
-            amount: 1_000_000,
-        }
-        .data();
+    let data = babycowans_protocol::instruction::ProcessPayment { amount: 1_000_000 }.data();
 
-    let accounts =
-        babycowans_protocol::accounts::ProcessPayment {
-            application,
-            application_asset,
-            asset_config,
-            mint,
-            payer,
-            payer_token_account,
-            destination_token_account,
-            token_program,
-        }
-        .to_account_metas(None);
+    let accounts = babycowans_protocol::accounts::ProcessPayment {
+        protocol_config,
+        application,
+        application_asset,
+        payment_policy,
+        asset_config,
+        mint,
+        payer,
+        payer_token_account,
+        destination_token_account,
+        treasury_token_account,
+        token_program,
+    }
+    .to_account_metas(None);
 
     assert!(!data.is_empty());
-    assert_eq!(accounts.len(), 8);
+    assert_eq!(accounts.len(), 11);
+    assert!(accounts[8].is_writable);
+    assert!(accounts[9].is_writable);
 }

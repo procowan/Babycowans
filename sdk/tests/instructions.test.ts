@@ -11,6 +11,8 @@ import {
     buildRegisterApplicationInstruction,
     buildRegisterAssetInstruction,
     buildConfigureApplicationAssetInstruction,
+    buildConfigurePaymentPolicyInstruction,
+    buildUpdatePaymentPolicyInstruction,
     buildProcessPaymentInstruction,
     buildRegisterMembershipInstruction,
     buildUpdateApplicationStatusInstruction,
@@ -164,6 +166,79 @@ expect(
     "configure_application_asset account count",
 );
 
+const treasury = Keypair.generate().publicKey;
+
+const configurePaymentPolicyIx =
+    buildConfigurePaymentPolicyInstruction({
+        programId,
+        application,
+        applicationAsset,
+        authority,
+        minimumAmount: 100n,
+        maximumAmount: 10_000n,
+        paymentsEnabled: true,
+        protocolFeeBps: 100,
+        applicationFeeBps: 200,
+        treasury,
+    });
+const updatePaymentPolicyIx =
+    buildUpdatePaymentPolicyInstruction({
+        programId,
+        application,
+        applicationAsset,
+        authority,
+        minimumAmount: 10n,
+        maximumAmount: 1_000n,
+        paymentsEnabled: true,
+        protocolFeeBps: 100,
+        applicationFeeBps: 200,
+        treasury,
+    });
+
+expect(
+    updatePaymentPolicyIx.data.subarray(0, 8),
+    instructionDiscriminator("update_payment_policy"),
+);
+
+expect(
+    updatePaymentPolicyIx.keys.length === 3,
+    "update payment policy must have 3 accounts",
+);
+
+expect(
+    updatePaymentPolicyIx.keys[1].isWritable,
+    "payment policy must be writable",
+);
+
+expect(
+    updatePaymentPolicyIx.keys[2].isSigner,
+    "authority must sign update payment policy",
+);
+
+
+expect(
+    sameBuffer(
+        configurePaymentPolicyIx.data.subarray(0, 8),
+        instructionDiscriminator("configure_payment_policy"),
+    ),
+    "configure_payment_policy discriminator mismatch",
+);
+
+expect(
+    configurePaymentPolicyIx.keys.length === 5,
+    "configure_payment_policy account count",
+);
+
+expect(
+    configurePaymentPolicyIx.keys[2].isWritable,
+    "payment policy must be writable",
+);
+
+expect(
+    configurePaymentPolicyIx.keys[3].isSigner,
+    "payment policy authority must sign",
+);
+
 const processPaymentIx = buildProcessPaymentInstruction({
     programId,
     application,
@@ -173,6 +248,7 @@ const processPaymentIx = buildProcessPaymentInstruction({
     payer,
     payerTokenAccount,
     destinationTokenAccount,
+    treasuryTokenAccount: destinationTokenAccount,
     tokenProgram,
     amount: 1_000_000n,
 });
@@ -185,11 +261,11 @@ expect(
     "process_payment discriminator mismatch",
 );
 
-expect(processPaymentIx.keys.length === 8, "process_payment account count");
-expect(processPaymentIx.keys[4].isSigner, "payer must sign");
-expect(processPaymentIx.keys[5].isWritable, "payer token account writable");
+expect(processPaymentIx.keys.length === 11, "process_payment account count");
+expect(processPaymentIx.keys[6].isSigner, "payer must sign");
+expect(processPaymentIx.keys[7].isWritable, "payer token account writable");
 expect(
-    processPaymentIx.keys[6].isWritable,
+    processPaymentIx.keys[8].isWritable,
     "destination token account writable",
 );
 

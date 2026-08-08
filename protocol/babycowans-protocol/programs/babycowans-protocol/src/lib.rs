@@ -1,21 +1,16 @@
-pub mod constants;
 pub mod canonical_assets;
 pub mod canonical_ecosystems;
+pub mod constants;
 pub mod error;
 pub mod events;
 pub mod instructions;
 pub mod state;
 
-use anchor_lang::prelude::*;
 use crate::canonical_ecosystems::CanonicalEcosystem;
 use crate::state::AuditAction;
 use crate::state::GateType;
-use crate::state::{
-    ApplicationStatus,
-    AssetDomain,
-    MembershipStatus,
-    Role,
-};
+use crate::state::{ApplicationStatus, AssetDomain, MembershipStatus, Role};
+use anchor_lang::prelude::*;
 
 pub use instructions::*;
 
@@ -25,9 +20,7 @@ declare_id!("BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp");
 pub mod babycowans_protocol {
     use super::*;
 
-    pub fn initialize_protocol(
-        ctx: Context<InitializeProtocol>,
-    ) -> Result<()> {
+    pub fn initialize_protocol(ctx: Context<InitializeProtocol>) -> Result<()> {
         initialize_protocol_handler(ctx)
     }
 
@@ -45,12 +38,7 @@ pub mod babycowans_protocol {
         name: String,
         selected_ecosystem: CanonicalEcosystem,
     ) -> Result<()> {
-        register_application_handler(
-            ctx,
-            application_id,
-            name,
-            selected_ecosystem,
-        )
+        register_application_handler(ctx, application_id, name, selected_ecosystem)
     }
 
     pub fn nominate_application_authority(
@@ -60,19 +48,14 @@ pub mod babycowans_protocol {
         nominate_application_authority_handler(ctx, new_authority)
     }
 
-    pub fn accept_application_authority(
-        ctx: Context<AcceptApplicationAuthority>,
-    ) -> Result<()> {
+    pub fn accept_application_authority(ctx: Context<AcceptApplicationAuthority>) -> Result<()> {
         accept_application_authority_handler(ctx)
     }
     pub fn update_application_status(
         ctx: Context<UpdateApplicationStatus>,
         new_status: ApplicationStatus,
     ) -> Result<()> {
-        update_application_status_handler(
-            ctx,
-            new_status,
-        )
+        update_application_status_handler(ctx, new_status)
     }
 
     pub fn configure_application_asset(
@@ -81,25 +64,54 @@ pub mod babycowans_protocol {
         gating_enabled: bool,
         rewards_enabled: bool,
     ) -> Result<()> {
-        configure_application_asset_handler(
+        configure_application_asset_handler(ctx, payments_enabled, gating_enabled, rewards_enabled)
+    }
+
+    pub fn configure_payment_policy(
+        ctx: Context<ConfigurePaymentPolicy>,
+        minimum_amount: u64,
+        maximum_amount: u64,
+        payments_enabled: bool,
+        protocol_fee_bps: u16,
+        application_fee_bps: u16,
+        treasury: Pubkey,
+    ) -> Result<()> {
+        configure_payment_policy_handler(
             ctx,
+            minimum_amount,
+            maximum_amount,
             payments_enabled,
-            gating_enabled,
-            rewards_enabled,
+            protocol_fee_bps,
+            application_fee_bps,
+            treasury,
         )
     }
 
-    pub fn process_payment(
-        ctx: Context<ProcessPayment>,
-        amount: u64,
+    pub fn update_payment_policy(
+        ctx: Context<UpdatePaymentPolicy>,
+        minimum_amount: u64,
+        maximum_amount: u64,
+        payments_enabled: bool,
+        protocol_fee_bps: u16,
+        application_fee_bps: u16,
+        treasury: Pubkey,
     ) -> Result<()> {
+        update_payment_policy_handler(
+            ctx,
+            minimum_amount,
+            maximum_amount,
+            payments_enabled,
+            protocol_fee_bps,
+            application_fee_bps,
+            treasury,
+        )
+    }
+
+    pub fn process_payment(ctx: Context<ProcessPayment>, amount: u64) -> Result<()> {
         process_payment_handler(ctx, amount)
     }
 
-    pub fn assign_application_role(
-        ctx: Context<AssignApplicationRole>,
-        role: Role,
-    ) -> Result<()> {
+    pub fn assign_application_role(ctx: Context<AssignApplicationRole>, role: Role) -> Result<()> {
         assign_application_role_handler(ctx, role)
     }
 
@@ -117,12 +129,7 @@ pub mod babycowans_protocol {
         tier: u16,
         expires_at: i64,
     ) -> Result<()> {
-        register_membership_handler(
-            ctx,
-            member,
-            tier,
-            expires_at,
-        )
+        register_membership_handler(ctx, member, tier, expires_at)
     }
 
     pub fn update_membership(
@@ -131,12 +138,7 @@ pub mod babycowans_protocol {
         status: MembershipStatus,
         expires_at: i64,
     ) -> Result<()> {
-        update_membership_handler(
-            ctx,
-            tier,
-            status,
-            expires_at,
-        )
+        update_membership_handler(ctx, tier, status, expires_at)
     }
 
     pub fn create_reward(
@@ -145,17 +147,10 @@ pub mod babycowans_protocol {
         asset: Pubkey,
         amount: u64,
     ) -> Result<()> {
-        create_reward_handler(
-            ctx,
-            beneficiary,
-            asset,
-            amount,
-        )
+        create_reward_handler(ctx, beneficiary, asset, amount)
     }
 
-    pub fn claim_reward(
-        ctx: Context<ClaimReward>,
-    ) -> Result<()> {
+    pub fn claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
         claim_reward_handler(ctx)
     }
 
@@ -166,25 +161,14 @@ pub mod babycowans_protocol {
         minimum_tier: u16,
         enabled: bool,
     ) -> Result<()> {
-        configure_token_gate_handler(
-            ctx,
-            gate_type,
-            minimum_amount,
-            minimum_tier,
-            enabled,
-        )
+        configure_token_gate_handler(ctx, gate_type, minimum_amount, minimum_tier, enabled)
     }
 
-    pub fn verify_gate_access(
-        ctx: Context<VerifyGateAccess>,
-    ) -> Result<()> {
+    pub fn verify_gate_access(ctx: Context<VerifyGateAccess>) -> Result<()> {
         verify_gate_access_handler(ctx)
     }
 
-    pub fn set_protocol_pause(
-        ctx: Context<SetProtocolPause>,
-        paused: bool,
-    ) -> Result<()> {
+    pub fn set_protocol_pause(ctx: Context<SetProtocolPause>, paused: bool) -> Result<()> {
         set_protocol_pause_handler(ctx, paused)
     }
 
@@ -195,9 +179,7 @@ pub mod babycowans_protocol {
         nominate_protocol_authority_handler(ctx, new_authority)
     }
 
-    pub fn accept_protocol_authority(
-        ctx: Context<AcceptProtocolAuthority>,
-    ) -> Result<()> {
+    pub fn accept_protocol_authority(ctx: Context<AcceptProtocolAuthority>) -> Result<()> {
         accept_protocol_authority_handler(ctx)
     }
 
@@ -207,12 +189,6 @@ pub mod babycowans_protocol {
         action: AuditAction,
         reference: Pubkey,
     ) -> Result<()> {
-        record_audit_log_handler(
-            ctx,
-            nonce,
-            action,
-            reference,
-        )
+        record_audit_log_handler(ctx, nonce, action, reference)
     }
-
 }

@@ -105,6 +105,7 @@ const instruction = buildProcessPaymentInstruction({
     payer: payer.publicKey,
     payerTokenAccount: PAYER_TOKEN_ACCOUNT,
     destinationTokenAccount: DESTINATION_TOKEN_ACCOUNT,
+    treasuryTokenAccount: DESTINATION_TOKEN_ACCOUNT,
     tokenProgram: TOKEN_PROGRAM_ID,
     amount: PAYMENT_AMOUNT,
 });

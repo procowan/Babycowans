@@ -13,6 +13,8 @@ import {
     CanonicalEcosystem,
     buildClaimRewardInstruction,
     buildConfigureApplicationAssetInstruction,
+    buildConfigurePaymentPolicyInstruction,
+    buildUpdatePaymentPolicyInstruction,
     buildConfigureTokenGateInstruction,
     buildCreateRewardInstruction,
     buildInitializeProtocolInstruction,
@@ -21,6 +23,7 @@ import {
     buildRegisterApplicationInstruction,
     buildRegisterAssetInstruction,
     buildRegisterMembershipInstruction,
+    buildSetProtocolPauseInstruction,
     buildUpdateApplicationStatusInstruction,
     buildVerifyGateAccessInstruction,
     findApplicationAssetPda,
@@ -111,6 +114,10 @@ const CANONICAL_MINT = phase.mint;
 
 const TOKEN_PROGRAM_ID = new PublicKey(
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+);
+
+const TOKEN_2022_PROGRAM_ID = new PublicKey(
+    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
 );
 
 const PAYER_KEYPAIR_PATH =
@@ -336,6 +343,30 @@ runCommand("solana-keygen", [
 
 const payer = loadKeypair(PAYER_KEYPAIR_PATH);
 
+const unauthorizedAuthorityPath =
+    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-unauthorized.json`;
+
+runCommand("solana-keygen", [
+    "new",
+    "--outfile",
+    unauthorizedAuthorityPath,
+    "--no-bip39-passphrase",
+    "--force",
+    "--silent",
+]);
+
+const unauthorizedAuthority = loadKeypair(
+    unauthorizedAuthorityPath,
+);
+
+runCommand("solana", [
+    "airdrop",
+    "2",
+    unauthorizedAuthority.publicKey.toBase58(),
+    "--url",
+    RPC_URL,
+]);
+
 runCommand("solana", [
     "airdrop",
     "10",
@@ -349,6 +380,35 @@ const destinationTokenAccount = createTokenAccount(
     `${process.env.HOME}/.config/solana/id.json`,
 );
 
+const protocolTreasuryTokenAccountPath =
+    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-protocol-treasury-token-account.json`;
+
+runCommand("solana-keygen", [
+    "new",
+    "--outfile",
+    protocolTreasuryTokenAccountPath,
+    "--no-bip39-passphrase",
+    "--force",
+    "--silent",
+]);
+
+const protocolTreasuryTokenAccount = new PublicKey(
+    runCommand("solana-keygen", [
+        "pubkey",
+        protocolTreasuryTokenAccountPath,
+    ]),
+);
+
+runCommand("spl-token", [
+    "create-account",
+    CANONICAL_MINT.toBase58(),
+    protocolTreasuryTokenAccountPath,
+    "--owner",
+    `${process.env.HOME}/.config/solana/id.json`,
+    "--url",
+    RPC_URL,
+]);
+
 const payerTokenAccount = createTokenAccount(
     CANONICAL_MINT,
     PAYER_KEYPAIR_PATH,
@@ -358,6 +418,18 @@ const [applicationAsset] = findApplicationAssetPda(
     PROGRAM_ID,
     application,
     CANONICAL_MINT,
+);
+
+await expectInstructionFailure(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+        newStatus: 2,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
 );
 
 await send(
@@ -428,6 +500,419 @@ await send(
     [authority],
 );
 
+await send(
+    connection,
+    buildConfigurePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 100n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: 99n,
+    }),
+    [payer],
+    "PaymentBelowMinimum",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT + 1n,
+    }),
+    [payer],
+    "PaymentAboveMaximum",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: unauthorizedAuthority.publicKey,
+        minimumAmount: 100n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 100n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 6_000,
+        applicationFeeBps: 5_000,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+    "InvalidPaymentPolicy",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 100n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: new PublicKey(
+            "11111111111111111111111111111111",
+        ),
+    }),
+    [authority],
+    "InvalidPaymentDestination",
+);
+
+await send(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 200n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: 199n,
+    }),
+    [payer],
+    "PaymentBelowMinimum",
+);
+
+await send(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 100n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+);
+
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: 0n,
+    }),
+    [payer],
+    "InvalidAmount",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "InvalidTokenProgram",
+);
+
+const invalidDestinationPath =
+    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-destination.json`;
+
+runCommand("solana-keygen", [
+    "new",
+    "--outfile",
+    invalidDestinationPath,
+    "--no-bip39-passphrase",
+    "--force",
+    "--silent",
+]);
+
+const invalidDestinationOwner = loadKeypair(
+    invalidDestinationPath,
+);
+
+runCommand("solana", [
+    "airdrop",
+    "2",
+    invalidDestinationOwner.publicKey.toBase58(),
+    "--url",
+    RPC_URL,
+]);
+
+const invalidDestinationTokenAccount = createTokenAccount(
+    CANONICAL_MINT,
+    invalidDestinationPath,
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount: invalidDestinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "InvalidPaymentDestination",
+);
+
+const disabledApplicationId =
+    applicationId + 1_000_000n;
+
+const [disabledApplication] = findApplicationPda(
+    PROGRAM_ID,
+    authority.publicKey,
+    disabledApplicationId,
+);
+
+await send(
+    connection,
+    buildRegisterApplicationInstruction({
+        programId: PROGRAM_ID,
+        authority: authority.publicKey,
+        applicationId: disabledApplicationId,
+        name: `Payments Disabled ${phaseCode}`,
+        selectedEcosystem: phase.ecosystem,
+    }),
+    [authority],
+);
+
+const [disabledApplicationAsset] =
+    findApplicationAssetPda(
+        PROGRAM_ID,
+        disabledApplication,
+        CANONICAL_MINT,
+    );
+
+await send(
+    connection,
+    buildConfigureApplicationAssetInstruction({
+        programId: PROGRAM_ID,
+        application: disabledApplication,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        paymentDestination: destinationTokenAccount,
+        authority: authority.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        paymentsEnabled: false,
+        gatingEnabled: true,
+        rewardsEnabled: true,
+    }),
+    [authority],
+);
+
+await send(
+    connection,
+    buildConfigurePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application: disabledApplication,
+        applicationAsset: disabledApplicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 1n,
+        maximumAmount: 1_000_000_000n,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application: disabledApplication,
+        applicationAsset: disabledApplicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "PaymentsDisabled",
+);
+
+const policyDisabledApplicationId =
+    applicationId + 2_000_000n;
+
+const [policyDisabledApplication] = findApplicationPda(
+    PROGRAM_ID,
+    authority.publicKey,
+    policyDisabledApplicationId,
+);
+
+await send(
+    connection,
+    buildRegisterApplicationInstruction({
+        programId: PROGRAM_ID,
+        authority: authority.publicKey,
+        applicationId: policyDisabledApplicationId,
+        name: `Policy Disabled ${phaseCode}`,
+        selectedEcosystem: phase.ecosystem,
+    }),
+    [authority],
+);
+
+const [policyDisabledApplicationAsset] =
+    findApplicationAssetPda(
+        PROGRAM_ID,
+        policyDisabledApplication,
+        CANONICAL_MINT,
+    );
+
+await send(
+    connection,
+    buildConfigureApplicationAssetInstruction({
+        programId: PROGRAM_ID,
+        application: policyDisabledApplication,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        paymentDestination: destinationTokenAccount,
+        authority: authority.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        paymentsEnabled: true,
+        gatingEnabled: true,
+        rewardsEnabled: true,
+    }),
+    [authority],
+);
+
+await send(
+    connection,
+    buildConfigurePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application: policyDisabledApplication,
+        applicationAsset: policyDisabledApplicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 1n,
+        maximumAmount: 0n,
+        paymentsEnabled: false,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application: policyDisabledApplication,
+        applicationAsset: policyDisabledApplicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "PaymentsDisabled",
+);
+
 const payerBefore = await connection.getAccountInfo(
     payerTokenAccount,
 );
@@ -447,6 +932,59 @@ const destinationBalanceBefore = readTokenAmount(
     destinationBefore.data,
 );
 
+await expectInstructionFailure(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: unauthorizedAuthority.publicKey,
+        paused: true,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
+);
+
+await send(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: authority.publicKey,
+        paused: true,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "ProtocolPaused",
+);
+
+await send(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: authority.publicKey,
+        paused: false,
+    }),
+    [authority],
+);
+
 await send(
     connection,
     buildProcessPaymentInstruction({
@@ -458,6 +996,7 @@ await send(
         payer: payer.publicKey,
         payerTokenAccount,
         destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
         amount: PAYMENT_AMOUNT,
     }),
@@ -679,6 +1218,7 @@ await expectInstructionFailure(
         payer: payer.publicKey,
         payerTokenAccount,
         destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
         amount: PAYMENT_AMOUNT,
     }),
@@ -693,6 +1233,147 @@ await send(
         application,
         authority: authority.publicKey,
         newStatus: 1,
+    }),
+    [authority],
+);
+
+
+const FEE_ENGINE_AMOUNT = 10_000n;
+const EXPECTED_PROTOCOL_FEE = 100n;
+const EXPECTED_APPLICATION_FEE = 200n;
+const EXPECTED_NET_AMOUNT = 9_700n;
+const EXPECTED_APPLICATION_DESTINATION =
+    EXPECTED_NET_AMOUNT + EXPECTED_APPLICATION_FEE;
+
+await send(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 1n,
+        maximumAmount: 1_000_000_000n,
+        paymentsEnabled: true,
+        protocolFeeBps: 100,
+        applicationFeeBps: 200,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+);
+
+const feePayerBefore = await connection.getAccountInfo(
+    payerTokenAccount,
+);
+
+const feeDestinationBefore = await connection.getAccountInfo(
+    destinationTokenAccount,
+);
+
+const feeTreasuryBefore = await connection.getAccountInfo(
+    protocolTreasuryTokenAccount,
+);
+
+if (
+    feePayerBefore === null ||
+    feeDestinationBefore === null ||
+    feeTreasuryBefore === null
+) {
+    throw new Error(
+        "Fee engine token accounts are unavailable before payment.",
+    );
+}
+
+const feePayerBalanceBefore =
+    readTokenAmount(feePayerBefore.data);
+
+const feeDestinationBalanceBefore =
+    readTokenAmount(feeDestinationBefore.data);
+
+const feeTreasuryBalanceBefore =
+    readTokenAmount(feeTreasuryBefore.data);
+
+await send(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: FEE_ENGINE_AMOUNT,
+    }),
+    [payer],
+);
+
+const feePayerAfter = await connection.getAccountInfo(
+    payerTokenAccount,
+);
+
+const feeDestinationAfter = await connection.getAccountInfo(
+    destinationTokenAccount,
+);
+
+const feeTreasuryAfter = await connection.getAccountInfo(
+    protocolTreasuryTokenAccount,
+);
+
+if (
+    feePayerAfter === null ||
+    feeDestinationAfter === null ||
+    feeTreasuryAfter === null
+) {
+    throw new Error(
+        "Fee engine token accounts are unavailable after payment.",
+    );
+}
+
+if (
+    readTokenAmount(feePayerAfter.data) !==
+    feePayerBalanceBefore - FEE_ENGINE_AMOUNT
+) {
+    throw new Error(
+        "Fee engine payer debit is incorrect.",
+    );
+}
+
+if (
+    readTokenAmount(feeDestinationAfter.data) !==
+    feeDestinationBalanceBefore +
+        EXPECTED_APPLICATION_DESTINATION
+) {
+    throw new Error(
+        "Fee engine application destination credit is incorrect.",
+    );
+}
+
+if (
+    readTokenAmount(feeTreasuryAfter.data) !==
+    feeTreasuryBalanceBefore + EXPECTED_PROTOCOL_FEE
+) {
+    throw new Error(
+        "Fee engine protocol treasury credit is incorrect.",
+    );
+}
+
+await send(
+    connection,
+    buildUpdatePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 1n,
+        maximumAmount: 1_000_000_000n,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
     }),
     [authority],
 );
@@ -754,6 +1435,26 @@ console.log("✓ Suspended application rejected asset configuration");
 console.log("✓ Suspended application rejected payment");
 console.log("✓ Application reactivation succeeded");
 console.log("✓ Double reward claim was rejected");
+console.log("✓ Paused protocol rejected payment");
+console.log("✓ Protocol resume restored payment");
+console.log("✓ Unauthorized application status update was rejected");
+console.log("✓ Unauthorized protocol pause was rejected");
+console.log("✓ Zero payment amount was rejected");
+console.log("✓ Invalid payment destination was rejected");
+console.log("✓ Disabled payments were rejected");
+console.log("✓ Invalid token program was rejected");
+console.log("✓ Payment below policy minimum was rejected");
+console.log("✓ Payment above policy maximum was rejected");
+console.log("✓ Unauthorized payment policy update was rejected");
+console.log("✓ Invalid payment policy fee sum was rejected");
+console.log("✓ Invalid payment policy treasury was rejected");
+console.log("✓ Payment policy reconfiguration succeeded");
+console.log("✓ Updated payment policy was enforced");
+console.log("✓ Disabled payment policy rejected payment");
+console.log("✓ Valid payment inside policy range succeeded");
+console.log("✓ Fee routing balance accounting succeeded");
+console.log("✓ Protocol fee reached treasury");
+console.log("✓ Application fee accounting succeeded");
 console.log(`✓ Ecosystem: ${phase.fullName} — ${phase.ticker}`);
 console.log(`✓ Application: ${application.toBase58()}`);
 console.log(`✓ Application Asset: ${applicationAsset.toBase58()}`);

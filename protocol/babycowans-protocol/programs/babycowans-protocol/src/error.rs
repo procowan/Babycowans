@@ -23,7 +23,6 @@ pub enum BabycowansError {
     #[msg("The application name is invalid or too long.")]
     InvalidApplicationName,
 
-
     #[msg("The application is invalid or inactive.")]
     InvalidApplication,
 
@@ -44,6 +43,15 @@ pub enum BabycowansError {
 
     #[msg("The payment amount must be greater than zero.")]
     InvalidAmount,
+
+    #[msg("The payment policy configuration is invalid.")]
+    InvalidPaymentPolicy,
+
+    #[msg("The payment amount is below the configured minimum.")]
+    PaymentBelowMinimum,
+
+    #[msg("The payment amount exceeds the configured maximum.")]
+    PaymentAboveMaximum,
 
     #[msg("The role member public key is invalid.")]
     InvalidRoleMember,
