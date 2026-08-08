@@ -1396,7 +1396,19 @@ await send(
         authority: authority.publicKey,
         nonce: auditNonce,
         action: PAYMENT_PROCESSED_ACTION,
+        category: 2,
+        severity: 0,
         reference: reward,
+        indexedReferences: [
+            reward,
+            applicationAsset,
+            application,
+        ],
+        metadata: JSON.stringify({
+            event: "payment_processed",
+            ecosystem: phase.assetCode,
+            version: 2,
+        }),
     }),
     [authority],
 );

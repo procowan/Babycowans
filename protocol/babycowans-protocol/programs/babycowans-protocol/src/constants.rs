@@ -15,3 +15,5 @@ pub const REWARD_SEED: &[u8] = b"reward";
 pub const TOKEN_GATE_SEED: &[u8] = b"token_gate";
 
 pub const AUDIT_LOG_SEED: &[u8] = b"audit_log";
+
+pub const AUDIT_EVENT_SCHEMA_VERSION: u16 = 1;

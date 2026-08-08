@@ -339,17 +339,64 @@ impl AuditAction {
     pub const SPACE: usize = 1;
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AuditCategory {
+    Protocol,
+    Application,
+    Payment,
+    Access,
+    Membership,
+    Reward,
+    Security,
+}
+
+impl AuditCategory {
+    pub const SPACE: usize = 1;
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AuditSeverity {
+    Info,
+    Notice,
+    Warning,
+    Critical,
+}
+
+impl AuditSeverity {
+    pub const SPACE: usize = 1;
+}
+
 #[account]
 pub struct AuditLog {
     pub version: u16,
+    pub event_schema_version: u16,
     pub authority: Pubkey,
     pub application: Pubkey,
     pub action: AuditAction,
+    pub category: AuditCategory,
+    pub severity: AuditSeverity,
     pub reference: Pubkey,
+    pub indexed_references: [Pubkey; 3],
+    pub metadata: String,
     pub created_at: i64,
     pub bump: u8,
 }
 
 impl AuditLog {
-    pub const SPACE: usize = 8 + 2 + 32 + 32 + AuditAction::SPACE + 32 + 8 + 1;
+    pub const MAX_METADATA_LENGTH: usize = 256;
+
+    pub const SPACE: usize = 8
+        + 2
+        + 2
+        + 32
+        + 32
+        + AuditAction::SPACE
+        + AuditCategory::SPACE
+        + AuditSeverity::SPACE
+        + 32
+        + (32 * 3)
+        + 4
+        + Self::MAX_METADATA_LENGTH
+        + 8
+        + 1;
 }

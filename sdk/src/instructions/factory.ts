@@ -627,7 +627,11 @@ export interface RecordAuditLogInstructionParams {
     authority: PublicKey;
     nonce: bigint;
     action: number;
+    category: number;
+    severity: number;
     reference: PublicKey;
+    indexedReferences: [PublicKey, PublicKey, PublicKey];
+    metadata: string;
 }
 
 export function buildRecordAuditLogInstruction(
@@ -637,7 +641,13 @@ export function buildRecordAuditLogInstruction(
         instructionDiscriminator("record_audit_log"),
         encodeU64(params.nonce),
         encodeEnum(params.action),
+        encodeEnum(params.category),
+        encodeEnum(params.severity),
         params.reference.toBuffer(),
+        ...params.indexedReferences.map((reference) =>
+            reference.toBuffer()
+        ),
+        encodeString(params.metadata),
     ]);
 
     return new TransactionInstruction({

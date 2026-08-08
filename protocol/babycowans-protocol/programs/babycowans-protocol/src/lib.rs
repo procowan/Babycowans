@@ -7,9 +7,9 @@ pub mod instructions;
 pub mod state;
 
 use crate::canonical_ecosystems::CanonicalEcosystem;
-use crate::state::AuditAction;
 use crate::state::GateType;
 use crate::state::{ApplicationStatus, AssetDomain, MembershipStatus, Role};
+use crate::state::{AuditAction, AuditCategory, AuditSeverity};
 use anchor_lang::prelude::*;
 
 pub use instructions::*;
@@ -187,8 +187,21 @@ pub mod babycowans_protocol {
         ctx: Context<RecordAuditLog>,
         nonce: u64,
         action: AuditAction,
+        category: AuditCategory,
+        severity: AuditSeverity,
         reference: Pubkey,
+        indexed_references: [Pubkey; 3],
+        metadata: String,
     ) -> Result<()> {
-        record_audit_log_handler(ctx, nonce, action, reference)
+        record_audit_log_handler(
+            ctx,
+            nonce,
+            action,
+            category,
+            severity,
+            reference,
+            indexed_references,
+            metadata,
+        )
     }
 }

@@ -79,6 +79,8 @@ pub enum BabycowansError {
 
     #[msg("The audit reference public key is invalid.")]
     InvalidAuditReference,
+    #[msg("The audit metadata exceeds the maximum allowed length.")]
+    AuditMetadataTooLong,
 
     #[msg("An arithmetic operation overflowed.")]
     ArithmeticOverflow,

@@ -197,9 +197,14 @@ pub struct ProtocolAuthorityTransferred {
 #[event]
 pub struct AuditLogRecorded {
     pub audit_log: Pubkey,
+    pub event_schema_version: u16,
     pub authority: Pubkey,
     pub application: Pubkey,
     pub action: crate::state::AuditAction,
+    pub category: crate::state::AuditCategory,
+    pub severity: crate::state::AuditSeverity,
     pub reference: Pubkey,
+    pub indexed_references: [Pubkey; 3],
+    pub metadata: String,
     pub timestamp: i64,
 }

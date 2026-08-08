@@ -112,10 +112,15 @@ export interface TokenGateAccount {
 
 export interface AuditLogAccount {
     version: number;
+    eventSchemaVersion: number;
     authority: PublicKey;
     application: PublicKey;
     action: number;
+    category: number;
+    severity: number;
     reference: PublicKey;
+    indexedReferences: [PublicKey, PublicKey, PublicKey];
+    metadata: string;
     createdAt: bigint;
     bump: number;
 }

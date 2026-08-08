@@ -1,10 +1,6 @@
-use anchor_lang::{
-    prelude::Pubkey,
-    InstructionData,
-    ToAccountMetas,
-};
+use anchor_lang::{prelude::Pubkey, InstructionData, ToAccountMetas};
 
-use babycowans_protocol::state::AuditAction;
+use babycowans_protocol::state::{AuditAction, AuditCategory, AuditSeverity};
 
 #[test]
 fn record_audit_log_instruction_is_constructible() {
@@ -27,18 +23,21 @@ fn record_audit_log_instruction_is_constructible() {
     let data = babycowans_protocol::instruction::RecordAuditLog {
         nonce,
         action: AuditAction::RegisterApplication,
+        category: AuditCategory::Application,
+        severity: AuditSeverity::Info,
         reference,
+        indexed_references: [reference, application, authority],
+        metadata: r#"{"source":"rust-test","version":2}"#.to_string(),
     }
     .data();
 
-    let accounts =
-        babycowans_protocol::accounts::RecordAuditLog {
-            application,
-            audit_log,
-            authority,
-            system_program: anchor_lang::system_program::ID,
-        }
-        .to_account_metas(None);
+    let accounts = babycowans_protocol::accounts::RecordAuditLog {
+        application,
+        audit_log,
+        authority,
+        system_program: anchor_lang::system_program::ID,
+    }
+    .to_account_metas(None);
 
     assert!(!data.is_empty());
     assert_eq!(accounts.len(), 4);
@@ -58,4 +57,23 @@ fn audit_action_enum_is_stable() {
     assert_eq!(AuditAction::ConfigureGate as u8, 9);
     assert_eq!(AuditAction::PauseProtocol as u8, 10);
     assert_eq!(AuditAction::TransferAuthority as u8, 11);
+}
+
+#[test]
+fn audit_category_enum_is_stable() {
+    assert_eq!(AuditCategory::Protocol as u8, 0);
+    assert_eq!(AuditCategory::Application as u8, 1);
+    assert_eq!(AuditCategory::Payment as u8, 2);
+    assert_eq!(AuditCategory::Access as u8, 3);
+    assert_eq!(AuditCategory::Membership as u8, 4);
+    assert_eq!(AuditCategory::Reward as u8, 5);
+    assert_eq!(AuditCategory::Security as u8, 6);
+}
+
+#[test]
+fn audit_severity_enum_is_stable() {
+    assert_eq!(AuditSeverity::Info as u8, 0);
+    assert_eq!(AuditSeverity::Notice as u8, 1);
+    assert_eq!(AuditSeverity::Warning as u8, 2);
+    assert_eq!(AuditSeverity::Critical as u8, 3);
 }
