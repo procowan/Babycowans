@@ -89,11 +89,17 @@ export interface RewardAccount {
     version: number;
     application: PublicKey;
     beneficiary: PublicKey;
+    rewardId: bigint;
     asset: PublicKey;
     amount: bigint;
     status: number;
     createdAt: bigint;
+    claimableAt: bigint;
+    expiresAt: bigint;
     claimedAt: bigint;
+    cancelledAt: bigint;
+    category: number;
+    reason: string;
     bump: number;
 }
 

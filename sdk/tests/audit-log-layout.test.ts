@@ -37,7 +37,7 @@ const indexedReferences: [
     authority,
 ];
 
-const metadata = '{"event":"payment_processed","version":2}';
+const metadata = '{"event":"payment_processed","auditEventSchemaVersion":1}';
 
 const nonce = 0x0102030405060708n;
 const action = 4;

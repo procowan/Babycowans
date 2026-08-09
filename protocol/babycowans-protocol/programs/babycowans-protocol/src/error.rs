@@ -62,6 +62,21 @@ pub enum BabycowansError {
     #[msg("The reward status does not allow this operation.")]
     InvalidRewardStatus,
 
+    #[msg("The reward schedule is invalid.")]
+    InvalidRewardSchedule,
+
+    #[msg("The reward expiration timestamp is invalid.")]
+    InvalidRewardExpiration,
+
+    #[msg("The reward is not claimable yet.")]
+    RewardNotYetClaimable,
+
+    #[msg("The reward has expired.")]
+    RewardExpired,
+
+    #[msg("The reward reason exceeds the maximum allowed length.")]
+    RewardReasonTooLong,
+
     #[msg("Token gating is disabled for this application asset.")]
     GatingDisabled,
 

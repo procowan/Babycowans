@@ -17,6 +17,7 @@ import {
     buildRegisterMembershipInstruction,
     buildUpdateApplicationStatusInstruction,
     buildCreateRewardInstruction,
+    buildCancelRewardInstruction,
     buildClaimRewardInstruction,
     instructionDiscriminator,
 } from "../src/instructions/index.js";
@@ -299,8 +300,13 @@ const createRewardIx = buildCreateRewardInstruction({
     reward,
     authority,
     beneficiary,
+    rewardId: 7n,
     asset,
     amount: 500n,
+    claimableAt: 0n,
+    expiresAt: 0n,
+    category: 2,
+    reason: "instruction-test",
 });
 
 expect(
@@ -330,6 +336,25 @@ expect(
 expect(claimRewardIx.keys.length === 2, "claim_reward account count");
 expect(claimRewardIx.keys[0].isWritable, "reward must be writable");
 expect(claimRewardIx.keys[1].isSigner, "beneficiary must sign");
+
+const cancelRewardIx = buildCancelRewardInstruction({
+    programId,
+    application,
+    reward,
+    authority,
+});
+
+expect(
+    sameBuffer(
+        cancelRewardIx.data.subarray(0, 8),
+        instructionDiscriminator("cancel_reward"),
+    ),
+    "cancel_reward discriminator mismatch",
+);
+
+expect(cancelRewardIx.keys.length === 3, "cancel_reward account count");
+expect(cancelRewardIx.keys[1].isWritable, "cancel reward must be writable");
+expect(cancelRewardIx.keys[2].isSigner, "cancel authority must sign");
 
 const invalidAssetCode = () =>
     buildRegisterAssetInstruction({

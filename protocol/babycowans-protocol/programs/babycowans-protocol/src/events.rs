@@ -138,15 +138,31 @@ pub struct MembershipUpdated {
 pub struct RewardCreated {
     pub application: Pubkey,
     pub beneficiary: Pubkey,
+    pub reward_id: u64,
     pub asset: Pubkey,
     pub amount: u64,
+    pub claimable_at: i64,
+    pub expires_at: i64,
+    pub category: u8,
+    pub reason: String,
     pub timestamp: i64,
+}
+
+#[event]
+pub struct RewardCancelled {
+    pub application: Pubkey,
+    pub beneficiary: Pubkey,
+    pub reward_id: u64,
+    pub asset: Pubkey,
+    pub amount: u64,
+    pub cancelled_at: i64,
 }
 
 #[event]
 pub struct RewardClaimed {
     pub application: Pubkey,
     pub beneficiary: Pubkey,
+    pub reward_id: u64,
     pub asset: Pubkey,
     pub amount: u64,
     pub timestamp: i64,

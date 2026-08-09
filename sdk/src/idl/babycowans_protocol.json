@@ -136,6 +136,36 @@
       ]
     },
     {
+      "name": "cancel_reward",
+      "discriminator": [
+        196,
+        65,
+        85,
+        171,
+        153,
+        160,
+        65,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "reward",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "claim_reward",
       "discriminator": [
         149,
@@ -250,6 +280,100 @@
         {
           "name": "rewards_enabled",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "configure_payment_policy",
+      "discriminator": [
+        30,
+        10,
+        156,
+        66,
+        96,
+        224,
+        180,
+        170
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_asset"
+        },
+        {
+          "name": "payment_policy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116,
+                  95,
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "application_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "minimum_amount",
+          "type": "u64"
+        },
+        {
+          "name": "maximum_amount",
+          "type": "u64"
+        },
+        {
+          "name": "payments_enabled",
+          "type": "bool"
+        },
+        {
+          "name": "protocol_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "application_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "treasury",
+          "type": "pubkey"
         }
       ]
     },
@@ -378,6 +502,10 @@
               {
                 "kind": "arg",
                 "path": "beneficiary"
+              },
+              {
+                "kind": "arg",
+                "path": "reward_id"
               }
             ]
           }
@@ -401,12 +529,32 @@
           "type": "pubkey"
         },
         {
+          "name": "reward_id",
+          "type": "u64"
+        },
+        {
           "name": "asset",
           "type": "pubkey"
         },
         {
           "name": "amount",
           "type": "u64"
+        },
+        {
+          "name": "claimable_at",
+          "type": "i64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        },
+        {
+          "name": "category",
+          "type": "u8"
+        },
+        {
+          "name": "reason",
+          "type": "string"
         }
       ]
     },
@@ -534,10 +682,64 @@
       ],
       "accounts": [
         {
+          "name": "protocol_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "application"
         },
         {
           "name": "application_asset"
+        },
+        {
+          "name": "payment_policy",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116,
+                  95,
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              },
+              {
+                "kind": "account",
+                "path": "application_asset"
+              }
+            ]
+          }
         },
         {
           "name": "asset_config"
@@ -556,6 +758,10 @@
         },
         {
           "name": "destination_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
           "writable": true
         },
         {
@@ -646,8 +852,37 @@
           }
         },
         {
+          "name": "category",
+          "type": {
+            "defined": {
+              "name": "AuditCategory"
+            }
+          }
+        },
+        {
+          "name": "severity",
+          "type": {
+            "defined": {
+              "name": "AuditSeverity"
+            }
+          }
+        },
+        {
           "name": "reference",
           "type": "pubkey"
+        },
+        {
+          "name": "indexed_references",
+          "type": {
+            "array": [
+              "pubkey",
+              3
+            ]
+          }
+        },
+        {
+          "name": "metadata",
+          "type": "string"
         }
       ]
     },
@@ -735,6 +970,14 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "selected_ecosystem",
+          "type": {
+            "defined": {
+              "name": "CanonicalEcosystem"
+            }
+          }
         }
       ]
     },
@@ -896,10 +1139,6 @@
           "type": "pubkey"
         },
         {
-          "name": "asset",
-          "type": "pubkey"
-        },
-        {
           "name": "tier",
           "type": "u16"
         },
@@ -1019,6 +1258,42 @@
       ]
     },
     {
+      "name": "update_application_status",
+      "discriminator": [
+        114,
+        44,
+        33,
+        113,
+        212,
+        202,
+        40,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "application",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_status",
+          "type": {
+            "defined": {
+              "name": "ApplicationStatus"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "update_membership",
       "discriminator": [
         65,
@@ -1062,6 +1337,61 @@
         {
           "name": "expires_at",
           "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "update_payment_policy",
+      "discriminator": [
+        222,
+        126,
+        18,
+        32,
+        21,
+        10,
+        33,
+        41
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "payment_policy",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "minimum_amount",
+          "type": "u64"
+        },
+        {
+          "name": "maximum_amount",
+          "type": "u64"
+        },
+        {
+          "name": "payments_enabled",
+          "type": "bool"
+        },
+        {
+          "name": "protocol_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "application_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "treasury",
+          "type": "pubkey"
         }
       ]
     },
@@ -1123,6 +1453,19 @@
         91,
         226,
         35
+      ]
+    },
+    {
+      "name": "ApplicationPaymentPolicy",
+      "discriminator": [
+        122,
+        138,
+        228,
+        174,
+        240,
+        71,
+        43,
+        30
       ]
     },
     {
@@ -1297,6 +1640,19 @@
       ]
     },
     {
+      "name": "ApplicationStatusChanged",
+      "discriminator": [
+        13,
+        105,
+        108,
+        31,
+        104,
+        45,
+        132,
+        33
+      ]
+    },
+    {
       "name": "AssetRegistered",
       "discriminator": [
         252,
@@ -1362,6 +1718,19 @@
       ]
     },
     {
+      "name": "PaymentPolicyConfigured",
+      "discriminator": [
+        98,
+        93,
+        146,
+        214,
+        120,
+        252,
+        227,
+        72
+      ]
+    },
+    {
       "name": "PaymentProcessed",
       "discriminator": [
         22,
@@ -1424,6 +1793,19 @@
         124,
         172,
         110
+      ]
+    },
+    {
+      "name": "RewardCancelled",
+      "discriminator": [
+        13,
+        81,
+        238,
+        128,
+        81,
+        154,
+        76,
+        62
       ]
     },
     {
@@ -1509,76 +1891,126 @@
     },
     {
       "code": 6008,
+      "name": "InvalidApplicationStatusTransition",
+      "msg": "The requested application status transition is invalid."
+    },
+    {
+      "code": 6009,
       "name": "InvalidAsset",
       "msg": "The asset configuration is invalid or disabled."
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "InvalidPaymentDestination",
       "msg": "The payment destination token account is invalid."
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidTokenProgram",
       "msg": "The token program does not match the registered asset."
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "PaymentsDisabled",
       "msg": "Payments are disabled for this application asset."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidAmount",
       "msg": "The payment amount must be greater than zero."
     },
     {
-      "code": 6013,
+      "code": 6014,
+      "name": "InvalidPaymentPolicy",
+      "msg": "The payment policy configuration is invalid."
+    },
+    {
+      "code": 6015,
+      "name": "PaymentBelowMinimum",
+      "msg": "The payment amount is below the configured minimum."
+    },
+    {
+      "code": 6016,
+      "name": "PaymentAboveMaximum",
+      "msg": "The payment amount exceeds the configured maximum."
+    },
+    {
+      "code": 6017,
       "name": "InvalidRoleMember",
       "msg": "The role member public key is invalid."
     },
     {
-      "code": 6014,
+      "code": 6018,
       "name": "InvalidExpiration",
       "msg": "The membership expiration timestamp is invalid."
     },
     {
-      "code": 6015,
+      "code": 6019,
       "name": "InvalidRewardStatus",
       "msg": "The reward status does not allow this operation."
     },
     {
-      "code": 6016,
+      "code": 6020,
+      "name": "InvalidRewardSchedule",
+      "msg": "The reward schedule is invalid."
+    },
+    {
+      "code": 6021,
+      "name": "InvalidRewardExpiration",
+      "msg": "The reward expiration timestamp is invalid."
+    },
+    {
+      "code": 6022,
+      "name": "RewardNotYetClaimable",
+      "msg": "The reward is not claimable yet."
+    },
+    {
+      "code": 6023,
+      "name": "RewardExpired",
+      "msg": "The reward has expired."
+    },
+    {
+      "code": 6024,
+      "name": "RewardReasonTooLong",
+      "msg": "The reward reason exceeds the maximum allowed length."
+    },
+    {
+      "code": 6025,
       "name": "GatingDisabled",
       "msg": "Token gating is disabled for this application asset."
     },
     {
-      "code": 6017,
+      "code": 6026,
       "name": "InvalidGate",
       "msg": "The token gate is invalid."
     },
     {
-      "code": 6018,
+      "code": 6027,
       "name": "GateDisabled",
       "msg": "The token gate is disabled."
     },
     {
-      "code": 6019,
+      "code": 6028,
       "name": "UnsupportedGateType",
       "msg": "This gate type is not supported by Version 1."
     },
     {
-      "code": 6020,
+      "code": 6029,
       "name": "InsufficientTokenBalance",
       "msg": "The wallet token balance is insufficient."
     },
     {
-      "code": 6021,
+      "code": 6030,
       "name": "InvalidAuditReference",
       "msg": "The audit reference public key is invalid."
     },
     {
-      "code": 6022,
+      "code": 6031,
+      "name": "AuditMetadataTooLong",
+      "msg": "The audit metadata exceeds the maximum allowed length."
+    },
+    {
+      "code": 6032,
       "name": "ArithmeticOverflow",
       "msg": "An arithmetic operation overflowed."
     }
@@ -1605,6 +2037,14 @@
             "name": "pending_authority",
             "type": {
               "option": "pubkey"
+            }
+          },
+          {
+            "name": "selected_ecosystem",
+            "type": {
+              "defined": {
+                "name": "CanonicalEcosystem"
+              }
             }
           },
           {
@@ -1771,6 +2211,62 @@
       }
     },
     {
+      "name": "ApplicationPaymentPolicy",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "minimum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "maximum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "payments_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "protocol_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "application_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "ApplicationRegistered",
       "type": {
         "kind": "struct",
@@ -1786,6 +2282,14 @@
           {
             "name": "application_id",
             "type": "u64"
+          },
+          {
+            "name": "selected_ecosystem",
+            "type": {
+              "defined": {
+                "name": "CanonicalEcosystem"
+              }
+            }
           },
           {
             "name": "name",
@@ -1918,6 +2422,42 @@
           },
           {
             "name": "Disabled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationStatusChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "previous_status",
+            "type": {
+              "defined": {
+                "name": "ApplicationStatus"
+              }
+            }
+          },
+          {
+            "name": "new_status",
+            "type": {
+              "defined": {
+                "name": "ApplicationStatus"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }
@@ -2087,12 +2627,45 @@
       }
     },
     {
+      "name": "AuditCategory",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Protocol"
+          },
+          {
+            "name": "Application"
+          },
+          {
+            "name": "Payment"
+          },
+          {
+            "name": "Access"
+          },
+          {
+            "name": "Membership"
+          },
+          {
+            "name": "Reward"
+          },
+          {
+            "name": "Security"
+          }
+        ]
+      }
+    },
+    {
       "name": "AuditLog",
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "event_schema_version",
             "type": "u16"
           },
           {
@@ -2112,8 +2685,37 @@
             }
           },
           {
+            "name": "category",
+            "type": {
+              "defined": {
+                "name": "AuditCategory"
+              }
+            }
+          },
+          {
+            "name": "severity",
+            "type": {
+              "defined": {
+                "name": "AuditSeverity"
+              }
+            }
+          },
+          {
             "name": "reference",
             "type": "pubkey"
+          },
+          {
+            "name": "indexed_references",
+            "type": {
+              "array": [
+                "pubkey",
+                3
+              ]
+            }
+          },
+          {
+            "name": "metadata",
+            "type": "string"
           },
           {
             "name": "created_at",
@@ -2136,6 +2738,10 @@
             "type": "pubkey"
           },
           {
+            "name": "event_schema_version",
+            "type": "u16"
+          },
+          {
             "name": "authority",
             "type": "pubkey"
           },
@@ -2152,12 +2758,87 @@
             }
           },
           {
+            "name": "category",
+            "type": {
+              "defined": {
+                "name": "AuditCategory"
+              }
+            }
+          },
+          {
+            "name": "severity",
+            "type": {
+              "defined": {
+                "name": "AuditSeverity"
+              }
+            }
+          },
+          {
             "name": "reference",
             "type": "pubkey"
           },
           {
+            "name": "indexed_references",
+            "type": {
+              "array": [
+                "pubkey",
+                3
+              ]
+            }
+          },
+          {
+            "name": "metadata",
+            "type": "string"
+          },
+          {
             "name": "timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuditSeverity",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Info"
+          },
+          {
+            "name": "Notice"
+          },
+          {
+            "name": "Warning"
+          },
+          {
+            "name": "Critical"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CanonicalEcosystem",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "BabyReptile"
+          },
+          {
+            "name": "BabyEagle"
+          },
+          {
+            "name": "BabyGoat"
+          },
+          {
+            "name": "BabyLion"
+          },
+          {
+            "name": "BabyBee"
+          },
+          {
+            "name": "BabyAgent"
           }
         ]
       }
@@ -2229,10 +2910,6 @@
             "type": "pubkey"
           },
           {
-            "name": "asset",
-            "type": "pubkey"
-          },
-          {
             "name": "tier",
             "type": "u16"
           },
@@ -2273,7 +2950,15 @@
             "type": "pubkey"
           },
           {
-            "name": "asset",
+            "name": "selected_ecosystem",
+            "type": {
+              "defined": {
+                "name": "CanonicalEcosystem"
+              }
+            }
+          },
+          {
+            "name": "token_address",
             "type": "pubkey"
           },
           {
@@ -2322,7 +3007,15 @@
             "type": "pubkey"
           },
           {
-            "name": "asset",
+            "name": "selected_ecosystem",
+            "type": {
+              "defined": {
+                "name": "CanonicalEcosystem"
+              }
+            }
+          },
+          {
+            "name": "token_address",
             "type": "pubkey"
           },
           {
@@ -2340,6 +3033,54 @@
           {
             "name": "expires_at",
             "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PaymentPolicyConfigured",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "payment_policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "minimum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "maximum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "payments_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "protocol_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "application_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
           },
           {
             "name": "timestamp",
@@ -2370,7 +3111,23 @@
             "type": "pubkey"
           },
           {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
             "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "net_amount",
+            "type": "u64"
+          },
+          {
+            "name": "protocol_fee",
+            "type": "u64"
+          },
+          {
+            "name": "application_fee",
             "type": "u64"
           },
           {
@@ -2516,6 +3273,10 @@
             "type": "pubkey"
           },
           {
+            "name": "reward_id",
+            "type": "u64"
+          },
+          {
             "name": "asset",
             "type": "pubkey"
           },
@@ -2536,12 +3297,64 @@
             "type": "i64"
           },
           {
+            "name": "claimable_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
             "name": "claimed_at",
             "type": "i64"
           },
           {
+            "name": "cancelled_at",
+            "type": "i64"
+          },
+          {
+            "name": "category",
+            "type": "u8"
+          },
+          {
+            "name": "reason",
+            "type": "string"
+          },
+          {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "reward_id",
+            "type": "u64"
+          },
+          {
+            "name": "asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "cancelled_at",
+            "type": "i64"
           }
         ]
       }
@@ -2558,6 +3371,10 @@
           {
             "name": "beneficiary",
             "type": "pubkey"
+          },
+          {
+            "name": "reward_id",
+            "type": "u64"
           },
           {
             "name": "asset",
@@ -2588,12 +3405,32 @@
             "type": "pubkey"
           },
           {
+            "name": "reward_id",
+            "type": "u64"
+          },
+          {
             "name": "asset",
             "type": "pubkey"
           },
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "claimable_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "category",
+            "type": "u8"
+          },
+          {
+            "name": "reason",
+            "type": "string"
           },
           {
             "name": "timestamp",

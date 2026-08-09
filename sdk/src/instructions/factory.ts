@@ -360,18 +360,44 @@ export interface CreateRewardInstructionParams {
     reward: PublicKey;
     authority: PublicKey;
     beneficiary: PublicKey;
+    rewardId?: bigint;
     asset: PublicKey;
     amount: bigint;
+    claimableAt?: bigint;
+    expiresAt?: bigint;
+    category?: number;
+    reason?: string;
 }
 
 export function buildCreateRewardInstruction(
     params: CreateRewardInstructionParams,
 ): TransactionInstruction {
+    const rewardId = params.rewardId ?? 0n;
+    const claimableAt = params.claimableAt ?? 0n;
+    const expiresAt = params.expiresAt ?? 0n;
+    const category = params.category ?? 0;
+    const reason = params.reason ?? "";
+
+    if (!Number.isInteger(category) || category < 0 || category > 255) {
+        throw new Error("Reward category must be an unsigned 8-bit integer.");
+    }
+
+    const claimableAtBuffer = Buffer.alloc(8);
+    claimableAtBuffer.writeBigInt64LE(claimableAt);
+
+    const expiresAtBuffer = Buffer.alloc(8);
+    expiresAtBuffer.writeBigInt64LE(expiresAt);
+
     const data = Buffer.concat([
         instructionDiscriminator("create_reward"),
         params.beneficiary.toBuffer(),
+        encodeU64(rewardId),
         params.asset.toBuffer(),
         encodeU64(params.amount),
+        claimableAtBuffer,
+        expiresAtBuffer,
+        Buffer.from([category]),
+        encodeString(reason),
     ]);
 
     return new TransactionInstruction({
@@ -384,6 +410,18 @@ export function buildCreateRewardInstruction(
         ],
         data,
     });
+}
+
+export function buildCreateRewardBatchInstructions(
+    rewards: readonly CreateRewardInstructionParams[],
+): TransactionInstruction[] {
+    if (rewards.length === 0) {
+        throw new Error("Reward batch must contain at least one reward.");
+    }
+
+    return rewards.map((reward) =>
+        buildCreateRewardInstruction(reward),
+    );
 }
 
 export interface ClaimRewardInstructionParams {
@@ -402,6 +440,27 @@ export function buildClaimRewardInstruction(
             createSignerKey(params.beneficiary),
         ],
         data: instructionDiscriminator("claim_reward"),
+    });
+}
+
+export interface CancelRewardInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    reward: PublicKey;
+    authority: PublicKey;
+}
+
+export function buildCancelRewardInstruction(
+    params: CancelRewardInstructionParams,
+): TransactionInstruction {
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(params.reward),
+            createSignerKey(params.authority),
+        ],
+        data: instructionDiscriminator("cancel_reward"),
     });
 }
 

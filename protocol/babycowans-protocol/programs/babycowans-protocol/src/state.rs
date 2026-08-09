@@ -278,16 +278,39 @@ pub struct Reward {
     pub version: u16,
     pub application: Pubkey,
     pub beneficiary: Pubkey,
+    pub reward_id: u64,
     pub asset: Pubkey,
     pub amount: u64,
     pub status: RewardStatus,
     pub created_at: i64,
+    pub claimable_at: i64,
+    pub expires_at: i64,
     pub claimed_at: i64,
+    pub cancelled_at: i64,
+    pub category: u8,
+    pub reason: String,
     pub bump: u8,
 }
 
 impl Reward {
-    pub const SPACE: usize = 8 + 2 + 32 + 32 + 32 + 8 + RewardStatus::SPACE + 8 + 8 + 1;
+    pub const MAX_REASON_LENGTH: usize = 128;
+
+    pub const SPACE: usize = 8 +                         // discriminator
+        2 +                         // version
+        32 +                        // application
+        32 +                        // beneficiary
+        8 +                         // reward_id
+        32 +                        // asset
+        8 +                         // amount
+        RewardStatus::SPACE +
+        8 +                         // created_at
+        8 +                         // claimable_at
+        8 +                         // expires_at
+        8 +                         // claimed_at
+        8 +                         // cancelled_at
+        1 +                         // category
+        4 + Self::MAX_REASON_LENGTH + // reason
+        1; // bump
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]

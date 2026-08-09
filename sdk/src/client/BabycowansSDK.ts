@@ -96,11 +96,13 @@ export class BabycowansSDK {
     findReward(
         application: PublicKey,
         beneficiary: PublicKey,
+        rewardId: bigint = 0n,
     ): [PublicKey, number] {
         return findRewardPda(
             this.programId,
             application,
             beneficiary,
+            rewardId,
         );
     }
 

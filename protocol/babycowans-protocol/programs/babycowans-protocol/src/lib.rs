@@ -144,14 +144,33 @@ pub mod babycowans_protocol {
     pub fn create_reward(
         ctx: Context<CreateReward>,
         beneficiary: Pubkey,
+        reward_id: u64,
         asset: Pubkey,
         amount: u64,
+        claimable_at: i64,
+        expires_at: i64,
+        category: u8,
+        reason: String,
     ) -> Result<()> {
-        create_reward_handler(ctx, beneficiary, asset, amount)
+        create_reward_handler(
+            ctx,
+            beneficiary,
+            reward_id,
+            asset,
+            amount,
+            claimable_at,
+            expires_at,
+            category,
+            reason,
+        )
     }
 
     pub fn claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
         claim_reward_handler(ctx)
+    }
+
+    pub fn cancel_reward(ctx: Context<CancelReward>) -> Result<()> {
+        cancel_reward_handler(ctx)
     }
 
     pub fn configure_token_gate(

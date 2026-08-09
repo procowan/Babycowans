@@ -27,7 +27,7 @@ fn record_audit_log_instruction_is_constructible() {
         severity: AuditSeverity::Info,
         reference,
         indexed_references: [reference, application, authority],
-        metadata: r#"{"source":"rust-test","version":2}"#.to_string(),
+        metadata: r#"{"source":"rust-test","auditEventSchemaVersion":1}"#.to_string(),
     }
     .data();
 

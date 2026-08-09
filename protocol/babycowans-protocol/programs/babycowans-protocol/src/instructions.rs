@@ -36,6 +36,9 @@ pub use create_reward::*;
 pub mod claim_reward;
 pub use claim_reward::*;
 
+pub mod cancel_reward;
+pub use cancel_reward::*;
+
 pub mod configure_token_gate;
 pub use configure_token_gate::*;
 

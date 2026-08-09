@@ -476,7 +476,7 @@ await send(
 runCommand("spl-token", [
     "mint",
     CANONICAL_MINT.toBase58(),
-    "1000",
+    "1001",
     payerTokenAccount.toBase58(),
     "--url",
     RPC_URL,
@@ -1155,10 +1155,13 @@ await send(
     [authority],
 );
 
+const GOLDEN_REWARD_ID = 0n;
+
 const [reward] = findRewardPda(
     PROGRAM_ID,
     application,
     payer.publicKey,
+    GOLDEN_REWARD_ID,
 );
 
 await send(
@@ -1169,8 +1172,13 @@ await send(
         reward,
         authority: authority.publicKey,
         beneficiary: payer.publicKey,
+        rewardId: GOLDEN_REWARD_ID,
         asset: CANONICAL_MINT,
         amount: REWARD_AMOUNT,
+        claimableAt: 0n,
+        expiresAt: 0n,
+        category: 0,
+        reason: "golden-path",
     }),
     [authority],
 );
@@ -1407,7 +1415,7 @@ await send(
         metadata: JSON.stringify({
             event: "payment_processed",
             ecosystem: phase.assetCode,
-            version: 2,
+            auditEventSchemaVersion: 1,
         }),
     }),
     [authority],

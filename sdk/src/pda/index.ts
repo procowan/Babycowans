@@ -112,12 +112,17 @@ export function findRewardPda(
     programId: PublicKey,
     application: PublicKey,
     beneficiary: PublicKey,
+    rewardId: bigint = 0n,
 ): [PublicKey, number] {
+    const rewardIdBuffer = Buffer.alloc(8);
+    rewardIdBuffer.writeBigUInt64LE(rewardId);
+
     return PublicKey.findProgramAddressSync(
         [
             REWARD_SEED,
             application.toBuffer(),
             beneficiary.toBuffer(),
+            rewardIdBuffer,
         ],
         programId,
     );
