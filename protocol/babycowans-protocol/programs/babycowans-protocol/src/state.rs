@@ -103,6 +103,40 @@ impl Application {
 }
 
 #[account]
+pub struct ApplicationConfig {
+    pub version: u16,
+    pub application: Pubkey,
+    pub website_uri: String,
+    pub logo_uri: String,
+    pub support_uri: String,
+    pub description: String,
+    pub metadata_uri: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+impl ApplicationConfig {
+    pub const MAX_WEBSITE_URI_LENGTH: usize = 256;
+    pub const MAX_LOGO_URI_LENGTH: usize = 256;
+    pub const MAX_SUPPORT_URI_LENGTH: usize = 256;
+    pub const MAX_DESCRIPTION_LENGTH: usize = 512;
+    pub const MAX_METADATA_URI_LENGTH: usize = 256;
+
+    pub const SPACE: usize = 8 + // discriminator
+        2 + // version
+        32 + // application
+        4 + Self::MAX_WEBSITE_URI_LENGTH +
+        4 + Self::MAX_LOGO_URI_LENGTH +
+        4 + Self::MAX_SUPPORT_URI_LENGTH +
+        4 + Self::MAX_DESCRIPTION_LENGTH +
+        4 + Self::MAX_METADATA_URI_LENGTH +
+        8 + // created_at
+        8 + // updated_at
+        1; // bump
+}
+
+#[account]
 pub struct ApplicationAsset {
     pub version: u16,
     pub application: Pubkey,

@@ -30,6 +30,22 @@ pub struct ApplicationRegistered {
 }
 
 #[event]
+pub struct ApplicationConfigConfigured {
+    pub application: Pubkey,
+    pub application_config: Pubkey,
+    pub authority: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct ApplicationConfigUpdated {
+    pub application: Pubkey,
+    pub application_config: Pubkey,
+    pub authority: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
 pub struct ApplicationStatusChanged {
     pub application: Pubkey,
     pub authority: Pubkey,

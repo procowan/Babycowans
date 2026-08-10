@@ -12,6 +12,12 @@ pub use register_application::*;
 pub use application_authority::*;
 pub use update_application_status::*;
 
+pub mod configure_application_config;
+pub use configure_application_config::*;
+
+pub mod update_application_config;
+pub use update_application_config::*;
+
 pub mod configure_application_asset;
 pub use configure_application_asset::*;
 

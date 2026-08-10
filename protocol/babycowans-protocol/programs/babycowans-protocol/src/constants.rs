@@ -17,3 +17,5 @@ pub const TOKEN_GATE_SEED: &[u8] = b"token_gate";
 pub const AUDIT_LOG_SEED: &[u8] = b"audit_log";
 
 pub const AUDIT_EVENT_SCHEMA_VERSION: u16 = 1;
+
+pub const APPLICATION_CONFIG_SEED: &[u8] = b"application_config";

@@ -4,6 +4,7 @@ const PROTOCOL_SEED = Buffer.from("protocol");
 const ASSET_SEED = Buffer.from("asset");
 const APPLICATION_SEED = Buffer.from("application");
 const APPLICATION_ASSET_SEED = Buffer.from("application_asset");
+const APPLICATION_CONFIG_SEED = Buffer.from("application_config");
 const PAYMENT_POLICY_SEED = Buffer.from("payment_policy");
 const APPLICATION_ROLE_SEED = Buffer.from("application_role");
 const MEMBERSHIP_SEED = Buffer.from("membership");
@@ -43,6 +44,19 @@ export function findApplicationPda(
             APPLICATION_SEED,
             authority.toBuffer(),
             idBuffer,
+        ],
+        programId,
+    );
+}
+
+export function findApplicationConfigPda(
+    programId: PublicKey,
+    application: PublicKey,
+): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+        [
+            APPLICATION_CONFIG_SEED,
+            application.toBuffer(),
         ],
         programId,
     );

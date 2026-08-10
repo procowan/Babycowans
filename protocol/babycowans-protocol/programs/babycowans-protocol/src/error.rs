@@ -26,6 +26,9 @@ pub enum BabycowansError {
     #[msg("The application is invalid or inactive.")]
     InvalidApplication,
 
+    #[msg("The application configuration contains an invalid or oversized field.")]
+    InvalidApplicationConfig,
+
     #[msg("The requested application status transition is invalid.")]
     InvalidApplicationStatusTransition,
 

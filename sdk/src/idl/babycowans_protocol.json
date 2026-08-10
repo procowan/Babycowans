@@ -284,6 +284,93 @@
       ]
     },
     {
+      "name": "configure_application_config",
+      "discriminator": [
+        187,
+        200,
+        83,
+        155,
+        202,
+        53,
+        150,
+        43
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  108,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "website_uri",
+          "type": "string"
+        },
+        {
+          "name": "logo_uri",
+          "type": "string"
+        },
+        {
+          "name": "support_uri",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "configure_gate_policy",
       "discriminator": [
         87,
@@ -1317,6 +1404,88 @@
       ]
     },
     {
+      "name": "update_application_config",
+      "discriminator": [
+        164,
+        130,
+        225,
+        248,
+        32,
+        67,
+        41,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  108,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "website_uri",
+          "type": "string"
+        },
+        {
+          "name": "logo_uri",
+          "type": "string"
+        },
+        {
+          "name": "support_uri",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "update_application_role",
       "discriminator": [
         167,
@@ -1675,6 +1844,19 @@
       ]
     },
     {
+      "name": "ApplicationConfig",
+      "discriminator": [
+        128,
+        79,
+        227,
+        42,
+        112,
+        217,
+        98,
+        148
+      ]
+    },
+    {
       "name": "ApplicationPaymentPolicy",
       "discriminator": [
         122,
@@ -1830,6 +2012,32 @@
         148,
         44,
         87
+      ]
+    },
+    {
+      "name": "ApplicationConfigConfigured",
+      "discriminator": [
+        204,
+        122,
+        249,
+        248,
+        93,
+        222,
+        95,
+        113
+      ]
+    },
+    {
+      "name": "ApplicationConfigUpdated",
+      "discriminator": [
+        99,
+        233,
+        41,
+        184,
+        137,
+        232,
+        191,
+        248
       ]
     },
     {
@@ -2175,196 +2383,201 @@
     },
     {
       "code": 6008,
+      "name": "InvalidApplicationConfig",
+      "msg": "The application configuration contains an invalid or oversized field."
+    },
+    {
+      "code": 6009,
       "name": "InvalidApplicationStatusTransition",
       "msg": "The requested application status transition is invalid."
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "InvalidAsset",
       "msg": "The asset configuration is invalid or disabled."
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidPaymentDestination",
       "msg": "The payment destination token account is invalid."
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "InvalidTokenProgram",
       "msg": "The token program does not match the registered asset."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "PaymentsDisabled",
       "msg": "Payments are disabled for this application asset."
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "InvalidAmount",
       "msg": "The payment amount must be greater than zero."
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "InvalidPaymentPolicy",
       "msg": "The payment policy configuration is invalid."
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "PaymentBelowMinimum",
       "msg": "The payment amount is below the configured minimum."
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "PaymentAboveMaximum",
       "msg": "The payment amount exceeds the configured maximum."
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "InvalidRoleMember",
       "msg": "The role member public key is invalid."
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "InvalidExpiration",
       "msg": "The membership expiration timestamp is invalid."
     },
     {
-      "code": 6019,
+      "code": 6020,
       "name": "InvalidMembershipConfiguration",
       "msg": "The membership configuration is invalid."
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "MembershipNotRenewable",
       "msg": "The membership is not renewable."
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "MembershipAutoExtendDisabled",
       "msg": "Automatic membership extension is disabled."
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "MembershipSuspended",
       "msg": "The membership is suspended and cannot be renewed."
     },
     {
-      "code": 6023,
+      "code": 6024,
       "name": "NotNftMembership",
       "msg": "This membership is not an NFT membership."
     },
     {
-      "code": 6024,
+      "code": 6025,
       "name": "InvalidNftMint",
       "msg": "The NFT mint does not match the membership."
     },
     {
-      "code": 6025,
+      "code": 6026,
       "name": "InvalidNftOwnership",
       "msg": "The member does not own the required NFT."
     },
     {
-      "code": 6026,
+      "code": 6027,
       "name": "InvalidRewardStatus",
       "msg": "The reward status does not allow this operation."
     },
     {
-      "code": 6027,
+      "code": 6028,
       "name": "InvalidRewardSchedule",
       "msg": "The reward schedule is invalid."
     },
     {
-      "code": 6028,
+      "code": 6029,
       "name": "InvalidRewardExpiration",
       "msg": "The reward expiration timestamp is invalid."
     },
     {
-      "code": 6029,
+      "code": 6030,
       "name": "RewardNotYetClaimable",
       "msg": "The reward is not claimable yet."
     },
     {
-      "code": 6030,
+      "code": 6031,
       "name": "RewardExpired",
       "msg": "The reward has expired."
     },
     {
-      "code": 6031,
+      "code": 6032,
       "name": "RewardReasonTooLong",
       "msg": "The reward reason exceeds the maximum allowed length."
     },
     {
-      "code": 6032,
+      "code": 6033,
       "name": "GatingDisabled",
       "msg": "Token gating is disabled for this application asset."
     },
     {
-      "code": 6033,
+      "code": 6034,
       "name": "InvalidGate",
       "msg": "The token gate is invalid."
     },
     {
-      "code": 6034,
+      "code": 6035,
       "name": "GateDisabled",
       "msg": "The token gate is disabled."
     },
     {
-      "code": 6035,
+      "code": 6036,
       "name": "UnsupportedGateType",
       "msg": "This gate type is not supported by Version 1."
     },
     {
-      "code": 6036,
+      "code": 6037,
       "name": "InsufficientTokenBalance",
       "msg": "The wallet token balance is insufficient."
     },
     {
-      "code": 6037,
+      "code": 6038,
       "name": "EmptyGatePolicy",
       "msg": "The gate policy contains no conditions."
     },
     {
-      "code": 6038,
+      "code": 6039,
       "name": "TooManyGateConditions",
       "msg": "The gate policy contains too many conditions."
     },
     {
-      "code": 6039,
+      "code": 6040,
       "name": "InvalidGateConditionGroup",
       "msg": "The gate policy contains an invalid condition group."
     },
     {
-      "code": 6040,
+      "code": 6041,
       "name": "InvalidGateCondition",
       "msg": "The gate condition is invalid."
     },
     {
-      "code": 6041,
+      "code": 6042,
       "name": "MembershipGateNotSatisfied",
       "msg": "The supplied membership does not satisfy the gate condition."
     },
     {
-      "code": 6042,
+      "code": 6043,
       "name": "NftGateNotSatisfied",
       "msg": "The supplied NFT ownership proof does not satisfy the gate condition."
     },
     {
-      "code": 6043,
+      "code": 6044,
       "name": "GatePolicyNotSatisfied",
       "msg": "No gate-policy condition group was satisfied."
     },
     {
-      "code": 6044,
+      "code": 6045,
       "name": "InvalidAuditReference",
       "msg": "The audit reference public key is invalid."
     },
     {
-      "code": 6045,
+      "code": 6046,
       "name": "AuditMetadataTooLong",
       "msg": "The audit metadata exceeds the maximum allowed length."
     },
     {
-      "code": 6046,
+      "code": 6047,
       "name": "ArithmeticOverflow",
       "msg": "An arithmetic operation overflowed."
     }
@@ -2555,6 +2768,102 @@
           },
           {
             "name": "new_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "website_uri",
+            "type": "string"
+          },
+          {
+            "name": "logo_uri",
+            "type": "string"
+          },
+          {
+            "name": "support_uri",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "metadata_uri",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationConfigConfigured",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_config",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ApplicationConfigUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_config",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
             "type": "pubkey"
           },
           {

@@ -10,6 +10,7 @@ import {
     findProtocolConfigPda,
     findRewardPda,
     findTokenGatePda,
+    findApplicationConfigPda,
     findGatePolicyPda,
 } from "../src/pda/index.js";
 
@@ -83,5 +84,58 @@ console.log("✓ PDA integration tests passed");
 
     console.log(
         "✓ Gate Policy PDA derivation",
+    );
+}
+
+/*
+ * Phase 6 ApplicationConfig PDA
+ */
+{
+    const application =
+        Keypair.generate().publicKey;
+
+    const [first, firstBump] =
+        findApplicationConfigPda(
+            programId,
+            application,
+        );
+
+    const [second, secondBump] =
+        findApplicationConfigPda(
+            programId,
+            application,
+        );
+
+    expect(
+        first.equals(second),
+        "ApplicationConfig PDA derivation must be deterministic",
+    );
+
+    expect(
+        firstBump === secondBump,
+        "ApplicationConfig PDA bump must be deterministic",
+    );
+
+    const [manual] =
+        await import("@solana/web3.js").then(
+            ({ PublicKey }) =>
+                PublicKey.findProgramAddressSync(
+                    [
+                        Buffer.from(
+                            "application_config",
+                        ),
+                        application.toBuffer(),
+                    ],
+                    programId,
+                ),
+        );
+
+    expect(
+        first.equals(manual),
+        "ApplicationConfig PDA must use application_config + application seeds",
+    );
+
+    console.log(
+        "✓ Phase 6 ApplicationConfig PDA",
     );
 }

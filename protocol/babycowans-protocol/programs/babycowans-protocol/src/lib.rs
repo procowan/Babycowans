@@ -58,6 +58,42 @@ pub mod babycowans_protocol {
         update_application_status_handler(ctx, new_status)
     }
 
+    pub fn configure_application_config(
+        ctx: Context<ConfigureApplicationConfig>,
+        website_uri: String,
+        logo_uri: String,
+        support_uri: String,
+        description: String,
+        metadata_uri: String,
+    ) -> Result<()> {
+        configure_application_config_handler(
+            ctx,
+            website_uri,
+            logo_uri,
+            support_uri,
+            description,
+            metadata_uri,
+        )
+    }
+
+    pub fn update_application_config(
+        ctx: Context<UpdateApplicationConfig>,
+        website_uri: String,
+        logo_uri: String,
+        support_uri: String,
+        description: String,
+        metadata_uri: String,
+    ) -> Result<()> {
+        update_application_config_handler(
+            ctx,
+            website_uri,
+            logo_uri,
+            support_uri,
+            description,
+            metadata_uri,
+        )
+    }
+
     pub fn configure_application_asset(
         ctx: Context<ConfigureApplicationAsset>,
         payments_enabled: bool,

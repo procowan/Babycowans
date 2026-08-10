@@ -21,6 +21,8 @@ import {
     buildClaimRewardInstruction,
     instructionDiscriminator,
     buildConfigureGatePolicyInstruction,
+    buildConfigureApplicationConfigInstruction,
+    buildUpdateApplicationConfigInstruction,
     buildVerifyGatePolicyInstruction,
 } from "../src/instructions/index.js";
 
@@ -487,3 +489,147 @@ expect(
 console.log(
     "✓ Gate Policy instruction encoding",
 );
+
+/*
+ * Phase 6 ApplicationConfig instructions
+ */
+{
+    const application =
+        Keypair.generate().publicKey;
+
+    const websiteUri =
+        "https://babycowans.example";
+    const logoUri =
+        "https://babycowans.example/logo.png";
+    const supportUri =
+        "https://babycowans.example/support";
+    const description =
+        "Babycowans application metadata";
+    const metadataUri =
+        "https://babycowans.example/metadata.json";
+
+    const configure =
+        buildConfigureApplicationConfigInstruction({
+            programId,
+            application,
+            authority,
+            websiteUri,
+            logoUri,
+            supportUri,
+            description,
+            metadataUri,
+        });
+
+    expect(
+        configure.programId.equals(programId),
+        "ConfigureApplicationConfig program id",
+    );
+
+    expect(
+        configure.keys.length === 4,
+        "ConfigureApplicationConfig account count",
+    );
+
+    expect(
+        configure.keys[0].pubkey.equals(application),
+        "ConfigureApplicationConfig application",
+    );
+
+    expect(
+        !configure.keys[0].isSigner
+            && !configure.keys[0].isWritable,
+        "ConfigureApplicationConfig application must be readonly",
+    );
+
+    expect(
+        !configure.keys[1].isSigner
+            && configure.keys[1].isWritable,
+        "ConfigureApplicationConfig config must be writable",
+    );
+
+    expect(
+        configure.keys[2].pubkey.equals(authority)
+            && configure.keys[2].isSigner
+            && configure.keys[2].isWritable,
+        "ConfigureApplicationConfig authority contract",
+    );
+
+    expect(
+        configure.keys[3].pubkey.equals(
+            SystemProgram.programId,
+        ),
+        "ConfigureApplicationConfig system program",
+    );
+
+    expect(
+        configure.data.subarray(0, 8).equals(
+            instructionDiscriminator(
+                "configure_application_config",
+            ),
+        ),
+        "ConfigureApplicationConfig discriminator",
+    );
+
+    const update =
+        buildUpdateApplicationConfigInstruction({
+            programId,
+            application,
+            authority,
+            websiteUri:
+                "https://updated.babycowans.example",
+            logoUri,
+            supportUri,
+            description:
+                "Updated Babycowans application metadata",
+            metadataUri,
+        });
+
+    expect(
+        update.programId.equals(programId),
+        "UpdateApplicationConfig program id",
+    );
+
+    expect(
+        update.keys.length === 3,
+        "UpdateApplicationConfig account count",
+    );
+
+    expect(
+        update.keys[0].pubkey.equals(application)
+            && !update.keys[0].isSigner
+            && !update.keys[0].isWritable,
+        "UpdateApplicationConfig application contract",
+    );
+
+    expect(
+        !update.keys[1].isSigner
+            && update.keys[1].isWritable,
+        "UpdateApplicationConfig config must be writable",
+    );
+
+    expect(
+        update.keys[2].pubkey.equals(authority)
+            && update.keys[2].isSigner
+            && !update.keys[2].isWritable,
+        "UpdateApplicationConfig authority must be readonly signer",
+    );
+
+    expect(
+        update.data.subarray(0, 8).equals(
+            instructionDiscriminator(
+                "update_application_config",
+            ),
+        ),
+        "UpdateApplicationConfig discriminator",
+    );
+
+    expect(
+        configure.data.length > 8
+            && update.data.length > 8,
+        "ApplicationConfig instructions must encode metadata payloads",
+    );
+
+    console.log(
+        "✓ Phase 6 ApplicationConfig instructions",
+    );
+}

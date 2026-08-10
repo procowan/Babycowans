@@ -24,6 +24,7 @@ const requiredInstructions = [
     "cancel_reward",
     "claim_reward",
     "configure_application_asset",
+    "configure_application_config",
     "configure_gate_policy",
     "configure_payment_policy",
     "configure_token_gate",
@@ -38,6 +39,7 @@ const requiredInstructions = [
     "register_membership",
     "renew_membership",
     "set_protocol_pause",
+    "update_application_config",
     "update_application_role",
     "update_application_status",
     "update_membership",
@@ -69,3 +71,61 @@ expect(
 );
 
 console.log("✓ IDL and builder consistency tests passed");
+
+const applicationConfigAccount =
+    BABYCOWANS_IDL.accounts.find(
+        (account) =>
+            account.name === "ApplicationConfig",
+    );
+
+expect(
+    applicationConfigAccount !== undefined,
+    "IDL account missing: ApplicationConfig",
+);
+
+const applicationConfigType =
+    BABYCOWANS_IDL.types.find(
+        (type) =>
+            type.name === "ApplicationConfig",
+    );
+
+expect(
+    applicationConfigType !== undefined,
+    "IDL type missing: ApplicationConfig",
+);
+
+if (
+    applicationConfigType !== undefined
+    && applicationConfigType.type.kind === "struct"
+) {
+    const fields =
+        applicationConfigType.type.fields.map(
+            (field) => field.name,
+        );
+
+    const expectedFields = [
+        "version",
+        "application",
+        "website_uri",
+        "logo_uri",
+        "support_uri",
+        "description",
+        "metadata_uri",
+        "created_at",
+        "updated_at",
+        "bump",
+    ];
+
+    expect(
+        fields.length === expectedFields.length
+            && fields.every(
+                (field, index) =>
+                    field === expectedFields[index],
+            ),
+        "IDL ApplicationConfig field layout mismatch",
+    );
+}
+
+console.log(
+    "✓ Phase 6 ApplicationConfig IDL consistency",
+);

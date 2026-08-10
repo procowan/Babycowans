@@ -1,6 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import {
+    decodeApplicationConfigAccount,
     readBool,
     readI64,
     readOptionPublicKey,
@@ -53,3 +54,107 @@ expect(noKey.value === null, "Option<Pubkey> None mismatch");
 expect(noKey.nextOffset === 118, "Option<Pubkey> None offset mismatch");
 
 console.log("✓ Decoder layout tests passed");
+
+{
+    const application = new PublicKey(
+        Buffer.from(
+            Array.from(
+                { length: 32 },
+                (_, index) => 200 - index,
+            ),
+        ),
+    );
+
+    const strings = [
+        "https://babycowans.example",
+        "https://babycowans.example/logo.png",
+        "https://babycowans.example/support",
+        "Babycowans application metadata",
+        "https://babycowans.example/metadata.json",
+    ];
+
+    const encodedStrings = strings.map((value) => {
+        const bytes = Buffer.from(value, "utf8");
+        const encoded = Buffer.alloc(4 + bytes.length);
+
+        encoded.writeUInt32LE(bytes.length, 0);
+        bytes.copy(encoded, 4);
+
+        return encoded;
+    });
+
+    const accountData = Buffer.concat([
+        Buffer.alloc(8),
+        Buffer.from([1, 0]),
+        application.toBuffer(),
+        ...encodedStrings,
+        (() => {
+            const value = Buffer.alloc(8);
+            value.writeBigInt64LE(1_700_000_000n);
+            return value;
+        })(),
+        (() => {
+            const value = Buffer.alloc(8);
+            value.writeBigInt64LE(1_700_000_100n);
+            return value;
+        })(),
+        Buffer.from([254]),
+    ]);
+
+    const decoded =
+        decodeApplicationConfigAccount(accountData);
+
+    expect(
+        decoded.version === 1,
+        "ApplicationConfig version mismatch",
+    );
+
+    expect(
+        decoded.application.equals(application),
+        "ApplicationConfig application mismatch",
+    );
+
+    expect(
+        decoded.websiteUri === strings[0],
+        "ApplicationConfig websiteUri mismatch",
+    );
+
+    expect(
+        decoded.logoUri === strings[1],
+        "ApplicationConfig logoUri mismatch",
+    );
+
+    expect(
+        decoded.supportUri === strings[2],
+        "ApplicationConfig supportUri mismatch",
+    );
+
+    expect(
+        decoded.description === strings[3],
+        "ApplicationConfig description mismatch",
+    );
+
+    expect(
+        decoded.metadataUri === strings[4],
+        "ApplicationConfig metadataUri mismatch",
+    );
+
+    expect(
+        decoded.createdAt === 1_700_000_000n,
+        "ApplicationConfig createdAt mismatch",
+    );
+
+    expect(
+        decoded.updatedAt === 1_700_000_100n,
+        "ApplicationConfig updatedAt mismatch",
+    );
+
+    expect(
+        decoded.bump === 254,
+        "ApplicationConfig bump mismatch",
+    );
+
+    console.log(
+        "✓ Phase 6 ApplicationConfig decoder layout",
+    );
+}

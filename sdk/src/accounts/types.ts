@@ -32,6 +32,19 @@ export interface ApplicationAccount {
     bump: number;
 }
 
+export interface ApplicationConfigAccount {
+    version: number;
+    application: PublicKey;
+    websiteUri: string;
+    logoUri: string;
+    supportUri: string;
+    description: string;
+    metadataUri: string;
+    createdAt: bigint;
+    updatedAt: bigint;
+    bump: number;
+}
+
 export interface ApplicationAssetAccount {
     version: number;
     application: PublicKey;

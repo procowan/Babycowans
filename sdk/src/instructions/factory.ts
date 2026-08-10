@@ -22,6 +22,7 @@ import {
 
 import {
     findApplicationAssetPda,
+    findApplicationConfigPda,
     findPaymentPolicyPda,
     findApplicationPda,
     findAssetConfigPda,
@@ -119,6 +120,89 @@ export function buildRegisterAssetInstruction(
             createReadonlyKey(params.mint),
             createSignerKey(params.authority),
             createReadonlyKey(SystemProgram.programId),
+        ],
+        data,
+    });
+}
+
+export interface ConfigureApplicationConfigInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    authority: PublicKey;
+    websiteUri: string;
+    logoUri: string;
+    supportUri: string;
+    description: string;
+    metadataUri: string;
+}
+
+export function buildConfigureApplicationConfigInstruction(
+    params: ConfigureApplicationConfigInstructionParams,
+): TransactionInstruction {
+    const [applicationConfig] = findApplicationConfigPda(
+        params.programId,
+        params.application,
+    );
+
+    const data = Buffer.concat([
+        instructionDiscriminator("configure_application_config"),
+        encodeString(params.websiteUri),
+        encodeString(params.logoUri),
+        encodeString(params.supportUri),
+        encodeString(params.description),
+        encodeString(params.metadataUri),
+    ]);
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(applicationConfig),
+            createSignerKey(params.authority),
+            createReadonlyKey(SystemProgram.programId),
+        ],
+        data,
+    });
+}
+
+export interface UpdateApplicationConfigInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    authority: PublicKey;
+    websiteUri: string;
+    logoUri: string;
+    supportUri: string;
+    description: string;
+    metadataUri: string;
+}
+
+export function buildUpdateApplicationConfigInstruction(
+    params: UpdateApplicationConfigInstructionParams,
+): TransactionInstruction {
+    const [applicationConfig] = findApplicationConfigPda(
+        params.programId,
+        params.application,
+    );
+
+    const data = Buffer.concat([
+        instructionDiscriminator("update_application_config"),
+        encodeString(params.websiteUri),
+        encodeString(params.logoUri),
+        encodeString(params.supportUri),
+        encodeString(params.description),
+        encodeString(params.metadataUri),
+    ]);
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(applicationConfig),
+            {
+                pubkey: params.authority,
+                isSigner: true,
+                isWritable: false,
+            },
         ],
         data,
     });

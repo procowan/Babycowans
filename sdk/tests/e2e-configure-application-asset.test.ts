@@ -9,7 +9,9 @@ import {
 } from "@solana/web3.js";
 
 import {
+    CanonicalEcosystem,
     buildConfigureApplicationAssetInstruction,
+    buildRegisterApplicationInstruction,
     findApplicationAssetPda,
     findApplicationPda,
     findAssetConfigPda,
@@ -33,7 +35,9 @@ const PAYMENT_DESTINATION = new PublicKey(
     "E9xEWThW5trSxRySxoFefzgLZUf1U77XLwBznzgTfQ8C",
 );
 
-const APPLICATION_ID = 1785944594341n;
+const applicationId =
+    BigInt(Date.now()) * 1_000n +
+    BigInt(process.pid % 1_000);
 
 const secretKey = Uint8Array.from(
     JSON.parse(
@@ -50,8 +54,41 @@ const connection = new Connection(RPC_URL, "confirmed");
 const [application] = findApplicationPda(
     PROGRAM_ID,
     authority.publicKey,
-    APPLICATION_ID,
+    applicationId,
 );
+
+const registerApplicationInstruction =
+    buildRegisterApplicationInstruction({
+        programId: PROGRAM_ID,
+        authority: authority.publicKey,
+        applicationId,
+        name: "Configure Application Asset E2E",
+        selectedEcosystem: CanonicalEcosystem.BabyReptile,
+    });
+
+await sendAndConfirmTransaction(
+    connection,
+    new Transaction().add(registerApplicationInstruction),
+    [authority],
+    {
+        commitment: "confirmed",
+    },
+);
+
+const applicationAccount =
+    await connection.getAccountInfo(application);
+
+if (applicationAccount === null) {
+    throw new Error(
+        "Configure E2E fixture failed to create its Application account.",
+    );
+}
+
+if (!applicationAccount.owner.equals(PROGRAM_ID)) {
+    throw new Error(
+        "Configure E2E fixture Application is not owned by the Babycowans program.",
+    );
+}
 
 const [assetConfig] = findAssetConfigPda(
     PROGRAM_ID,
