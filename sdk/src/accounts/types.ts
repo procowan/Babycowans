@@ -77,11 +77,18 @@ export interface MembershipAccount {
     version: number;
     application: PublicKey;
     member: PublicKey;
-    asset: PublicKey;
     tier: number;
     status: number;
+    membershipKind: number;
+    nftMint: PublicKey;
+    nftVerified: boolean;
     expiresAt: bigint;
+    renewable: boolean;
+    autoExtend: boolean;
+    renewalDuration: bigint;
+    renewalCount: number;
     createdAt: bigint;
+    updatedAt: bigint;
     bump: number;
 }
 

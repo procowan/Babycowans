@@ -59,6 +59,27 @@ pub enum BabycowansError {
     #[msg("The membership expiration timestamp is invalid.")]
     InvalidExpiration,
 
+    #[msg("The membership configuration is invalid.")]
+    InvalidMembershipConfiguration,
+
+    #[msg("The membership is not renewable.")]
+    MembershipNotRenewable,
+
+    #[msg("Automatic membership extension is disabled.")]
+    MembershipAutoExtendDisabled,
+
+    #[msg("The membership is suspended and cannot be renewed.")]
+    MembershipSuspended,
+
+    #[msg("This membership is not an NFT membership.")]
+    NotNftMembership,
+
+    #[msg("The NFT mint does not match the membership.")]
+    InvalidNftMint,
+
+    #[msg("The member does not own the required NFT.")]
+    InvalidNftOwnership,
+
     #[msg("The reward status does not allow this operation.")]
     InvalidRewardStatus,
 

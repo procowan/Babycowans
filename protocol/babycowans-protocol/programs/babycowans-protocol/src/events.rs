@@ -119,6 +119,11 @@ pub struct MembershipRegistered {
     pub token_address: Pubkey,
     pub tier: u16,
     pub expires_at: i64,
+    pub renewable: bool,
+    pub auto_extend: bool,
+    pub renewal_duration: i64,
+    pub membership_kind: crate::state::MembershipKind,
+    pub nft_mint: Pubkey,
     pub timestamp: i64,
 }
 
@@ -131,6 +136,34 @@ pub struct MembershipUpdated {
     pub tier: u16,
     pub status: crate::state::MembershipStatus,
     pub expires_at: i64,
+    pub renewable: bool,
+    pub auto_extend: bool,
+    pub renewal_duration: i64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct NftMembershipVerified {
+    pub application: Pubkey,
+    pub member: Pubkey,
+    pub selected_ecosystem: CanonicalEcosystem,
+    pub token_address: Pubkey,
+    pub nft_mint: Pubkey,
+    pub nft_token_account: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct MembershipRenewed {
+    pub application: Pubkey,
+    pub member: Pubkey,
+    pub selected_ecosystem: CanonicalEcosystem,
+    pub token_address: Pubkey,
+    pub tier: u16,
+    pub expires_at: i64,
+    pub auto_extend: bool,
+    pub renewal_duration: i64,
+    pub renewal_count: u32,
     pub timestamp: i64,
 }
 

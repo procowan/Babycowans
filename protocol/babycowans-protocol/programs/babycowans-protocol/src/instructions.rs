@@ -27,6 +27,12 @@ pub use manage_application_role::*;
 pub mod register_membership;
 pub use register_membership::*;
 
+pub mod renew_membership;
+pub use renew_membership::*;
+
+pub mod verify_nft_membership;
+pub use verify_nft_membership::*;
+
 pub mod update_membership;
 pub use update_membership::*;
 

@@ -3,11 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     error::BabycowansError,
     events::MembershipUpdated,
-    state::{
-        Application,
-        Membership,
-        MembershipStatus,
-    },
+    state::{Application, Membership, MembershipStatus},
 };
 
 #[derive(Accounts)]
@@ -32,6 +28,9 @@ pub fn update_membership_handler(
     tier: u16,
     status: MembershipStatus,
     expires_at: i64,
+    renewable: bool,
+    auto_extend: bool,
+    renewal_duration: i64,
 ) -> Result<()> {
     let clock = Clock::get()?;
 
@@ -40,14 +39,27 @@ pub fn update_membership_handler(
         BabycowansError::InvalidExpiration
     );
 
+    require!(
+        !auto_extend || renewable,
+        BabycowansError::InvalidMembershipConfiguration
+    );
+
+    require!(
+        (!renewable && renewal_duration == 0) || (renewable && renewal_duration > 0),
+        BabycowansError::InvalidMembershipConfiguration
+    );
+
     let membership = &mut ctx.accounts.membership;
 
     membership.tier = tier;
     membership.status = status;
     membership.expires_at = expires_at;
+    membership.renewable = renewable;
+    membership.auto_extend = auto_extend;
+    membership.renewal_duration = renewal_duration;
+    membership.updated_at = clock.unix_timestamp;
 
-    let selected_ecosystem =
-        ctx.accounts.application.selected_ecosystem;
+    let selected_ecosystem = ctx.accounts.application.selected_ecosystem;
 
     emit!(MembershipUpdated {
         application: membership.application,
@@ -57,6 +69,9 @@ pub fn update_membership_handler(
         tier,
         status,
         expires_at,
+        renewable,
+        auto_extend,
+        renewal_duration,
         timestamp: clock.unix_timestamp,
     });
 

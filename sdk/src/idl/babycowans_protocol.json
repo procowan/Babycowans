@@ -1145,6 +1145,65 @@
         {
           "name": "expires_at",
           "type": "i64"
+        },
+        {
+          "name": "renewable",
+          "type": "bool"
+        },
+        {
+          "name": "auto_extend",
+          "type": "bool"
+        },
+        {
+          "name": "renewal_duration",
+          "type": "i64"
+        },
+        {
+          "name": "membership_kind",
+          "type": {
+            "defined": {
+              "name": "MembershipKind"
+            }
+          }
+        },
+        {
+          "name": "nft_mint",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "renew_membership",
+      "discriminator": [
+        233,
+        115,
+        41,
+        188,
+        251,
+        104,
+        51,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "membership",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "requested_expires_at",
+          "type": "i64"
         }
       ]
     },
@@ -1337,6 +1396,18 @@
         {
           "name": "expires_at",
           "type": "i64"
+        },
+        {
+          "name": "renewable",
+          "type": "bool"
+        },
+        {
+          "name": "auto_extend",
+          "type": "bool"
+        },
+        {
+          "name": "renewal_duration",
+          "type": "i64"
         }
       ]
     },
@@ -1423,6 +1494,36 @@
         },
         {
           "name": "user_token_account"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "verify_nft_membership",
+      "discriminator": [
+        131,
+        13,
+        206,
+        145,
+        112,
+        48,
+        186,
+        150
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "membership",
+          "writable": true
+        },
+        {
+          "name": "member",
+          "signer": true
+        },
+        {
+          "name": "nft_token_account"
         }
       ],
       "args": []
@@ -1705,6 +1806,19 @@
       ]
     },
     {
+      "name": "MembershipRenewed",
+      "discriminator": [
+        150,
+        105,
+        74,
+        95,
+        12,
+        172,
+        95,
+        76
+      ]
+    },
+    {
       "name": "MembershipUpdated",
       "discriminator": [
         177,
@@ -1715,6 +1829,19 @@
         175,
         185,
         24
+      ]
+    },
+    {
+      "name": "NftMembershipVerified",
+      "discriminator": [
+        195,
+        41,
+        5,
+        3,
+        134,
+        180,
+        122,
+        252
       ]
     },
     {
@@ -1946,71 +2073,106 @@
     },
     {
       "code": 6019,
+      "name": "InvalidMembershipConfiguration",
+      "msg": "The membership configuration is invalid."
+    },
+    {
+      "code": 6020,
+      "name": "MembershipNotRenewable",
+      "msg": "The membership is not renewable."
+    },
+    {
+      "code": 6021,
+      "name": "MembershipAutoExtendDisabled",
+      "msg": "Automatic membership extension is disabled."
+    },
+    {
+      "code": 6022,
+      "name": "MembershipSuspended",
+      "msg": "The membership is suspended and cannot be renewed."
+    },
+    {
+      "code": 6023,
+      "name": "NotNftMembership",
+      "msg": "This membership is not an NFT membership."
+    },
+    {
+      "code": 6024,
+      "name": "InvalidNftMint",
+      "msg": "The NFT mint does not match the membership."
+    },
+    {
+      "code": 6025,
+      "name": "InvalidNftOwnership",
+      "msg": "The member does not own the required NFT."
+    },
+    {
+      "code": 6026,
       "name": "InvalidRewardStatus",
       "msg": "The reward status does not allow this operation."
     },
     {
-      "code": 6020,
+      "code": 6027,
       "name": "InvalidRewardSchedule",
       "msg": "The reward schedule is invalid."
     },
     {
-      "code": 6021,
+      "code": 6028,
       "name": "InvalidRewardExpiration",
       "msg": "The reward expiration timestamp is invalid."
     },
     {
-      "code": 6022,
+      "code": 6029,
       "name": "RewardNotYetClaimable",
       "msg": "The reward is not claimable yet."
     },
     {
-      "code": 6023,
+      "code": 6030,
       "name": "RewardExpired",
       "msg": "The reward has expired."
     },
     {
-      "code": 6024,
+      "code": 6031,
       "name": "RewardReasonTooLong",
       "msg": "The reward reason exceeds the maximum allowed length."
     },
     {
-      "code": 6025,
+      "code": 6032,
       "name": "GatingDisabled",
       "msg": "Token gating is disabled for this application asset."
     },
     {
-      "code": 6026,
+      "code": 6033,
       "name": "InvalidGate",
       "msg": "The token gate is invalid."
     },
     {
-      "code": 6027,
+      "code": 6034,
       "name": "GateDisabled",
       "msg": "The token gate is disabled."
     },
     {
-      "code": 6028,
+      "code": 6035,
       "name": "UnsupportedGateType",
       "msg": "This gate type is not supported by Version 1."
     },
     {
-      "code": 6029,
+      "code": 6036,
       "name": "InsufficientTokenBalance",
       "msg": "The wallet token balance is insufficient."
     },
     {
-      "code": 6030,
+      "code": 6037,
       "name": "InvalidAuditReference",
       "msg": "The audit reference public key is invalid."
     },
     {
-      "code": 6031,
+      "code": 6038,
       "name": "AuditMetadataTooLong",
       "msg": "The audit metadata exceeds the maximum allowed length."
     },
     {
-      "code": 6032,
+      "code": 6039,
       "name": "ArithmeticOverflow",
       "msg": "An arithmetic operation overflowed."
     }
@@ -2922,16 +3084,66 @@
             }
           },
           {
+            "name": "membership_kind",
+            "type": {
+              "defined": {
+                "name": "MembershipKind"
+              }
+            }
+          },
+          {
+            "name": "nft_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "nft_verified",
+            "type": "bool"
+          },
+          {
             "name": "expires_at",
             "type": "i64"
+          },
+          {
+            "name": "renewable",
+            "type": "bool"
+          },
+          {
+            "name": "auto_extend",
+            "type": "bool"
+          },
+          {
+            "name": "renewal_duration",
+            "type": "i64"
+          },
+          {
+            "name": "renewal_count",
+            "type": "u32"
           },
           {
             "name": "created_at",
             "type": "i64"
           },
           {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MembershipKind",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Standard"
+          },
+          {
+            "name": "Nft"
           }
         ]
       }
@@ -2968,6 +3180,82 @@
           {
             "name": "expires_at",
             "type": "i64"
+          },
+          {
+            "name": "renewable",
+            "type": "bool"
+          },
+          {
+            "name": "auto_extend",
+            "type": "bool"
+          },
+          {
+            "name": "renewal_duration",
+            "type": "i64"
+          },
+          {
+            "name": "membership_kind",
+            "type": {
+              "defined": {
+                "name": "MembershipKind"
+              }
+            }
+          },
+          {
+            "name": "nft_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MembershipRenewed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "selected_ecosystem",
+            "type": {
+              "defined": {
+                "name": "CanonicalEcosystem"
+              }
+            }
+          },
+          {
+            "name": "token_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u16"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "auto_extend",
+            "type": "bool"
+          },
+          {
+            "name": "renewal_duration",
+            "type": "i64"
+          },
+          {
+            "name": "renewal_count",
+            "type": "u32"
           },
           {
             "name": "timestamp",
@@ -3033,6 +3321,58 @@
           {
             "name": "expires_at",
             "type": "i64"
+          },
+          {
+            "name": "renewable",
+            "type": "bool"
+          },
+          {
+            "name": "auto_extend",
+            "type": "bool"
+          },
+          {
+            "name": "renewal_duration",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NftMembershipVerified",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "member",
+            "type": "pubkey"
+          },
+          {
+            "name": "selected_ecosystem",
+            "type": {
+              "defined": {
+                "name": "CanonicalEcosystem"
+              }
+            }
+          },
+          {
+            "name": "token_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "nft_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "nft_token_account",
+            "type": "pubkey"
           },
           {
             "name": "timestamp",

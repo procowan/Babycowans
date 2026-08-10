@@ -8,7 +8,7 @@ pub mod state;
 
 use crate::canonical_ecosystems::CanonicalEcosystem;
 use crate::state::GateType;
-use crate::state::{ApplicationStatus, AssetDomain, MembershipStatus, Role};
+use crate::state::{ApplicationStatus, AssetDomain, MembershipKind, MembershipStatus, Role};
 use crate::state::{AuditAction, AuditCategory, AuditSeverity};
 use anchor_lang::prelude::*;
 
@@ -128,8 +128,23 @@ pub mod babycowans_protocol {
         member: Pubkey,
         tier: u16,
         expires_at: i64,
+        renewable: bool,
+        auto_extend: bool,
+        renewal_duration: i64,
+        membership_kind: MembershipKind,
+        nft_mint: Pubkey,
     ) -> Result<()> {
-        register_membership_handler(ctx, member, tier, expires_at)
+        register_membership_handler(
+            ctx,
+            member,
+            tier,
+            expires_at,
+            renewable,
+            auto_extend,
+            renewal_duration,
+            membership_kind,
+            nft_mint,
+        )
     }
 
     pub fn update_membership(
@@ -137,8 +152,30 @@ pub mod babycowans_protocol {
         tier: u16,
         status: MembershipStatus,
         expires_at: i64,
+        renewable: bool,
+        auto_extend: bool,
+        renewal_duration: i64,
     ) -> Result<()> {
-        update_membership_handler(ctx, tier, status, expires_at)
+        update_membership_handler(
+            ctx,
+            tier,
+            status,
+            expires_at,
+            renewable,
+            auto_extend,
+            renewal_duration,
+        )
+    }
+
+    pub fn renew_membership(
+        ctx: Context<RenewMembership>,
+        requested_expires_at: i64,
+    ) -> Result<()> {
+        renew_membership_handler(ctx, requested_expires_at)
+    }
+
+    pub fn verify_nft_membership(ctx: Context<VerifyNftMembership>) -> Result<()> {
+        verify_nft_membership_handler(ctx)
     }
 
     pub fn create_reward(

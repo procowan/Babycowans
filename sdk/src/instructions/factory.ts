@@ -325,21 +325,35 @@ export interface RegisterMembershipInstructionParams {
     member: PublicKey;
     tier: number;
     expiresAt: bigint;
+    renewable?: boolean;
+    autoExtend?: boolean;
+    renewalDuration?: bigint;
+    membershipKind?: number;
+    nftMint?: PublicKey;
 }
 
 export function buildRegisterMembershipInstruction(
     params: RegisterMembershipInstructionParams,
 ): TransactionInstruction {
+    const renewable = params.renewable ?? false;
+    const autoExtend = params.autoExtend ?? false;
+    const renewalDuration = params.renewalDuration ?? 0n;
+    const membershipKind = params.membershipKind ?? 0;
+    const nftMint = params.nftMint ?? PublicKey.default;
+
     const data = Buffer.concat([
         instructionDiscriminator("register_membership"),
-        Buffer.concat([
-            params.member.toBuffer(),
-            Buffer.from(Uint8Array.of(
-                params.tier & 0xff,
-                (params.tier >> 8) & 0xff,
-            )),
-            encodeU64(params.expiresAt),
-        ]),
+        params.member.toBuffer(),
+        Buffer.from(Uint8Array.of(
+            params.tier & 0xff,
+            (params.tier >> 8) & 0xff,
+        )),
+        encodeU64(params.expiresAt),
+        encodeBool(renewable),
+        encodeBool(autoExtend),
+        encodeU64(renewalDuration),
+        encodeEnum(membershipKind),
+        nftMint.toBuffer(),
     ]);
 
     return new TransactionInstruction({
@@ -351,6 +365,94 @@ export function buildRegisterMembershipInstruction(
             createReadonlyKey(SystemProgram.programId),
         ],
         data,
+    });
+}
+
+export interface UpdateMembershipInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    membership: PublicKey;
+    authority: PublicKey;
+    tier: number;
+    status: number;
+    expiresAt: bigint;
+    renewable: boolean;
+    autoExtend: boolean;
+    renewalDuration: bigint;
+}
+
+export function buildUpdateMembershipInstruction(
+    params: UpdateMembershipInstructionParams,
+): TransactionInstruction {
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(params.membership),
+            createSignerKey(params.authority),
+        ],
+        data: Buffer.concat([
+            instructionDiscriminator("update_membership"),
+            Buffer.from(Uint8Array.of(
+                params.tier & 0xff,
+                (params.tier >> 8) & 0xff,
+            )),
+            encodeEnum(params.status),
+            encodeU64(params.expiresAt),
+            encodeBool(params.renewable),
+            encodeBool(params.autoExtend),
+            encodeU64(params.renewalDuration),
+        ]),
+    });
+}
+
+export interface RenewMembershipInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    membership: PublicKey;
+    authority: PublicKey;
+    requestedExpiresAt?: bigint;
+}
+
+export function buildRenewMembershipInstruction(
+    params: RenewMembershipInstructionParams,
+): TransactionInstruction {
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(params.membership),
+            createSignerKey(params.authority),
+        ],
+        data: Buffer.concat([
+            instructionDiscriminator("renew_membership"),
+            encodeU64(params.requestedExpiresAt ?? 0n),
+        ]),
+    });
+}
+
+export interface VerifyNftMembershipInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    membership: PublicKey;
+    member: PublicKey;
+    nftTokenAccount: PublicKey;
+}
+
+export function buildVerifyNftMembershipInstruction(
+    params: VerifyNftMembershipInstructionParams,
+): TransactionInstruction {
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createWritableKey(params.membership),
+            createSignerKey(params.member),
+            createReadonlyKey(params.nftTokenAccount),
+        ],
+        data: instructionDiscriminator(
+            "verify_nft_membership",
+        ),
     });
 }
 

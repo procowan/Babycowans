@@ -237,6 +237,16 @@ impl MembershipStatus {
     pub const SPACE: usize = 1;
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MembershipKind {
+    Standard,
+    Nft,
+}
+
+impl MembershipKind {
+    pub const SPACE: usize = 1;
+}
+
 #[account]
 pub struct Membership {
     pub version: u16,
@@ -244,8 +254,16 @@ pub struct Membership {
     pub member: Pubkey,
     pub tier: u16,
     pub status: MembershipStatus,
+    pub membership_kind: MembershipKind,
+    pub nft_mint: Pubkey,
+    pub nft_verified: bool,
     pub expires_at: i64,
+    pub renewable: bool,
+    pub auto_extend: bool,
+    pub renewal_duration: i64,
+    pub renewal_count: u32,
     pub created_at: i64,
+    pub updated_at: i64,
     pub bump: u8,
 }
 
@@ -256,8 +274,16 @@ impl Membership {
         32 +                    // member
         2 +                     // tier
         MembershipStatus::SPACE +
+        MembershipKind::SPACE +
+        32 +                    // nft_mint
+        1 +                     // nft_verified
         8 +                     // expires_at
+        1 +                     // renewable
+        1 +                     // auto_extend
+        8 +                     // renewal_duration
+        4 +                     // renewal_count
         8 +                     // created_at
+        8 +                     // updated_at
         1; // bump
 }
 
