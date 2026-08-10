@@ -62,3 +62,9 @@ pub use record_audit_log::*;
 
 pub mod update_payment_policy;
 pub use update_payment_policy::*;
+
+pub mod configure_gate_policy;
+pub use configure_gate_policy::*;
+
+pub mod verify_gate_policy;
+pub use verify_gate_policy::*;

@@ -257,3 +257,22 @@ pub struct AuditLogRecorded {
     pub metadata: String,
     pub timestamp: i64,
 }
+
+#[event]
+pub struct GatePolicyConfigured {
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub condition_count: u8,
+    pub group_count: u8,
+    pub enabled: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct GatePolicyAccessVerified {
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub wallet: Pubkey,
+    pub satisfied_group: u8,
+    pub timestamp: i64,
+}

@@ -137,3 +137,23 @@ export interface AuditLogAccount {
     createdAt: bigint;
     bump: number;
 }
+
+
+export interface GateConditionAccount {
+    group: number;
+    conditionType: number;
+    mint: PublicKey;
+    minimumAmount: bigint;
+    minimumTier: number;
+}
+
+export interface GatePolicyAccount {
+    version: number;
+    application: PublicKey;
+    applicationAsset: PublicKey;
+    conditions: GateConditionAccount[];
+    enabled: boolean;
+    createdAt: bigint;
+    updatedAt: bigint;
+    bump: number;
+}

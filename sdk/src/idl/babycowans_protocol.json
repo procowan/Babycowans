@@ -284,6 +284,83 @@
       ]
     },
     {
+      "name": "configure_gate_policy",
+      "discriminator": [
+        87,
+        126,
+        122,
+        163,
+        139,
+        222,
+        94,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_asset"
+        },
+        {
+          "name": "gate_policy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  116,
+                  101,
+                  95,
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "application_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "application"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "conditions",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "GateCondition"
+              }
+            }
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "configure_payment_policy",
       "discriminator": [
         30,
@@ -1499,6 +1576,47 @@
       "args": []
     },
     {
+      "name": "verify_gate_policy",
+      "discriminator": [
+        19,
+        225,
+        144,
+        201,
+        1,
+        118,
+        114,
+        64
+      ],
+      "accounts": [
+        {
+          "name": "application"
+        },
+        {
+          "name": "application_asset"
+        },
+        {
+          "name": "gate_policy"
+        },
+        {
+          "name": "wallet",
+          "signer": true
+        },
+        {
+          "name": "hold_token_account",
+          "optional": true
+        },
+        {
+          "name": "membership",
+          "optional": true
+        },
+        {
+          "name": "nft_token_account",
+          "optional": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "verify_nft_membership",
       "discriminator": [
         131,
@@ -1606,6 +1724,19 @@
         130,
         101,
         244
+      ]
+    },
+    {
+      "name": "GatePolicy",
+      "discriminator": [
+        3,
+        77,
+        45,
+        55,
+        30,
+        166,
+        143,
+        147
       ]
     },
     {
@@ -1790,6 +1921,32 @@
         197,
         161,
         61
+      ]
+    },
+    {
+      "name": "GatePolicyAccessVerified",
+      "discriminator": [
+        217,
+        236,
+        207,
+        73,
+        72,
+        235,
+        189,
+        225
+      ]
+    },
+    {
+      "name": "GatePolicyConfigured",
+      "discriminator": [
+        53,
+        167,
+        234,
+        166,
+        185,
+        113,
+        29,
+        152
       ]
     },
     {
@@ -2163,16 +2320,51 @@
     },
     {
       "code": 6037,
+      "name": "EmptyGatePolicy",
+      "msg": "The gate policy contains no conditions."
+    },
+    {
+      "code": 6038,
+      "name": "TooManyGateConditions",
+      "msg": "The gate policy contains too many conditions."
+    },
+    {
+      "code": 6039,
+      "name": "InvalidGateConditionGroup",
+      "msg": "The gate policy contains an invalid condition group."
+    },
+    {
+      "code": 6040,
+      "name": "InvalidGateCondition",
+      "msg": "The gate condition is invalid."
+    },
+    {
+      "code": 6041,
+      "name": "MembershipGateNotSatisfied",
+      "msg": "The supplied membership does not satisfy the gate condition."
+    },
+    {
+      "code": 6042,
+      "name": "NftGateNotSatisfied",
+      "msg": "The supplied NFT ownership proof does not satisfy the gate condition."
+    },
+    {
+      "code": 6043,
+      "name": "GatePolicyNotSatisfied",
+      "msg": "No gate-policy condition group was satisfied."
+    },
+    {
+      "code": 6044,
       "name": "InvalidAuditReference",
       "msg": "The audit reference public key is invalid."
     },
     {
-      "code": 6038,
+      "code": 6045,
       "name": "AuditMetadataTooLong",
       "msg": "The audit metadata exceeds the maximum allowed length."
     },
     {
-      "code": 6039,
+      "code": 6046,
       "name": "ArithmeticOverflow",
       "msg": "An arithmetic operation overflowed."
     }
@@ -3029,6 +3221,165 @@
           {
             "name": "minimum_amount",
             "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GateCondition",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "group",
+            "docs": [
+              "Conditions with the same group execute with AND semantics.",
+              "Distinct groups execute with OR semantics."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "condition_type",
+            "type": {
+              "defined": {
+                "name": "GateConditionType"
+              }
+            }
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "minimum_amount",
+            "type": "u64"
+          },
+          {
+            "name": "minimum_tier",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GateConditionType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "HoldAmount"
+          },
+          {
+            "name": "MembershipTier"
+          },
+          {
+            "name": "NftOwnership"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GatePolicy",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u16"
+          },
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "conditions",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "GateCondition"
+                }
+              }
+            }
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GatePolicyAccessVerified",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "satisfied_group",
+            "type": "u8"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GatePolicyConfigured",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "application",
+            "type": "pubkey"
+          },
+          {
+            "name": "application_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "condition_count",
+            "type": "u8"
+          },
+          {
+            "name": "group_count",
+            "type": "u8"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
           },
           {
             "name": "timestamp",

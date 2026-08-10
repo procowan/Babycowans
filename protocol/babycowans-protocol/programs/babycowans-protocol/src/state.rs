@@ -369,6 +369,64 @@ impl TokenGate {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GateConditionType {
+    HoldAmount,
+    MembershipTier,
+    NftOwnership,
+}
+
+impl GateConditionType {
+    pub const SPACE: usize = 1;
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GateCondition {
+    /// Conditions with the same group execute with AND semantics.
+    /// Distinct groups execute with OR semantics.
+    pub group: u8,
+    pub condition_type: GateConditionType,
+    pub mint: Pubkey,
+    pub minimum_amount: u64,
+    pub minimum_tier: u16,
+}
+
+impl GateCondition {
+    pub const SPACE: usize = 1 +                         // group
+        GateConditionType::SPACE +
+        32 +                        // mint
+        8 +                         // minimum_amount
+        2; // minimum_tier
+}
+
+#[account]
+pub struct GatePolicy {
+    pub version: u16,
+    pub application: Pubkey,
+    pub application_asset: Pubkey,
+    pub conditions: Vec<GateCondition>,
+    pub enabled: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+impl GatePolicy {
+    pub const MAX_CONDITIONS: usize = 6;
+    pub const MAX_GROUPS: usize = 3;
+
+    pub const SPACE: usize = 8 +                         // discriminator
+        2 +                         // version
+        32 +                        // application
+        32 +                        // application_asset
+        4 +                         // Vec length prefix
+        Self::MAX_CONDITIONS * GateCondition::SPACE +
+        1 +                         // enabled
+        8 +                         // created_at
+        8 +                         // updated_at
+        1; // bump
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AuditAction {
     InitializeProtocol,
     RegisterApplication,

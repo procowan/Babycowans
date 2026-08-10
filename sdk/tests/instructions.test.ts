@@ -20,6 +20,8 @@ import {
     buildCancelRewardInstruction,
     buildClaimRewardInstruction,
     instructionDiscriminator,
+    buildConfigureGatePolicyInstruction,
+    buildVerifyGatePolicyInstruction,
 } from "../src/instructions/index.js";
 
 function expect(condition: boolean, message: string) {
@@ -376,3 +378,112 @@ try {
 expect(rejectedInvalidCode, "invalid asset code must be rejected");
 
 console.log("✓ Instruction integration tests passed");
+
+
+const gatePolicy =
+    Keypair.generate().publicKey;
+
+const gateWallet =
+    Keypair.generate().publicKey;
+
+const gateBrcMint =
+    Keypair.generate().publicKey;
+
+const gateNftMint =
+    Keypair.generate().publicKey;
+
+const gateHoldTokenAccount =
+    Keypair.generate().publicKey;
+
+const gateMembership =
+    Keypair.generate().publicKey;
+
+const gateNftTokenAccount =
+    Keypair.generate().publicKey;
+
+const configureGatePolicyIx =
+    buildConfigureGatePolicyInstruction({
+        programId,
+        application,
+        applicationAsset,
+        gatePolicy,
+        authority,
+        enabled: true,
+        conditions: [
+            {
+                group: 0,
+                conditionType: 0,
+                mint: gateBrcMint,
+                minimumAmount: 100n,
+                minimumTier: 0,
+            },
+            {
+                group: 0,
+                conditionType: 1,
+                mint: PublicKey.default,
+                minimumAmount: 0n,
+                minimumTier: 3,
+            },
+            {
+                group: 1,
+                conditionType: 2,
+                mint: gateNftMint,
+                minimumAmount: 0n,
+                minimumTier: 0,
+            },
+        ],
+    });
+
+expect(
+    configureGatePolicyIx.keys.length === 5,
+    "configure_gate_policy account count",
+);
+
+expect(
+    sameBuffer(
+        configureGatePolicyIx.data.subarray(0, 8),
+        instructionDiscriminator(
+            "configure_gate_policy",
+        ),
+    ),
+    "configure_gate_policy discriminator mismatch",
+);
+
+expect(
+    configureGatePolicyIx.data.length > 8,
+    "configure_gate_policy must encode policy conditions",
+);
+
+const verifyGatePolicyIx =
+    buildVerifyGatePolicyInstruction({
+        programId,
+        application,
+        applicationAsset,
+        gatePolicy,
+        wallet: gateWallet,
+        holdTokenAccount:
+            gateHoldTokenAccount,
+        membership:
+            gateMembership,
+        nftTokenAccount:
+            gateNftTokenAccount,
+    });
+
+expect(
+    verifyGatePolicyIx.keys.length === 7,
+    "verify_gate_policy account count",
+);
+
+expect(
+    sameBuffer(
+        verifyGatePolicyIx.data,
+        instructionDiscriminator(
+            "verify_gate_policy",
+        ),
+    ),
+    "verify_gate_policy discriminator mismatch",
+);
+
+console.log(
+    "✓ Gate Policy instruction encoding",
+);

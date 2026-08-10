@@ -822,3 +822,128 @@ export function buildRecordAuditLogInstruction(
         data,
     });
 }
+
+
+export interface GateConditionInput {
+    group: number;
+    conditionType: number;
+    mint: PublicKey;
+    minimumAmount?: bigint;
+    minimumTier?: number;
+}
+
+function encodeGateCondition(
+    condition: GateConditionInput,
+): Buffer {
+    const group = Buffer.from([
+        condition.group,
+    ]);
+
+    const minimumTier = Buffer.alloc(2);
+    minimumTier.writeUInt16LE(
+        condition.minimumTier ?? 0,
+    );
+
+    return Buffer.concat([
+        group,
+        encodeEnum(condition.conditionType),
+        condition.mint.toBuffer(),
+        encodeU64(condition.minimumAmount ?? 0n),
+        minimumTier,
+    ]);
+}
+
+export interface ConfigureGatePolicyInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    applicationAsset: PublicKey;
+    gatePolicy: PublicKey;
+    authority: PublicKey;
+    conditions: readonly GateConditionInput[];
+    enabled: boolean;
+}
+
+export function buildConfigureGatePolicyInstruction(
+    params: ConfigureGatePolicyInstructionParams,
+): TransactionInstruction {
+    if (
+        params.conditions.length === 0
+        || params.conditions.length > 6
+    ) {
+        throw new Error(
+            "Gate policy must contain between 1 and 6 conditions.",
+        );
+    }
+
+    const length = Buffer.alloc(4);
+
+    length.writeUInt32LE(
+        params.conditions.length,
+    );
+
+    const data = Buffer.concat([
+        instructionDiscriminator(
+            "configure_gate_policy",
+        ),
+        length,
+        ...params.conditions.map(
+            encodeGateCondition,
+        ),
+        encodeBool(params.enabled),
+    ]);
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createReadonlyKey(params.applicationAsset),
+            createWritableKey(params.gatePolicy),
+            createSignerKey(params.authority),
+            createReadonlyKey(SystemProgram.programId),
+        ],
+        data,
+    });
+}
+
+export interface VerifyGatePolicyInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    applicationAsset: PublicKey;
+    gatePolicy: PublicKey;
+    wallet: PublicKey;
+    holdTokenAccount?: PublicKey;
+    membership?: PublicKey;
+    nftTokenAccount?: PublicKey;
+}
+
+export function buildVerifyGatePolicyInstruction(
+    params: VerifyGatePolicyInstructionParams,
+): TransactionInstruction {
+    /*
+     * Anchor optional-account convention:
+     * programId is used as the sentinel when evidence is absent.
+     */
+    const absent = params.programId;
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createReadonlyKey(params.application),
+            createReadonlyKey(params.applicationAsset),
+            createReadonlyKey(params.gatePolicy),
+            createSignerKey(params.wallet),
+            createReadonlyKey(
+                params.holdTokenAccount ?? absent,
+            ),
+            createReadonlyKey(
+                params.membership ?? absent,
+            ),
+            createReadonlyKey(
+                params.nftTokenAccount ?? absent,
+            ),
+        ],
+        data: instructionDiscriminator(
+            "verify_gate_policy",
+        ),
+    });
+}

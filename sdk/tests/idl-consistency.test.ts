@@ -24,6 +24,7 @@ const requiredInstructions = [
     "cancel_reward",
     "claim_reward",
     "configure_application_asset",
+    "configure_gate_policy",
     "configure_payment_policy",
     "configure_token_gate",
     "create_reward",
@@ -42,6 +43,7 @@ const requiredInstructions = [
     "update_membership",
     "update_payment_policy",
     "verify_gate_access",
+    "verify_gate_policy",
     "verify_nft_membership",
 ] as const;
 

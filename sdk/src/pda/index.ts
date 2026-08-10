@@ -162,3 +162,17 @@ export function findAuditLogPda(
         programId,
     );
 }
+
+
+export function findGatePolicyPda(
+    programId: PublicKey,
+    applicationAsset: PublicKey,
+): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+        [
+            Buffer.from("gate_policy"),
+            applicationAsset.toBuffer(),
+        ],
+        programId,
+    );
+}

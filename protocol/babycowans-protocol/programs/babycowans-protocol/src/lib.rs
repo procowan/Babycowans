@@ -224,6 +224,18 @@ pub mod babycowans_protocol {
         verify_gate_access_handler(ctx)
     }
 
+    pub fn configure_gate_policy(
+        ctx: Context<ConfigureGatePolicy>,
+        conditions: Vec<crate::state::GateCondition>,
+        enabled: bool,
+    ) -> Result<()> {
+        configure_gate_policy_handler(ctx, conditions, enabled)
+    }
+
+    pub fn verify_gate_policy(ctx: Context<VerifyGatePolicy>) -> Result<()> {
+        verify_gate_policy_handler(ctx)
+    }
+
     pub fn set_protocol_pause(ctx: Context<SetProtocolPause>, paused: bool) -> Result<()> {
         set_protocol_pause_handler(ctx, paused)
     }

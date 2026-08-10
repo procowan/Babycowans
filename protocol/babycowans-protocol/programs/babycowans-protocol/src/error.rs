@@ -113,6 +113,27 @@ pub enum BabycowansError {
     #[msg("The wallet token balance is insufficient.")]
     InsufficientTokenBalance,
 
+    #[msg("The gate policy contains no conditions.")]
+    EmptyGatePolicy,
+
+    #[msg("The gate policy contains too many conditions.")]
+    TooManyGateConditions,
+
+    #[msg("The gate policy contains an invalid condition group.")]
+    InvalidGateConditionGroup,
+
+    #[msg("The gate condition is invalid.")]
+    InvalidGateCondition,
+
+    #[msg("The supplied membership does not satisfy the gate condition.")]
+    MembershipGateNotSatisfied,
+
+    #[msg("The supplied NFT ownership proof does not satisfy the gate condition.")]
+    NftGateNotSatisfied,
+
+    #[msg("No gate-policy condition group was satisfied.")]
+    GatePolicyNotSatisfied,
+
     #[msg("The audit reference public key is invalid.")]
     InvalidAuditReference,
     #[msg("The audit metadata exceeds the maximum allowed length.")]

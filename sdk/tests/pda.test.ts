@@ -10,6 +10,7 @@ import {
     findProtocolConfigPda,
     findRewardPda,
     findTokenGatePda,
+    findGatePolicyPda,
 } from "../src/pda/index.js";
 
 function expect(condition: boolean, message: string) {
@@ -51,3 +52,36 @@ expect(gate !== undefined, "gate");
 expect(audit !== undefined, "audit");
 
 console.log("✓ PDA integration tests passed");
+
+
+{
+    const programId = Keypair.generate().publicKey;
+    const applicationAsset =
+        Keypair.generate().publicKey;
+
+    const [first, firstBump] =
+        findGatePolicyPda(
+            programId,
+            applicationAsset,
+        );
+
+    const [second, secondBump] =
+        findGatePolicyPda(
+            programId,
+            applicationAsset,
+        );
+
+    expect(
+        first.equals(second),
+        "Gate Policy PDA derivation must be deterministic",
+    );
+
+    expect(
+        firstBump === secondBump,
+        "Gate Policy PDA bump must be deterministic",
+    );
+
+    console.log(
+        "✓ Gate Policy PDA derivation",
+    );
+}
