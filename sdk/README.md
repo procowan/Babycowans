@@ -1,58 +1,94 @@
 # @babycowans/core-sdk
 
-Official TypeScript SDK for the Babycowans Protocol.
+Official TypeScript SDK for **Babycowans Protocol V1.0.0**.
 
-## Installation
+## What it provides
+
+The package exposes:
+
+- `BabycowansSDK` High-Level client;
+- canonical ecosystem registry;
+- protocol PDA helpers;
+- instruction builders;
+- typed account models and decoders;
+- metadata/application-experience helpers;
+- Event Decoder;
+- Read API;
+- canonical Application Bootstrap Batch;
+- transaction helpers;
+- protocol IDL.
+
+## Client setup
+
+```ts
+import {
+    BabycowansSDK,
+} from "@babycowans/core-sdk";
+
+import {
+    Connection,
+    PublicKey,
+} from "@solana/web3.js";
+
+const client =
+    new BabycowansSDK({
+        connection:
+            new Connection(
+                "http://127.0.0.1:8899",
+                "confirmed",
+            ),
+
+        programId:
+            new PublicKey(
+                process.env.BABYCOWANS_PROGRAM_ID!,
+            ),
+    });
+```
+
+## High-Level capabilities
+
+Current High-Level methods cover:
+
+- application registration;
+- application bootstrap batching;
+- payments;
+- rewards;
+- application configuration;
+- membership lifecycle;
+- NFT membership verification;
+- token gates;
+- event decoding;
+- application/membership/reward/audit reads.
+
+## Typecheck
 
 ```bash
-yarn add @babycowans/core-sdk
+npm run typecheck
 ```
 
-## Local Development
+## Build
 
 ```bash
-yarn install
-yarn build
+npm run build
 ```
 
-## Tests
+## Documentation
 
-```bash
-yarn test:pda
-yarn test:instructions
-yarn test:idl
-yarn test:decoder
-```
+Start from the repository root:
 
-## Basic Client
+- `README.md`
+- `docs/PROTOCOL.md`
+- `docs/ARCHITECTURE.md`
+- `docs/SDK.md`
+- `docs/API.md`
+- `docs/COOKBOOK.md`
+- `docs/MIGRATION.md`
 
-```typescript
-import { BabycowansSDK } from "@babycowans/core-sdk";
+## Important integration rules
 
-const sdk = new BabycowansSDK({
-    connection,
-    programId,
-});
-```
-
-## Included Modules
-
-- high-level client
-- PDA utilities
-- instruction factory
-- transaction helpers
-- account fetchers
-- typed account interfaces
-- canonical protocol IDL
-
-## Compatibility
-
-```text
-Anchor 1.0.2
-```
-
-The canonical IDL is included at:
-
-```text
-src/idl/babycowans_protocol.json
-```
+- Do not hardcode remembered canonical token addresses.
+- Do not duplicate PDA seed logic.
+- Do not manually duplicate event layouts.
+- Preserve `bigint` for protocol integers requiring full fidelity.
+- Keep canonical ecosystem identity independent from application metadata.
+- Treat historical `specifications/` content as design history rather than current API reference.
