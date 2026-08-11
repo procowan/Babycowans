@@ -65,6 +65,13 @@ import type {
 import { AccountFetcher } from "../fetchers/index.js";
 import { TransactionHelper } from "../transactions/index.js";
 
+import { decodeBabycowansEventLogs } from "../events/index.js";
+
+import type {
+    DecodeEventLogsOptions,
+    DecodedBabycowansEvent,
+} from "../events/index.js";
+
 export interface RegisterApplicationParams {
     authority: Signer;
     applicationId: bigint;
@@ -1175,6 +1182,35 @@ export class BabycowansSDK {
             wallet:
                 wallet.publicKey,
         };
+    }
+
+    /**
+     * Retrieves a confirmed transaction and decodes Babycowans events
+     * from its Solana log messages in original emission order.
+     *
+     * A transaction that is not available at the requested commitment
+     * produces an empty event list.
+     */
+    async decodeEvents(
+        signature: string,
+        options: DecodeEventLogsOptions = {},
+    ): Promise<DecodedBabycowansEvent[]> {
+        const transaction =
+            await this.connection.getTransaction(
+                signature,
+                {
+                    commitment: "confirmed",
+                    maxSupportedTransactionVersion: 0,
+                },
+            );
+
+        return decodeBabycowansEventLogs(
+            transaction?.meta?.logMessages,
+            {
+                ...options,
+                programId: this.programId,
+            },
+        );
     }
 
     async accountExists(

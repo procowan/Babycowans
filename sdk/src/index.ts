@@ -12,3 +12,5 @@ export * from "./accounts/index.js";
 export * from "./ecosystems/index.js";
 export * from "./onboarding/index.js";
 export * from "./metadata/index.js";
+
+export * from "./events/index.js";
