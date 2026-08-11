@@ -21,23 +21,109 @@ import {
     findMembershipPda,
 } from "../src/pda/index.js";
 
+
+import {
+    CanonicalEcosystem,
+    getCanonicalEcosystem,
+} from "../src/ecosystems/index.js";
+
 const RPC_URL = "http://127.0.0.1:8899";
 
 const PROGRAM_ID = new PublicKey(
     "BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp",
 );
 
-const BRC_MINT = new PublicKey(
-    process.env.BABYCOWANS_BRC_MINT!,
-);
+const BRC_MINT =
+    getCanonicalEcosystem(
+        CanonicalEcosystem.BabyReptile,
+    ).tokenAddress;
 
-const application = new PublicKey(
-    process.env.BABYCOWANS_TEST_APPLICATION!,
-);
+function resolveGatePolicyBaseline(): {
+    application: PublicKey;
+    applicationAsset: PublicKey;
+} {
+    const applicationValue =
+        process.env.BABYCOWANS_TEST_APPLICATION;
 
-const applicationAsset = new PublicKey(
-    process.env.BABYCOWANS_TEST_APPLICATION_ASSET!,
-);
+    const applicationAssetValue =
+        process.env.BABYCOWANS_TEST_APPLICATION_ASSET;
+
+    if (
+        applicationValue &&
+        applicationAssetValue
+    ) {
+        return {
+            application:
+                new PublicKey(
+                    applicationValue,
+                ),
+
+            applicationAsset:
+                new PublicKey(
+                    applicationAssetValue,
+                ),
+        };
+    }
+
+    const output =
+        execFileSync(
+            "./node_modules/.bin/tsx",
+            [
+                "tests/e2e-configure-application-asset.test.ts",
+            ],
+            {
+                cwd:
+                    process.cwd(),
+                encoding:
+                    "utf8",
+                stdio: [
+                    "ignore",
+                    "pipe",
+                    "pipe",
+                ],
+            },
+        );
+
+    const applicationMatch =
+        output.match(
+            /(?:^|\n).*?Application PDA:\s*([1-9A-HJ-NP-Za-km-z]{32,44})/u,
+        );
+
+    const applicationAssetMatch =
+        output.match(
+            /(?:^|\n).*?ApplicationAsset PDA:\s*([1-9A-HJ-NP-Za-km-z]{32,44})/u,
+        );
+
+    if (
+        !applicationMatch ||
+        !applicationAssetMatch
+    ) {
+        throw new Error(
+            `GATE_POLICY_BASELINE_RESOLUTION_FAILED\n${output}`,
+        );
+    }
+
+    console.log(
+        "GATE_POLICY_BASELINE_SELF_BOOTSTRAPPED=1",
+    );
+
+    return {
+        application:
+            new PublicKey(
+                applicationMatch[1],
+            ),
+
+        applicationAsset:
+            new PublicKey(
+                applicationAssetMatch[1],
+            ),
+    };
+}
+
+const {
+    application,
+    applicationAsset,
+} = resolveGatePolicyBaseline();
 
 function expect(
     condition: boolean,

@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 
 import {
     Connection,
@@ -31,10 +32,6 @@ const TOKEN_PROGRAM_ID = new PublicKey(
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
 );
 
-const PAYMENT_DESTINATION = new PublicKey(
-    "E9xEWThW5trSxRySxoFefzgLZUf1U77XLwBznzgTfQ8C",
-);
-
 const applicationId =
     BigInt(Date.now()) * 1_000n +
     BigInt(process.pid % 1_000);
@@ -50,6 +47,62 @@ const secretKey = Uint8Array.from(
 
 const authority = Keypair.fromSecretKey(secretKey);
 const connection = new Connection(RPC_URL, "confirmed");
+
+const paymentDestinationPath =
+    `/tmp/babycowans-configure-application-asset-payment-${process.pid}.json`;
+
+execFileSync(
+    "solana-keygen",
+    [
+        "new",
+        "--outfile",
+        paymentDestinationPath,
+        "--no-bip39-passphrase",
+        "--force",
+        "--silent",
+    ],
+    {
+        stdio: "ignore",
+    },
+);
+
+execFileSync(
+    "spl-token",
+    [
+        "create-account",
+        BRC_MINT.toBase58(),
+        paymentDestinationPath,
+        "--owner",
+        `${process.env.HOME}/.config/solana/id.json`,
+        "--url",
+        RPC_URL,
+    ],
+    {
+        stdio: [
+            "ignore",
+            "pipe",
+            "pipe",
+        ],
+    },
+);
+
+const paymentDestination =
+    new PublicKey(
+        execFileSync(
+            "solana-keygen",
+            [
+                "pubkey",
+                paymentDestinationPath,
+            ],
+            {
+                encoding: "utf8",
+            },
+        ).trim(),
+    );
+
+console.log(
+    "PAYMENT_DESTINATION_FIXTURE_READY=1",
+);
 
 const [application] = findApplicationPda(
     PROGRAM_ID,
@@ -107,7 +160,7 @@ const instruction =
         application,
         assetConfig,
         mint: BRC_MINT,
-        paymentDestination: PAYMENT_DESTINATION,
+        paymentDestination,
         authority: authority.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
         paymentsEnabled: true,
@@ -145,5 +198,12 @@ console.log("✓ configure_application_asset executed successfully");
 console.log(`✓ Transaction: ${signature}`);
 console.log(`✓ Application PDA: ${application.toBase58()}`);
 console.log(`✓ ApplicationAsset PDA: ${applicationAsset.toBase58()}`);
-console.log(`✓ Payment destination: ${PAYMENT_DESTINATION.toBase58()}`);
+console.log(`✓ Payment destination: ${paymentDestination.toBase58()}`);
 console.log(`✓ Account owner: ${applicationAssetAccount.owner.toBase58()}`);
+
+fs.rmSync(
+    paymentDestinationPath,
+    {
+        force: true,
+    },
+);
