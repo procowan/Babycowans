@@ -15,3 +15,5 @@ export * from "./metadata/index.js";
 
 export * from "./events/index.js";
 export * from "./read/index.js";
+
+export * from "./batch/index.js";

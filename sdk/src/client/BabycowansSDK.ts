@@ -65,6 +65,8 @@ import type {
 import { AccountFetcher } from "../fetchers/index.js";
 import { TransactionHelper } from "../transactions/index.js";
 
+import { buildApplicationBootstrapPlan } from "../batch/index.js";
+
 import { decodeBabycowansEventLogs } from "../events/index.js";
 
 import type {
@@ -106,6 +108,26 @@ export interface RegisterApplicationResult {
     signature: string;
     applicationId: bigint;
     application: PublicKey;
+}
+
+export interface BootstrapApplicationRoleParams {
+    member: PublicKey;
+    role: number;
+}
+
+export interface BootstrapApplicationParams
+    extends RegisterApplicationParams {
+    config: ApplicationConfigMetadataParams;
+    role?: BootstrapApplicationRoleParams;
+}
+
+export interface BootstrapApplicationResult {
+    signature: string;
+    applicationId: bigint;
+    application: PublicKey;
+    applicationConfig: PublicKey;
+    applicationRole?: PublicKey;
+    roleMember?: PublicKey;
 }
 
 export interface ProcessPaymentParams {
@@ -500,6 +522,67 @@ export class BabycowansSDK {
             signature,
             applicationId: params.applicationId,
             application,
+        };
+    }
+
+    /**
+     * Atomically bootstraps a Babycowans application in one Solana
+     * transaction:
+     *
+     * RegisterApplication
+     * → ConfigureApplicationConfig
+     * → optional AssignApplicationRole
+     */
+    async bootstrapApplication(
+        params: BootstrapApplicationParams,
+    ): Promise<BootstrapApplicationResult> {
+        const plan =
+            buildApplicationBootstrapPlan({
+                programId:
+                    this.programId,
+                authority:
+                    params.authority.publicKey,
+                applicationId:
+                    params.applicationId,
+                name:
+                    params.name,
+                selectedEcosystem:
+                    params.selectedEcosystem,
+                config:
+                    params.config,
+                role:
+                    params.role,
+            });
+
+        const transaction =
+            await this.transactions.createTransaction(
+                params.authority.publicKey,
+                plan.instructions,
+            );
+
+        const signature =
+            await sendAndConfirmTransaction(
+                this.connection,
+                transaction,
+                [params.authority],
+                {
+                    commitment:
+                        "confirmed",
+                },
+            );
+
+        return {
+            signature,
+            applicationId:
+                params.applicationId,
+            application:
+                plan.application,
+            applicationConfig:
+                plan.applicationConfig,
+            applicationRole:
+                plan.applicationRole,
+            roleMember:
+                params.role?.member,
         };
     }
 
