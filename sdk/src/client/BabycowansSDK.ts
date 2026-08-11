@@ -72,6 +72,29 @@ import type {
     DecodedBabycowansEvent,
 } from "../events/index.js";
 
+import {
+    decodeApplicationAccount,
+    decodeAuditLogAccount,
+    decodeMembershipAccount,
+    decodeRewardAccount,
+    matchesAccountDiscriminator,
+} from "../accounts/index.js";
+
+import type {
+    ApplicationAccount,
+    AuditLogAccount,
+    MembershipAccount,
+    RewardAccount,
+} from "../accounts/index.js";
+
+import type {
+    GetApplicationParams,
+    GetAuditHistoryParams,
+    GetMembershipParams,
+    GetRewardParams,
+    ReadAccount,
+} from "../read/index.js";
+
 export interface RegisterApplicationParams {
     authority: Signer;
     applicationId: bigint;
@@ -1211,6 +1234,175 @@ export class BabycowansSDK {
                 programId: this.programId,
             },
         );
+    }
+
+    private async fetchDecodedAccount<T>(
+        address: PublicKey,
+        decoder: (buffer: Buffer) => T,
+    ): Promise<ReadAccount<T> | null> {
+        const account =
+            await this.accounts.fetch(address);
+
+        if (account === null) {
+            return null;
+        }
+
+        if (!account.owner.equals(this.programId)) {
+            throw new Error(
+                `Babycowans account owner mismatch: ${address.toBase58()}`,
+            );
+        }
+
+        return {
+            address,
+            data:
+                decoder(account.data),
+        };
+    }
+
+    /**
+     * Reads an Application using its canonical PDA inputs.
+     */
+    async getApplication(
+        params: GetApplicationParams,
+    ): Promise<ReadAccount<ApplicationAccount> | null> {
+        const [address] =
+            this.findApplication(
+                params.authority,
+                params.applicationId,
+            );
+
+        return this.fetchDecodedAccount(
+            address,
+            decodeApplicationAccount,
+        );
+    }
+
+    /**
+     * Reads a Membership using its canonical Application + member PDA.
+     */
+    async getMembership(
+        params: GetMembershipParams,
+    ): Promise<ReadAccount<MembershipAccount> | null> {
+        const [address] =
+            this.findMembership(
+                params.application,
+                params.member,
+            );
+
+        return this.fetchDecodedAccount(
+            address,
+            decodeMembershipAccount,
+        );
+    }
+
+    /**
+     * Reads a Reward using its canonical reward PDA inputs.
+     */
+    async getReward(
+        params: GetRewardParams,
+    ): Promise<ReadAccount<RewardAccount> | null> {
+        const [address] =
+            this.findReward(
+                params.application,
+                params.beneficiary,
+                params.rewardId,
+            );
+
+        return this.fetchDecodedAccount(
+            address,
+            decodeRewardAccount,
+        );
+    }
+
+    /**
+     * Reads all AuditLog accounts for an Application.
+     *
+     * AuditLog.application begins at byte offset 44:
+     * 8 discriminator + 2 version + 2 schema version + 32 authority.
+     *
+     * Results are returned oldest-first. Equal timestamps are ordered
+     * by account address for deterministic behavior.
+     */
+    async getAuditHistory(
+        params: GetAuditHistoryParams,
+    ): Promise<ReadAccount<AuditLogAccount>[]> {
+        const accounts =
+            await this.connection.getProgramAccounts(
+                this.programId,
+                {
+                    commitment: "confirmed",
+                    filters: [
+                        {
+                            memcmp: {
+                                offset: 44,
+                                bytes:
+                                    params.application.toBase58(),
+                            },
+                        },
+                    ],
+                },
+            );
+
+        const history:
+            ReadAccount<AuditLogAccount>[] =
+            [];
+
+        for (const item of accounts) {
+            if (
+                !matchesAccountDiscriminator(
+                    item.account.data,
+                    "AuditLog",
+                )
+            ) {
+                continue;
+            }
+
+            const data =
+                decodeAuditLogAccount(
+                    item.account.data,
+                );
+
+            if (
+                !data.application.equals(
+                    params.application,
+                )
+            ) {
+                continue;
+            }
+
+            history.push({
+                address:
+                    item.pubkey,
+                data,
+            });
+        }
+
+        history.sort(
+            (left, right) => {
+                if (
+                    left.data.createdAt <
+                    right.data.createdAt
+                ) {
+                    return -1;
+                }
+
+                if (
+                    left.data.createdAt >
+                    right.data.createdAt
+                ) {
+                    return 1;
+                }
+
+                return left.address
+                    .toBase58()
+                    .localeCompare(
+                        right.address.toBase58(),
+                    );
+            },
+        );
+
+        return history;
     }
 
     async accountExists(

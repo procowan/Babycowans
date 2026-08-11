@@ -27,6 +27,7 @@ export interface ApplicationAccount {
     applicationId: bigint;
     authority: PublicKey;
     pendingAuthority: PublicKey | null;
+    selectedEcosystem: number;
     status: number;
     name: string;
     bump: number;

@@ -10,6 +10,10 @@ import {
     readU64,
 } from "../src/accounts/decoder.js";
 
+import {
+    BABYCOWANS_IDL,
+} from "../src/idl/index.js";
+
 function expect(condition: boolean, message: string) {
     if (!condition) {
         throw new Error(message);
@@ -51,7 +55,7 @@ buffer[85] = 0;
 const noKey = readOptionPublicKey(buffer, 85);
 
 expect(noKey.value === null, "Option<Pubkey> None mismatch");
-expect(noKey.nextOffset === 118, "Option<Pubkey> None offset mismatch");
+expect(noKey.nextOffset === 86, "Option<Pubkey> None offset mismatch");
 
 console.log("✓ Decoder layout tests passed");
 
@@ -83,8 +87,21 @@ console.log("✓ Decoder layout tests passed");
         return encoded;
     });
 
+    const applicationConfigDefinition =
+        BABYCOWANS_IDL.accounts.find(
+            (account) =>
+                account.name === "ApplicationConfig",
+        );
+
+    expect(
+        applicationConfigDefinition !== undefined,
+        "ApplicationConfig IDL account definition missing",
+    );
+
     const accountData = Buffer.concat([
-        Buffer.alloc(8),
+        Buffer.from(
+            applicationConfigDefinition.discriminator,
+        ),
         Buffer.from([1, 0]),
         application.toBuffer(),
         ...encodedStrings,
