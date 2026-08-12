@@ -10,6 +10,7 @@ name = "babycowans_protocol"
 
 [features]
 default = []
+fuzzing = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

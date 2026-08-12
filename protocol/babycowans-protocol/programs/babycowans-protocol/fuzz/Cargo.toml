@@ -1,0 +1,73 @@
+[package]
+name = "babycowans-protocol-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.babycowans-protocol]
+path = ".."
+features = ["fuzzing"]
+
+[[bin]]
+name = "payment_arithmetic"
+path = "fuzz_targets/payment_arithmetic.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "application_config_lengths"
+path = "fuzz_targets/application_config_lengths.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "canonical_identity"
+path = "fuzz_targets/canonical_identity.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+
+[[bin]]
+name = "gate_policy_structure"
+path = "fuzz_targets/gate_policy_structure.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "reward_state_time"
+path = "fuzz_targets/reward_state_time.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "membership_renewal"
+path = "fuzz_targets/membership_renewal.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "authority_state_machine"
+path = "fuzz_targets/authority_state_machine.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "pda_domain_separation"
+path = "fuzz_targets/pda_domain_separation.rs"
+test = false
+doc = false
+bench = false

@@ -6,6 +6,9 @@ pub mod events;
 pub mod instructions;
 pub mod state;
 
+#[cfg(feature = "fuzzing")]
+pub mod fuzz_support;
+
 use crate::canonical_ecosystems::CanonicalEcosystem;
 use crate::state::GateType;
 use crate::state::{ApplicationStatus, AssetDomain, MembershipKind, MembershipStatus, Role};
