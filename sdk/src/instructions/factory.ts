@@ -865,6 +865,50 @@ export function buildAcceptProtocolAuthorityInstruction(
     });
 }
 
+export interface NominateApplicationAuthorityInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    authority: PublicKey;
+    newAuthority: PublicKey;
+}
+
+export function buildNominateApplicationAuthorityInstruction(
+    params: NominateApplicationAuthorityInstructionParams,
+): TransactionInstruction {
+    const data = Buffer.concat([
+        instructionDiscriminator("nominate_application_authority"),
+        params.newAuthority.toBuffer(),
+    ]);
+
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createWritableKey(params.application),
+            createSignerKey(params.authority),
+        ],
+        data,
+    });
+}
+
+export interface AcceptApplicationAuthorityInstructionParams {
+    programId: PublicKey;
+    application: PublicKey;
+    authority: PublicKey;
+}
+
+export function buildAcceptApplicationAuthorityInstruction(
+    params: AcceptApplicationAuthorityInstructionParams,
+): TransactionInstruction {
+    return new TransactionInstruction({
+        programId: params.programId,
+        keys: [
+            createWritableKey(params.application),
+            createSignerKey(params.authority),
+        ],
+        data: instructionDiscriminator("accept_application_authority"),
+    });
+}
+
 export interface RecordAuditLogInstructionParams {
     programId: PublicKey;
     application: PublicKey;

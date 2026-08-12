@@ -834,6 +834,515 @@ console.log(
     "✓ Batch rewards created atomically in one transaction",
 );
 
+/*
+ * PHASE13_REWARD_ADVERSARIAL_CASES_3_TO_7
+ *
+ * CASE 3 — a terminal Cancelled reward cannot be cancelled again.
+ * CASE 4 — a terminal Claimed reward cannot be cancelled.
+ * CASE 5 — a signer without Application authority cannot cancel.
+ * CASE 6 — a signer other than the Reward beneficiary cannot claim.
+ * CASE 7 — a Reward belonging to one Application cannot be supplied
+ *          to another Application's cancel flow.
+ *
+ * Every rejected operation must fail before mutating Reward state.
+ */
+
+/* ---------------------------------------------------------
+ * CASE 3 — double cancellation
+ * ------------------------------------------------------ */
+await expectFailure(
+    new Transaction().add(
+        buildCancelRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward: cancelledReward,
+            authority: authority.publicKey,
+        }),
+    ),
+    [authority],
+    "InvalidRewardStatus",
+);
+
+const cancelledAfterReplay =
+    await readReward(cancelledReward);
+
+if (
+    cancelledAfterReplay.status !== 3 ||
+    cancelledAfterReplay.cancelledAt !==
+        cancelled.cancelledAt
+) {
+    throw new Error(
+        "Double-cancel rejection mutated cancelled reward state.",
+    );
+}
+
+console.log(
+    "✓ Double reward cancellation was rejected without state mutation",
+);
+
+/* ---------------------------------------------------------
+ * CASE 4 — cancel after claim
+ * ------------------------------------------------------ */
+await expectFailure(
+    new Transaction().add(
+        buildCancelRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward: immediateReward,
+            authority: authority.publicKey,
+        }),
+    ),
+    [authority],
+    "InvalidRewardStatus",
+);
+
+const immediateAfterCancelAttempt =
+    await readReward(immediateReward);
+
+if (
+    immediateAfterCancelAttempt.status !== 2 ||
+    immediateAfterCancelAttempt.claimedAt !==
+        immediateAfter.claimedAt ||
+    immediateAfterCancelAttempt.cancelledAt !== 0n
+) {
+    throw new Error(
+        "Cancel-after-claim rejection mutated claimed reward state.",
+    );
+}
+
+console.log(
+    "✓ Cancel-after-claim was rejected without state mutation",
+);
+
+/* ---------------------------------------------------------
+ * CASE 5 — non-authority cancellation
+ * ------------------------------------------------------ */
+const unauthorizedCanceller = Keypair.generate();
+await fund(unauthorizedCanceller.publicKey);
+
+await expectFailure(
+    new Transaction().add(
+        buildCancelRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward: batchRewardA,
+            authority: unauthorizedCanceller.publicKey,
+        }),
+    ),
+    [unauthorizedCanceller],
+    "ConstraintHasOne",
+);
+
+const batchAAfterUnauthorizedCancel =
+    await readReward(batchRewardA);
+
+if (
+    batchAAfterUnauthorizedCancel.status !== batchA.status ||
+    batchAAfterUnauthorizedCancel.cancelledAt !==
+        batchA.cancelledAt
+) {
+    throw new Error(
+        "Unauthorized cancel attempt mutated reward state.",
+    );
+}
+
+console.log(
+    "✓ Non-authority reward cancellation was rejected without state mutation",
+);
+
+/* ---------------------------------------------------------
+ * CASE 6 — wrong beneficiary claim
+ * ------------------------------------------------------ */
+const wrongBeneficiary = Keypair.generate();
+await fund(wrongBeneficiary.publicKey);
+
+await expectFailure(
+    new Transaction().add(
+        buildClaimRewardInstruction({
+            programId: PROGRAM_ID,
+            reward: batchRewardA,
+            beneficiary: wrongBeneficiary.publicKey,
+        }),
+    ),
+    [wrongBeneficiary],
+    "InvalidAuthority",
+);
+
+const batchAAfterWrongBeneficiary =
+    await readReward(batchRewardA);
+
+if (
+    batchAAfterWrongBeneficiary.status !== batchA.status ||
+    batchAAfterWrongBeneficiary.claimedAt !==
+        batchA.claimedAt
+) {
+    throw new Error(
+        "Wrong-beneficiary claim attempt mutated reward state.",
+    );
+}
+
+console.log(
+    "✓ Wrong reward beneficiary claim was rejected without state mutation",
+);
+
+/* ---------------------------------------------------------
+ * CASE 7 — cross-application Reward substitution
+ *
+ * Create an independent Application owned by the same authority.
+ * This deliberately allows Application.has_one(authority) to pass,
+ * so the test reaches the Reward.application relationship check.
+ * ------------------------------------------------------ */
+const foreignApplicationId =
+    applicationId + 1_000_000_000n;
+
+const [foreignApplication] =
+    findApplicationPda(
+        PROGRAM_ID,
+        authority.publicKey,
+        foreignApplicationId,
+    );
+
+await send(
+    buildRegisterApplicationInstruction({
+        programId: PROGRAM_ID,
+        authority: authority.publicKey,
+        applicationId: foreignApplicationId,
+        name: "Phase 13 Foreign Reward Application",
+        selectedEcosystem:
+            CanonicalEcosystem.BabyReptile,
+    }),
+    [authority],
+);
+
+await expectFailure(
+    new Transaction().add(
+        buildCancelRewardInstruction({
+            programId: PROGRAM_ID,
+            application: foreignApplication,
+            reward: batchRewardB,
+            authority: authority.publicKey,
+        }),
+    ),
+    [authority],
+    "InvalidApplication",
+);
+
+const batchBAfterCrossApplication =
+    await readReward(batchRewardB);
+
+if (
+    batchBAfterCrossApplication.status !== batchB.status ||
+    batchBAfterCrossApplication.cancelledAt !==
+        batchB.cancelledAt
+) {
+    throw new Error(
+        "Cross-application reward substitution mutated reward state.",
+    );
+}
+
+console.log(
+    "✓ Cross-application reward substitution was rejected without state mutation",
+);
+
+/*
+ * PHASE13_BATCH_ADVERSARIAL_SECURITY
+ *
+ * Security properties:
+ *
+ * CASE 2 — repeated reward identity resolves deterministically to
+ *          the same PDA and cannot be redirected to alternate state.
+ *
+ * CASE 3 — a multi-instruction transaction is atomic: if a later
+ *          malicious instruction fails, an earlier valid creation
+ *          must not commit.
+ *
+ * CASE 4 — SDK batch ordering must preserve caller ordering.
+ *
+ * CASE 5 — a mixed/cross-Application instruction cannot bypass the
+ *          underlying CreateReward PDA/Application relationship.
+ *
+ * CASE 6 — the same reward ID cannot create independent state at an
+ *          attacker-selected PDA.
+ */
+
+/* ---------------------------------------------------------
+ * Deterministic order + identity
+ * ------------------------------------------------------ */
+const batchSecurityIdA = 20n;
+const batchSecurityIdB = 21n;
+
+const [batchSecurityRewardA] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        batchSecurityIdA,
+    );
+
+const [batchSecurityRewardB] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        batchSecurityIdB,
+    );
+
+const [batchSecurityRewardARepeated] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        batchSecurityIdA,
+    );
+
+if (
+    !batchSecurityRewardA.equals(
+        batchSecurityRewardARepeated,
+    )
+) {
+    throw new Error(
+        "Repeated reward identity produced a different PDA.",
+    );
+}
+
+if (
+    batchSecurityRewardA.equals(
+        batchSecurityRewardB,
+    )
+) {
+    throw new Error(
+        "Distinct reward IDs collided in batch security test.",
+    );
+}
+
+const orderedSecurityBatch =
+    buildCreateRewardBatchInstructions([
+        {
+            programId: PROGRAM_ID,
+            application,
+            reward: batchSecurityRewardA,
+            authority: authority.publicKey,
+            beneficiary: beneficiary.publicKey,
+            rewardId: batchSecurityIdA,
+            asset,
+            amount: 1200n,
+            claimableAt: 0n,
+            expiresAt: 0n,
+            category: 9,
+            reason: "phase13-batch-order-a",
+        },
+        {
+            programId: PROGRAM_ID,
+            application,
+            reward: batchSecurityRewardB,
+            authority: authority.publicKey,
+            beneficiary: beneficiary.publicKey,
+            rewardId: batchSecurityIdB,
+            asset,
+            amount: 1300n,
+            claimableAt: 0n,
+            expiresAt: 0n,
+            category: 10,
+            reason: "phase13-batch-order-b",
+        },
+    ]);
+
+if (orderedSecurityBatch.length !== 2) {
+    throw new Error(
+        "Phase 13 ordered batch instruction count mismatch.",
+    );
+}
+
+/*
+ * create_reward account order is:
+ * application, reward, authority, system_program.
+ * Therefore keys[1] is the Reward PDA.
+ */
+if (
+    !orderedSecurityBatch[0]?.keys[1]?.pubkey.equals(
+        batchSecurityRewardA,
+    ) ||
+    !orderedSecurityBatch[1]?.keys[1]?.pubkey.equals(
+        batchSecurityRewardB,
+    )
+) {
+    throw new Error(
+        "Reward batch builder did not preserve caller ordering.",
+    );
+}
+
+console.log(
+    "✓ Reward batch ordering and repeated identity were deterministic",
+);
+
+/* ---------------------------------------------------------
+ * Atomic rollback + cross-Application relationship attack
+ * ------------------------------------------------------ */
+const atomicRollbackId = 22n;
+
+const [atomicRollbackReward] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        atomicRollbackId,
+    );
+
+const maliciousForeignId = 23n;
+
+/*
+ * Deliberately derive this Reward for the PRIMARY Application,
+ * then provide it to a CreateReward instruction targeting the
+ * independent foreignApplication. Anchor seed validation must
+ * reject the second instruction.
+ */
+const [maliciousForeignReward] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        maliciousForeignId,
+    );
+
+const atomicFailureBatch =
+    buildCreateRewardBatchInstructions([
+        {
+            programId: PROGRAM_ID,
+            application,
+            reward: atomicRollbackReward,
+            authority: authority.publicKey,
+            beneficiary: beneficiary.publicKey,
+            rewardId: atomicRollbackId,
+            asset,
+            amount: 1400n,
+            claimableAt: 0n,
+            expiresAt: 0n,
+            category: 11,
+            reason: "phase13-atomic-valid-first",
+        },
+        {
+            programId: PROGRAM_ID,
+            application: foreignApplication,
+            reward: maliciousForeignReward,
+            authority: authority.publicKey,
+            beneficiary: beneficiary.publicKey,
+            rewardId: maliciousForeignId,
+            asset,
+            amount: 1500n,
+            claimableAt: 0n,
+            expiresAt: 0n,
+            category: 12,
+            reason: "phase13-cross-app-malicious-second",
+        },
+    ]);
+
+await expectFailure(
+    new Transaction().add(
+        ...atomicFailureBatch,
+    ),
+    [authority],
+    "ConstraintSeeds",
+);
+
+/*
+ * The first instruction was valid and executed before the malicious
+ * second instruction. Transaction atomicity requires its creation
+ * to be rolled back completely.
+ */
+const atomicRollbackAccount =
+    await connection.getAccountInfo(
+        atomicRollbackReward,
+    );
+
+if (atomicRollbackAccount !== null) {
+    throw new Error(
+        "Failed reward batch partially committed its first instruction.",
+    );
+}
+
+const maliciousForeignAccount =
+    await connection.getAccountInfo(
+        maliciousForeignReward,
+    );
+
+if (maliciousForeignAccount !== null) {
+    throw new Error(
+        "Cross-application malicious Reward account unexpectedly exists.",
+    );
+}
+
+console.log(
+    "✓ Failed mixed-application reward batch rolled back atomically",
+);
+console.log(
+    "✓ Cross-application batch Reward seed substitution was rejected",
+);
+
+/* ---------------------------------------------------------
+ * Same reward ID cannot be redirected to attacker-selected PDA
+ * ------------------------------------------------------ */
+const repeatedIdentityId = 24n;
+
+const [canonicalRepeatedIdentityReward] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        repeatedIdentityId,
+    );
+
+const attackerSelectedReward =
+    Keypair.generate().publicKey;
+
+if (
+    attackerSelectedReward.equals(
+        canonicalRepeatedIdentityReward,
+    )
+) {
+    throw new Error(
+        "Unexpected attacker-selected Reward PDA collision.",
+    );
+}
+
+await expectFailure(
+    new Transaction().add(
+        buildCreateRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward: attackerSelectedReward,
+            authority: authority.publicKey,
+            beneficiary: beneficiary.publicKey,
+            rewardId: repeatedIdentityId,
+            asset,
+            amount: 1600n,
+            claimableAt: 0n,
+            expiresAt: 0n,
+            category: 13,
+            reason: "phase13-repeated-id-wrong-pda",
+        }),
+    ),
+    [authority],
+    "ConstraintSeeds",
+);
+
+if (
+    (await connection.getAccountInfo(
+        canonicalRepeatedIdentityReward,
+    )) !== null
+) {
+    throw new Error(
+        "Wrong-PDA repeated-ID attack created canonical Reward state.",
+    );
+}
+
+console.log(
+    "✓ Repeated reward ID could not be redirected to alternate state",
+);
+
+
+
+
+
 /* =========================================================
  * Final
  * ======================================================= */

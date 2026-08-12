@@ -18,12 +18,16 @@ import {
     buildConfigureTokenGateInstruction,
     buildCreateRewardInstruction,
     buildInitializeProtocolInstruction,
+    buildNominateApplicationAuthorityInstruction,
+    buildAcceptApplicationAuthorityInstruction,
     buildProcessPaymentInstruction,
     buildRecordAuditLogInstruction,
     buildRegisterApplicationInstruction,
     buildRegisterAssetInstruction,
     buildRegisterMembershipInstruction,
     buildSetProtocolPauseInstruction,
+    buildNominateProtocolAuthorityInstruction,
+    buildAcceptProtocolAuthorityInstruction,
     buildUpdateApplicationStatusInstruction,
     buildVerifyGateAccessInstruction,
     findApplicationAssetPda,
@@ -1446,6 +1450,384 @@ for (const accountAddress of requiredAccounts) {
         );
     }
 }
+
+/*
+ * PHASE13_CROSS_APPLICATION_PAYMENT_SUBSTITUTION
+ *
+ * Security invariant:
+ * process_payment must reject an ApplicationAsset PDA that belongs
+ * to a different Application.
+ *
+ * Only the ApplicationAsset account is substituted. All other
+ * accounts remain those of the valid primary payment flow.
+ *
+ * The payment-policy PDA is derived from both Application and
+ * ApplicationAsset. This foreign combination therefore resolves to
+ * an uninitialized hybrid policy and must fail closed during Anchor
+ * account loading before any state mutation can occur.
+ */
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset: policyDisabledApplicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount: protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "AccountNotInitialized",
+);
+
+console.log(
+    "✓ Cross-application ApplicationAsset substitution was rejected",
+);
+
+/*
+ * PHASE13_APPLICATION_AUTHORITY_ADVERSARIAL_LIFECYCLE
+ *
+ * Security invariants:
+ * - only the current authority may nominate;
+ * - the default public key cannot be nominated;
+ * - nomination alone grants no authority;
+ * - only the pending authority may accept;
+ * - acceptance clears pending authority;
+ * - stale acceptance cannot replay;
+ * - the old authority loses privilege after acceptance;
+ * - the new authority gains privilege only after acceptance.
+ */
+
+const defaultAuthority = new PublicKey(new Uint8Array(32));
+
+await expectInstructionFailure(
+    connection,
+    buildNominateApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+        newAuthority: payer.publicKey,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildNominateApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newAuthority: defaultAuthority,
+    }),
+    [authority],
+    "InvalidAuthority",
+);
+
+await send(
+    connection,
+    buildNominateApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newAuthority: unauthorizedAuthority.publicKey,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+        newStatus: 2,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildAcceptApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: payer.publicKey,
+    }),
+    [payer],
+    "InvalidAuthority",
+);
+
+await send(
+    connection,
+    buildAcceptApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+    }),
+    [unauthorizedAuthority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildAcceptApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+    }),
+    [unauthorizedAuthority],
+    "InvalidAuthority",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        newStatus: 2,
+    }),
+    [authority],
+    "ConstraintHasOne",
+);
+
+await send(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+        newStatus: 2,
+    }),
+    [unauthorizedAuthority],
+);
+
+await send(
+    connection,
+    buildUpdateApplicationStatusInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: unauthorizedAuthority.publicKey,
+        newStatus: 1,
+    }),
+    [unauthorizedAuthority],
+);
+
+console.log("✓ Non-current application authority nomination was rejected");
+console.log("✓ Default application authority nomination was rejected");
+console.log("✓ Pending application authority had no premature privilege");
+console.log("✓ Non-pending application authority acceptance was rejected");
+console.log("✓ Application authority transfer succeeded");
+console.log("✓ Stale application authority acceptance replay was rejected");
+console.log("✓ Previous application authority lost privilege");
+console.log("✓ New application authority gained privilege");
+
+/*
+ * PHASE13_APPLICATION_AUTHORITY_CROSS_APPLICATION_BOUNDARY
+ *
+ * At this point unauthorizedAuthority is the legitimate authority
+ * of the primary Application. It must not gain authority over the
+ * independent policyDisabledApplication.
+ */
+await expectInstructionFailure(
+    connection,
+    buildNominateApplicationAuthorityInstruction({
+        programId: PROGRAM_ID,
+        application: policyDisabledApplication,
+        authority: unauthorizedAuthority.publicKey,
+        newAuthority: payer.publicKey,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
+);
+
+console.log(
+    "✓ Application authority cross-application nomination was rejected",
+);
+
+/*
+ * PHASE13_PROTOCOL_AUTHORITY_ADVERSARIAL_LIFECYCLE
+ *
+ * Security invariants:
+ * - only the current protocol authority may nominate;
+ * - the default public key cannot be nominated;
+ * - nomination grants no premature protocol privilege;
+ * - only the pending authority may accept;
+ * - acceptance clears pending authority;
+ * - stale acceptance cannot replay;
+ * - the old authority loses protocol privilege;
+ * - the new authority gains protocol privilege;
+ * - the original authority can be restored through the same
+ *   nominate/accept state machine, preserving the Golden Path baseline.
+ */
+
+await expectInstructionFailure(
+    connection,
+    buildNominateProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: unauthorizedAuthority.publicKey,
+        newAuthority: payer.publicKey,
+    }),
+    [unauthorizedAuthority],
+    "ConstraintHasOne",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildNominateProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: authority.publicKey,
+        newAuthority: defaultAuthority,
+    }),
+    [authority],
+    "InvalidAuthority",
+);
+
+await send(
+    connection,
+    buildNominateProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: authority.publicKey,
+        newAuthority: payer.publicKey,
+    }),
+    [authority],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: payer.publicKey,
+        paused: true,
+    }),
+    [payer],
+    "ConstraintHasOne",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildAcceptProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        pendingAuthority: unauthorizedAuthority.publicKey,
+    }),
+    [unauthorizedAuthority],
+    "InvalidAuthority",
+);
+
+await send(
+    connection,
+    buildAcceptProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        pendingAuthority: payer.publicKey,
+    }),
+    [payer],
+);
+
+await expectInstructionFailure(
+    connection,
+    buildAcceptProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        pendingAuthority: payer.publicKey,
+    }),
+    [payer],
+    "InvalidAuthority",
+);
+
+await expectInstructionFailure(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: authority.publicKey,
+        paused: true,
+    }),
+    [authority],
+    "ConstraintHasOne",
+);
+
+await send(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: payer.publicKey,
+        paused: true,
+    }),
+    [payer],
+);
+
+await send(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: payer.publicKey,
+        paused: false,
+    }),
+    [payer],
+);
+
+/*
+ * Restore the original protocol authority using the exact same
+ * state machine so later Phase 13 security probes retain the
+ * established baseline.
+ */
+await send(
+    connection,
+    buildNominateProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: payer.publicKey,
+        newAuthority: authority.publicKey,
+    }),
+    [payer],
+);
+
+await send(
+    connection,
+    buildAcceptProtocolAuthorityInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        pendingAuthority: authority.publicKey,
+    }),
+    [authority],
+);
+
+await send(
+    connection,
+    buildSetProtocolPauseInstruction({
+        programId: PROGRAM_ID,
+        protocolConfig,
+        authority: authority.publicKey,
+        paused: false,
+    }),
+    [authority],
+);
+
+console.log("✓ Non-current protocol authority nomination was rejected");
+console.log("✓ Default protocol authority nomination was rejected");
+console.log("✓ Pending protocol authority had no premature privilege");
+console.log("✓ Non-pending protocol authority acceptance was rejected");
+console.log("✓ Protocol authority transfer succeeded");
+console.log("✓ Stale protocol authority acceptance replay was rejected");
+console.log("✓ Previous protocol authority lost privilege");
+console.log("✓ New protocol authority gained privilege");
+console.log("✓ Original protocol authority was restored");
+
+
+
 
 console.log("✓ Unified Golden Path completed successfully");
 console.log("✓ Token Gate access succeeded");

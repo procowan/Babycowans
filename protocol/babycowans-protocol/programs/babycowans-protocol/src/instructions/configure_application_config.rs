@@ -92,3 +92,83 @@ pub(crate) fn validate_application_config(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn repeated(length: usize) -> String {
+        "x".repeat(length)
+    }
+
+    #[test]
+    fn application_config_accepts_exact_maximum_lengths() {
+        let result = validate_application_config(
+            &repeated(ApplicationConfig::MAX_WEBSITE_URI_LENGTH),
+            &repeated(ApplicationConfig::MAX_LOGO_URI_LENGTH),
+            &repeated(ApplicationConfig::MAX_SUPPORT_URI_LENGTH),
+            &repeated(ApplicationConfig::MAX_DESCRIPTION_LENGTH),
+            &repeated(ApplicationConfig::MAX_METADATA_URI_LENGTH),
+        );
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn application_config_rejects_each_field_one_above_maximum() {
+        let valid_website = repeated(ApplicationConfig::MAX_WEBSITE_URI_LENGTH);
+        let valid_logo = repeated(ApplicationConfig::MAX_LOGO_URI_LENGTH);
+        let valid_support = repeated(ApplicationConfig::MAX_SUPPORT_URI_LENGTH);
+        let valid_description = repeated(ApplicationConfig::MAX_DESCRIPTION_LENGTH);
+        let valid_metadata = repeated(ApplicationConfig::MAX_METADATA_URI_LENGTH);
+
+        let cases = [
+            (
+                repeated(ApplicationConfig::MAX_WEBSITE_URI_LENGTH + 1),
+                valid_logo.clone(),
+                valid_support.clone(),
+                valid_description.clone(),
+                valid_metadata.clone(),
+            ),
+            (
+                valid_website.clone(),
+                repeated(ApplicationConfig::MAX_LOGO_URI_LENGTH + 1),
+                valid_support.clone(),
+                valid_description.clone(),
+                valid_metadata.clone(),
+            ),
+            (
+                valid_website.clone(),
+                valid_logo.clone(),
+                repeated(ApplicationConfig::MAX_SUPPORT_URI_LENGTH + 1),
+                valid_description.clone(),
+                valid_metadata.clone(),
+            ),
+            (
+                valid_website.clone(),
+                valid_logo.clone(),
+                valid_support.clone(),
+                repeated(ApplicationConfig::MAX_DESCRIPTION_LENGTH + 1),
+                valid_metadata.clone(),
+            ),
+            (
+                valid_website.clone(),
+                valid_logo.clone(),
+                valid_support.clone(),
+                valid_description.clone(),
+                repeated(ApplicationConfig::MAX_METADATA_URI_LENGTH + 1),
+            ),
+        ];
+
+        for (website_uri, logo_uri, support_uri, description, metadata_uri) in cases {
+            assert!(validate_application_config(
+                &website_uri,
+                &logo_uri,
+                &support_uri,
+                &description,
+                &metadata_uri,
+            )
+            .is_err());
+        }
+    }
+}
