@@ -51,15 +51,84 @@ Decode transaction events
 
 ## Requirements
 
-Repository development currently uses:
+Repository development uses Git, Rust, Solana CLI, SPL Token CLI, Anchor CLI 1.0.2, Node.js, and Yarn 1.x.
 
-- Rust
-- Solana CLI
-- Anchor CLI 1.0.2
-- Node.js
-- the package tooling declared by the repository
+## First five minutes
 
-Prefer repository-declared versions and scripts over external setup snippets.
+A new developer can move from a fresh clone to the first Babycowans Application without historical project or chat knowledge.
+
+### 1. Clone
+
+```bash
+git clone ssh://git@ssh.github.com:443/procowan/Babycowans.git
+cd Babycowans
+```
+
+### 2. Install dependencies
+
+```bash
+cd sdk
+yarn install --frozen-lockfile
+
+cd ../protocol/babycowans-protocol
+yarn install --frozen-lockfile
+
+cd ../../examples
+yarn install --frozen-lockfile
+
+cd ..
+```
+
+### 3. Select one of the six canonical ecosystems
+
+```bash
+cd sdk
+yarn onboard
+cd ..
+```
+
+The onboarding displays Full Name, Ticker, Token Address, and Mission. Use the Up and Down Arrow keys to move and Enter to select.
+
+### 4. Start the repository-owned six-canonical validator
+
+Open Terminal 1 from the repository root:
+
+```bash
+./scripts/start-local-validator.sh
+```
+
+Leave Terminal 1 open. The validator runs in the foreground and derives the canonical mint identities from the current repository.
+
+Do not substitute a plain empty solana-test-validator for Babycowans canonical integration flows.
+
+### 5. Build and deploy
+
+Open Terminal 2:
+
+```bash
+cd protocol/babycowans-protocol
+anchor build
+
+solana program deploy \
+  --url http://127.0.0.1:8899 \
+  --program-id target/deploy/babycowans_protocol-keypair.json \
+  target/deploy/babycowans_protocol.so
+```
+
+### 6. Initialize the SDK
+
+The official TypeScript SDK is @babycowans/core-sdk. Use BabycowansSDK with a Solana connection and the Program ID defined by the current repository.
+
+### 7. Create the first Application
+
+The repository provides examples/application-bootstrap.ts as the executable first-Application path.
+
+```bash
+export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
+
+cd examples
+yarn application-bootstrap
+```
 
 ## Build the protocol
 
@@ -220,7 +289,7 @@ examples/read-api.ts
 examples/event-decoder.ts
 ```
 
-These examples are typechecked against the current repository SDK during Phase 12 validation.
+These examples are typechecked against the current repository SDK.
 
 ## Repository structure
 

@@ -18,6 +18,16 @@ The package exposes:
 - transaction helpers;
 - protocol IDL.
 
+## Developer onboarding
+
+After installing SDK dependencies, explore the six canonical ecosystems interactively:
+
+```bash
+yarn onboard
+```
+
+The onboarding displays Full Name, Ticker, Token Address, and Mission. Use the Up and Down Arrow keys to move and Enter to select.
+
 ## Client setup
 
 ```ts

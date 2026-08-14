@@ -8,18 +8,12 @@
     "skipLibCheck": true,
     "noEmit": true,
     "baseUrl": "..",
-    "typeRoots": [
-      "../sdk/node_modules/@types"
-    ],
     "types": [
       "node"
     ],
     "paths": {
       "@babycowans/core-sdk": [
         "sdk/src/index.ts"
-      ],
-      "@solana/web3.js": [
-        "sdk/node_modules/@solana/web3.js/lib/index.d.ts"
       ]
     }
   },

@@ -23,17 +23,29 @@ anchor test
 
 ## Local Deployment
 
-Start the local validator:
+Babycowans canonical integration uses the repository-owned validator launcher.
+
+From the repository root, open Terminal 1:
 
 ```bash
-solana-test-validator --reset
+./scripts/start-local-validator.sh
 ```
 
-In another terminal:
+Leave Terminal 1 open.
+
+In Terminal 2:
 
 ```bash
-anchor program deploy
+cd protocol/babycowans-protocol
+anchor build
+
+solana program deploy \
+  --url http://127.0.0.1:8899 \
+  --program-id target/deploy/babycowans_protocol-keypair.json \
+  target/deploy/babycowans_protocol.so
 ```
+
+The launcher derives the canonical mint identities from the current repository. Do not substitute a plain empty validator for Babycowans canonical integration flows.
 
 ## Program ID
 
