@@ -13,6 +13,7 @@ import {
 import {
     buildConfigureGatePolicyInstruction,
     buildRegisterMembershipInstruction,
+    buildUpdateMembershipInstruction,
     buildVerifyGatePolicyInstruction,
 } from "../src/instructions/index.js";
 
@@ -996,6 +997,353 @@ await expectRejected(
             [wallet],
         ),
 );
+
+
+/*
+ * ----------------------------------------------------------
+ * XRAY X8.8 — MembershipTier runtime security matrix.
+ * ----------------------------------------------------------
+ */
+
+const x8WrongMember = Keypair.generate();
+
+await expectRejected(
+    "Wrong-member Membership evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: x8WrongMember.publicKey,
+                    membership,
+                }),
+            ],
+            [x8WrongMember],
+        ),
+);
+
+console.log("X8_8_WRONG_MEMBER_REJECTED=PASS");
+
+await expectRejected(
+    "Cross-application Membership evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application: x8ForeignApplication,
+                    applicationAsset: x8ForeignApplicationAsset,
+                    gatePolicy: x8ForeignGatePolicy,
+                    wallet: wallet.publicKey,
+                    membership,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_8_WRONG_APPLICATION_MEMBERSHIP_REJECTED=PASS");
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 2,
+            status: 0,
+            expiresAt: BigInt(Math.floor(Date.now() / 1000) + 3600),
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await expectRejected(
+    "Insufficient Membership tier",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    holdTokenAccount: brcTokenAccount,
+                    membership,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_8_INSUFFICIENT_TIER_REJECTED=PASS");
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 3,
+            status: 0,
+            expiresAt: BigInt(Math.floor(Date.now() / 1000) + 3600),
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application,
+            applicationAsset,
+            gatePolicy,
+            wallet: wallet.publicKey,
+            holdTokenAccount: brcTokenAccount,
+            membership,
+        }),
+    ],
+    [wallet],
+);
+
+console.log("X8_8_EXACT_TIER_ACCEPTED=PASS");
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 4,
+            status: 0,
+            expiresAt: BigInt(Math.floor(Date.now() / 1000) + 3600),
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application,
+            applicationAsset,
+            gatePolicy,
+            wallet: wallet.publicKey,
+            holdTokenAccount: brcTokenAccount,
+            membership,
+        }),
+    ],
+    [wallet],
+);
+
+console.log("X8_8_HIGHER_TIER_ACCEPTED=PASS");
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 3,
+            status: 2,
+            expiresAt: BigInt(Math.floor(Date.now() / 1000) + 3600),
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await expectRejected(
+    "Suspended Membership evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    holdTokenAccount: brcTokenAccount,
+                    membership,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_8_SUSPENDED_MEMBERSHIP_REJECTED=PASS");
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 3,
+            status: 0,
+            expiresAt: BigInt(Math.floor(Date.now() / 1000) + 3600),
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application,
+            applicationAsset,
+            gatePolicy,
+            wallet: wallet.publicKey,
+            holdTokenAccount: brcTokenAccount,
+            membership,
+        }),
+    ],
+    [wallet],
+);
+
+
+console.log("X8_8_LIFECYCLE_RESTORED_ACTIVE=PASS");
+
+/*
+ * ----------------------------------------------------------
+ * XRAY X8.8 — Real expiration transition.
+ *
+ * Establish a short-lived ACTIVE Membership, prove that it is
+ * accepted before expiry, wait until the validator clock passes
+ * expiresAt, then prove the same Membership evidence is rejected.
+ * ----------------------------------------------------------
+ */
+
+const x8ExpirationUnix =
+    BigInt(Math.floor(Date.now() / 1000) + 4);
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 3,
+            status: 0,
+            expiresAt: x8ExpirationUnix,
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application,
+            applicationAsset,
+            gatePolicy,
+            wallet: wallet.publicKey,
+            holdTokenAccount: brcTokenAccount,
+            membership,
+        }),
+    ],
+    [wallet],
+);
+
+console.log("X8_8_PRE_EXPIRATION_MEMBERSHIP_ACCEPTED=PASS");
+
+const x8ExpirationDeadlineMs =
+    Number(x8ExpirationUnix) * 1000;
+
+while (Date.now() <= x8ExpirationDeadlineMs + 1500) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+}
+
+await expectRejected(
+    "Expired Membership evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    holdTokenAccount: brcTokenAccount,
+                    membership,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_8_EXPIRED_MEMBERSHIP_REJECTED=PASS");
+
+await send(
+    [
+        buildUpdateMembershipInstruction({
+            programId: PROGRAM_ID,
+            application,
+            membership,
+            authority: authority.publicKey,
+            tier: 3,
+            status: 0,
+            expiresAt:
+                BigInt(Math.floor(Date.now() / 1000) + 3600),
+            renewable: false,
+            autoExtend: false,
+            renewalDuration: 0n,
+        }),
+    ],
+    [authority],
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application,
+            applicationAsset,
+            gatePolicy,
+            wallet: wallet.publicKey,
+            holdTokenAccount: brcTokenAccount,
+            membership,
+        }),
+    ],
+    [wallet],
+);
+
+console.log("X8_8_POST_EXPIRATION_RECOVERY=PASS");
+
+console.log("X8_8_MEMBERSHIP_BOUNDARY_MATRIX=PASS");
 
 /*
  * ----------------------------------------------------------
