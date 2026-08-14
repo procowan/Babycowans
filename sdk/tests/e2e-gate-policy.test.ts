@@ -572,6 +572,194 @@ console.log(
     "✓ OR-of-AND Gate Policy configured",
 );
 
+/*
+ * ----------------------------------------------------------
+ * X8.7 security regressions:
+ * malformed GatePolicy condition structures must fail closed
+ * in the on-chain configure handler.
+ * ----------------------------------------------------------
+ */
+
+await expectRejected(
+    "Zero HoldAmount threshold",
+    () =>
+        send(
+            [
+                buildConfigureGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    authority: authority.publicKey,
+                    enabled: true,
+                    conditions: [
+                        {
+                            group: 0,
+                            conditionType: 0,
+                            mint: BRC_MINT,
+                            minimumAmount: 0n,
+                            minimumTier: 0,
+                        },
+                    ],
+                }),
+            ],
+            [authority],
+        ),
+);
+
+await expectRejected(
+    "Wrong HoldAmount mint",
+    () =>
+        send(
+            [
+                buildConfigureGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    authority: authority.publicKey,
+                    enabled: true,
+                    conditions: [
+                        {
+                            group: 0,
+                            conditionType: 0,
+                            mint: nftMint,
+                            minimumAmount: 1n,
+                            minimumTier: 0,
+                        },
+                    ],
+                }),
+            ],
+            [authority],
+        ),
+);
+
+await expectRejected(
+    "Zero MembershipTier threshold",
+    () =>
+        send(
+            [
+                buildConfigureGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    authority: authority.publicKey,
+                    enabled: true,
+                    conditions: [
+                        {
+                            group: 0,
+                            conditionType: 1,
+                            mint: PublicKey.default,
+                            minimumAmount: 0n,
+                            minimumTier: 0,
+                        },
+                    ],
+                }),
+            ],
+            [authority],
+        ),
+);
+
+await expectRejected(
+    "Non-default MembershipTier mint",
+    () =>
+        send(
+            [
+                buildConfigureGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    authority: authority.publicKey,
+                    enabled: true,
+                    conditions: [
+                        {
+                            group: 0,
+                            conditionType: 1,
+                            mint: BRC_MINT,
+                            minimumAmount: 0n,
+                            minimumTier: 1,
+                        },
+                    ],
+                }),
+            ],
+            [authority],
+        ),
+);
+
+await expectRejected(
+    "Duplicate condition kind in group",
+    () =>
+        send(
+            [
+                buildConfigureGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    authority: authority.publicKey,
+                    enabled: true,
+                    conditions: [
+                        {
+                            group: 0,
+                            conditionType: 1,
+                            mint: PublicKey.default,
+                            minimumAmount: 0n,
+                            minimumTier: 1,
+                        },
+                        {
+                            group: 0,
+                            conditionType: 1,
+                            mint: PublicKey.default,
+                            minimumAmount: 0n,
+                            minimumTier: 2,
+                        },
+                    ],
+                }),
+            ],
+            [authority],
+        ),
+);
+
+await expectRejected(
+    "Non-contiguous GatePolicy groups",
+    () =>
+        send(
+            [
+                buildConfigureGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    authority: authority.publicKey,
+                    enabled: true,
+                    conditions: [
+                        {
+                            group: 0,
+                            conditionType: 1,
+                            mint: PublicKey.default,
+                            minimumAmount: 0n,
+                            minimumTier: 1,
+                        },
+                        {
+                            group: 2,
+                            conditionType: 2,
+                            mint: nftMint,
+                            minimumAmount: 0n,
+                            minimumTier: 0,
+                        },
+                    ],
+                }),
+            ],
+            [authority],
+        ),
+);
+
+console.log("X8_7_STRUCTURAL_REJECTIONS=PASS");
+
+
+
 expect(
     await connection.getAccountInfo(
         gatePolicy,
