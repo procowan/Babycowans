@@ -82,6 +82,11 @@ const result =
     });
 
 console.log(
+    "applicationId",
+    applicationId.toString(),
+);
+
+console.log(
     "signature",
     result.signature,
 );

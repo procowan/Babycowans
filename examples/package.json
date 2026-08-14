@@ -5,14 +5,17 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "application-bootstrap": "tsx application-bootstrap.ts",
     "read-api": "tsx read-api.ts",
-    "event-decoder": "tsx event-decoder.ts"
+    "event-decoder": "tsx event-decoder.ts",
+    "postinstall": "patch-package"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.98.0"
+    "@solana/web3.js": "^1.98.0",
+    "punycode": "2.3.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "patch-package": "8.0.0"
   }
 }
