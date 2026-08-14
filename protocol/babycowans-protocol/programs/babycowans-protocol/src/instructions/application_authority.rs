@@ -2,10 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::{
     error::BabycowansError,
-    events::{
-        ApplicationAuthorityNominated,
-        ApplicationAuthorityTransferred,
-    },
+    events::{ApplicationAuthorityNominated, ApplicationAuthorityTransferred},
     state::Application,
 };
 

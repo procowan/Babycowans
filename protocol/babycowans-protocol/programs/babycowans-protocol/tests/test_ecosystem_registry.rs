@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use babycowans_protocol::canonical_ecosystems::{
-    CanonicalEcosystem,
-    CanonicalEcosystemIdentity,
-};
+use babycowans_protocol::canonical_ecosystems::{CanonicalEcosystem, CanonicalEcosystemIdentity};
 
 #[test]
 fn registry_contains_exactly_six_ecosystems() {

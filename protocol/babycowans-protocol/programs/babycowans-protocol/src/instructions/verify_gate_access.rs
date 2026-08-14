@@ -4,13 +4,7 @@ use anchor_spl::token_interface::TokenAccount;
 use crate::{
     error::BabycowansError,
     events::GateAccessVerified,
-    state::{
-        Application,
-        ApplicationAsset,
-        ApplicationStatus,
-        GateType,
-        TokenGate,
-    },
+    state::{Application, ApplicationAsset, ApplicationStatus, GateType, TokenGate},
 };
 
 #[derive(Accounts)]
@@ -50,9 +44,7 @@ pub struct VerifyGateAccess<'info> {
     pub user_token_account: InterfaceAccount<'info, TokenAccount>,
 }
 
-pub fn verify_gate_access_handler(
-    ctx: Context<VerifyGateAccess>,
-) -> Result<()> {
+pub fn verify_gate_access_handler(ctx: Context<VerifyGateAccess>) -> Result<()> {
     let gate = &ctx.accounts.token_gate;
 
     require!(

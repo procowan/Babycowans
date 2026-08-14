@@ -4,13 +4,7 @@ use crate::{
     constants::{ACCOUNT_VERSION, TOKEN_GATE_SEED},
     error::BabycowansError,
     events::TokenGateConfigured,
-    state::{
-        Application,
-        ApplicationAsset,
-        ApplicationStatus,
-        GateType,
-        TokenGate,
-    },
+    state::{Application, ApplicationAsset, ApplicationStatus, GateType, TokenGate},
 };
 
 #[derive(Accounts)]

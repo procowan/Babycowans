@@ -3,10 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     error::BabycowansError,
     events::ApplicationStatusChanged,
-    state::{
-        Application,
-        ApplicationStatus,
-    },
+    state::{Application, ApplicationStatus},
 };
 
 #[derive(Accounts)]
@@ -29,30 +26,12 @@ pub fn update_application_status_handler(
 
     let valid_transition = matches!(
         (previous_status, new_status),
-        (
-            ApplicationStatus::Active,
-            ApplicationStatus::Suspended
-        )
-            | (
-                ApplicationStatus::Active,
-                ApplicationStatus::Disabled
-            )
-            | (
-                ApplicationStatus::Suspended,
-                ApplicationStatus::Active
-            )
-            | (
-                ApplicationStatus::Suspended,
-                ApplicationStatus::Disabled
-            )
-            | (
-                ApplicationStatus::Pending,
-                ApplicationStatus::Active
-            )
-            | (
-                ApplicationStatus::Pending,
-                ApplicationStatus::Disabled
-            )
+        (ApplicationStatus::Active, ApplicationStatus::Suspended)
+            | (ApplicationStatus::Active, ApplicationStatus::Disabled)
+            | (ApplicationStatus::Suspended, ApplicationStatus::Active)
+            | (ApplicationStatus::Suspended, ApplicationStatus::Disabled)
+            | (ApplicationStatus::Pending, ApplicationStatus::Active)
+            | (ApplicationStatus::Pending, ApplicationStatus::Disabled)
     );
 
     require!(

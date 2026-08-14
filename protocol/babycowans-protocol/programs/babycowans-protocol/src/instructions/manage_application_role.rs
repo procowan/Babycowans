@@ -1,20 +1,10 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    constants::{
-        ACCOUNT_VERSION,
-        APPLICATION_ROLE_SEED,
-    },
+    constants::{ACCOUNT_VERSION, APPLICATION_ROLE_SEED},
     error::BabycowansError,
-    events::{
-        ApplicationRoleAssigned,
-        ApplicationRoleUpdated,
-    },
-    state::{
-        Application,
-        ApplicationRole,
-        Role,
-    },
+    events::{ApplicationRoleAssigned, ApplicationRoleUpdated},
+    state::{Application, ApplicationRole, Role},
 };
 
 #[derive(Accounts)]

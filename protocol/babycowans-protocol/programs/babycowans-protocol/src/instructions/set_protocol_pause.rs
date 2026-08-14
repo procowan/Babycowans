@@ -1,10 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{
-    error::BabycowansError,
-    events::ProtocolPauseChanged,
-    state::ProtocolConfig,
-};
+use crate::{error::BabycowansError, events::ProtocolPauseChanged, state::ProtocolConfig};
 
 #[derive(Accounts)]
 pub struct SetProtocolPause<'info> {
@@ -17,10 +13,7 @@ pub struct SetProtocolPause<'info> {
     pub authority: Signer<'info>,
 }
 
-pub fn set_protocol_pause_handler(
-    ctx: Context<SetProtocolPause>,
-    paused: bool,
-) -> Result<()> {
+pub fn set_protocol_pause_handler(ctx: Context<SetProtocolPause>, paused: bool) -> Result<()> {
     let protocol = &mut ctx.accounts.protocol_config;
 
     require!(

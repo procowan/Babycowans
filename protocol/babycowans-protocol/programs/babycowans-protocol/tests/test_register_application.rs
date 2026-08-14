@@ -1,8 +1,4 @@
-use anchor_lang::{
-    prelude::Pubkey,
-    InstructionData,
-    ToAccountMetas,
-};
+use anchor_lang::{prelude::Pubkey, InstructionData, ToAccountMetas};
 
 use babycowans_protocol::canonical_ecosystems::CanonicalEcosystem;
 

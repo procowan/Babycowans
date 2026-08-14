@@ -3,24 +3,9 @@
 
 use anchor_lang::prelude::*;
 
-use crate::canonical_assets::{
-    BAC_MINT,
-    BBC_MINT,
-    BEC_MINT,
-    BGC_MINT,
-    BLC_MINT,
-    BRC_MINT,
-};
+use crate::canonical_assets::{BAC_MINT, BBC_MINT, BEC_MINT, BGC_MINT, BLC_MINT, BRC_MINT};
 
-#[derive(
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CanonicalEcosystem {
     BabyReptile,
     BabyEagle,
@@ -106,13 +91,9 @@ impl CanonicalEcosystem {
         self.identity().mission
     }
 
-    pub fn from_token_address(
-        token_address: &Pubkey,
-    ) -> Option<Self> {
+    pub fn from_token_address(token_address: &Pubkey) -> Option<Self> {
         Self::ALL
             .into_iter()
-            .find(|ecosystem| {
-                ecosystem.token_address() == *token_address
-            })
+            .find(|ecosystem| ecosystem.token_address() == *token_address)
     }
 }

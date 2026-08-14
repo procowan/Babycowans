@@ -1,23 +1,11 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{
-    Mint,
-    TokenAccount,
-    TokenInterface,
-};
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::{
-    constants::{
-        ACCOUNT_VERSION,
-        APPLICATION_ASSET_SEED,
-    },
+    constants::{ACCOUNT_VERSION, APPLICATION_ASSET_SEED},
     error::BabycowansError,
     events::ApplicationAssetConfigured,
-    state::{
-        Application,
-        ApplicationAsset,
-        ApplicationStatus,
-        AssetConfig,
-    },
+    state::{Application, ApplicationAsset, ApplicationStatus, AssetConfig},
 };
 
 #[derive(Accounts)]
@@ -93,8 +81,7 @@ pub fn configure_application_asset_handler(
     application_asset.asset_config = ctx.accounts.asset_config.key();
     application_asset.mint = ctx.accounts.mint.key();
     application_asset.token_program = ctx.accounts.token_program.key();
-    application_asset.payment_destination =
-        ctx.accounts.payment_destination.key();
+    application_asset.payment_destination = ctx.accounts.payment_destination.key();
     application_asset.payments_enabled = payments_enabled;
     application_asset.gating_enabled = gating_enabled;
     application_asset.rewards_enabled = rewards_enabled;

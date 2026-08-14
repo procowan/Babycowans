@@ -1,8 +1,4 @@
-use anchor_lang::{
-    prelude::Pubkey,
-    InstructionData,
-    ToAccountMetas,
-};
+use anchor_lang::{prelude::Pubkey, InstructionData, ToAccountMetas};
 
 use babycowans_protocol::state::AssetDomain;
 
@@ -12,10 +8,8 @@ fn register_asset_instruction_is_constructible() {
     let mint = babycowans_protocol::canonical_assets::BRC_MINT;
     let authority = Pubkey::new_unique();
 
-    let (asset_config, _) = Pubkey::find_program_address(
-        &[b"asset", mint.as_ref()],
-        &babycowans_protocol::ID,
-    );
+    let (asset_config, _) =
+        Pubkey::find_program_address(&[b"asset", mint.as_ref()], &babycowans_protocol::ID);
 
     let data = babycowans_protocol::instruction::RegisterAsset {
         asset_code: *b"BRC",
@@ -48,8 +42,8 @@ fn canonical_registry_contains_exactly_six_unique_mints() {
             "canonical mint addresses must be unique"
         );
 
-        assert!(
-            babycowans_protocol::canonical_assets::is_canonical_mint(mint)
-        );
+        assert!(babycowans_protocol::canonical_assets::is_canonical_mint(
+            mint
+        ));
     }
 }

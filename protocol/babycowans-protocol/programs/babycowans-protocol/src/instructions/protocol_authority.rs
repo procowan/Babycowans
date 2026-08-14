@@ -2,10 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::{
     error::BabycowansError,
-    events::{
-        ProtocolAuthorityNominated,
-        ProtocolAuthorityTransferred,
-    },
+    events::{ProtocolAuthorityNominated, ProtocolAuthorityTransferred},
     state::ProtocolConfig,
 };
 
@@ -49,9 +46,7 @@ pub struct AcceptProtocolAuthority<'info> {
     pub pending_authority: Signer<'info>,
 }
 
-pub fn accept_protocol_authority_handler(
-    ctx: Context<AcceptProtocolAuthority>,
-) -> Result<()> {
+pub fn accept_protocol_authority_handler(ctx: Context<AcceptProtocolAuthority>) -> Result<()> {
     let protocol = &mut ctx.accounts.protocol_config;
 
     require!(

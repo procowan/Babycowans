@@ -1,9 +1,6 @@
 use anchor_lang::prelude::Pubkey;
 
-use babycowans_protocol::state::{
-    ApplicationRole,
-    Role,
-};
+use babycowans_protocol::state::{ApplicationRole, Role};
 
 fn application_role(role: Role, active: bool) -> ApplicationRole {
     ApplicationRole {

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -248,6 +249,18 @@ def main() -> None:
     registry = load_registry()
 
     RUST_OUTPUT.write_text(generate_rust(registry))
+
+    subprocess.run(
+        [
+            "rustfmt",
+            "--edition",
+            "2021",
+            str(RUST_OUTPUT),
+        ],
+        cwd=ROOT,
+        check=True,
+    )
+
     TS_OUTPUT.write_text(generate_typescript(registry))
 
     print("Canonical ecosystem registries generated successfully.")
