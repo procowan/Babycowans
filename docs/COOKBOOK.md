@@ -397,3 +397,14 @@ If a transaction simulation fails, inspect Solana transaction logs before changi
 Do not copy API names from `specifications/` into new integrations without confirming that the current SDK exports them.
 
 The production API reference is [API.md](API.md).
+
+
+## Composable GatePolicy
+
+Use TokenGate for a direct single-gate flow. Use GatePolicy when access requires composable conditions.
+
+GatePolicy evaluation uses AND inside a group and OR across groups. For example: Group 0 = HoldAmount + MembershipTier; Group 1 = NftOwnership. The resulting policy is (HoldAmount AND MembershipTier) OR NftOwnership.
+
+Use the exported Low-Level SDK primitives `findGatePolicyPda`, `buildConfigureGatePolicyInstruction`, and `buildVerifyGatePolicyInstruction`. Verification evidence is supplied with the optional `holdTokenAccount`, `membership`, and `nftTokenAccount` accounts required by the configured branch.
+
+For the simpler direct gate, use `client.configureTokenGate(...)` and `client.verifyGateAccess(...)`.
