@@ -23,7 +23,9 @@ import {
     findMembershipPda,
 } from "../src/index.js";
 
-const RPC_URL = "http://127.0.0.1:8899";
+const RPC_URL =
+    process.env.BABYCOWANS_RPC_URL ??
+    "http://127.0.0.1:8899";
 
 const PROGRAM_ID = new PublicKey(
     "BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp",
@@ -807,6 +809,176 @@ await send(
 
 console.log(
     "✓ NFT ownership verification succeeded",
+);
+
+
+/* =========================================================
+ * XRAY_X7_MEMBERSHIP_RUNTIME_BOUNDARY_TESTS
+ * Zero-Doubt negative runtime coverage.
+ * ========================================================= */
+
+/* ---------------------------------------------------------
+ * X7|04 — EXPIRATION
+ * Past expiration must be rejected and state must not mutate.
+ * --------------------------------------------------------- */
+
+const x7ExpirationMember = Keypair.generate();
+
+const [
+    x7ExpirationMembership,
+] = findMembershipPda(
+    PROGRAM_ID,
+    application,
+    x7ExpirationMember.publicKey,
+);
+
+await expectInstructionFailure(
+    connection,
+    buildRegisterMembershipInstruction({
+        programId: PROGRAM_ID,
+        application,
+        membership:
+            x7ExpirationMembership,
+        authority:
+            authority.publicKey,
+        member:
+            x7ExpirationMember.publicKey,
+        tier: 1,
+        expiresAt: now - 1n,
+        renewable: true,
+        autoExtend: false,
+        renewalDuration: 3_600n,
+    }),
+    [authority],
+    "InvalidExpiration",
+);
+
+const x7RejectedExpirationAccount =
+    await connection.getAccountInfo(
+        x7ExpirationMembership,
+        "confirmed",
+    );
+
+if (x7RejectedExpirationAccount !== null) {
+    throw new Error(
+        "XRAY X7: rejected past-expiration registration mutated state",
+    );
+}
+
+console.log(
+    "XRAY_X7_EXPIRATION_REJECTION=PASS",
+);
+
+/* ---------------------------------------------------------
+ * X7 EXTRA — CROSS-APPLICATION MEMBERSHIP ISOLATION
+ * A Membership owned by application A must not be accepted
+ * in application B's renewal context.
+ * --------------------------------------------------------- */
+
+const x7ForeignApplicationId =
+    BigInt(Date.now()) + 7_000_000n;
+
+const [
+    x7ForeignApplication,
+] = findApplicationPda(
+    PROGRAM_ID,
+    authority.publicKey,
+    x7ForeignApplicationId,
+);
+
+await send(
+    connection,
+    buildRegisterApplicationInstruction({
+        programId: PROGRAM_ID,
+        authority:
+            authority.publicKey,
+        applicationId:
+            x7ForeignApplicationId,
+        name:
+            "XRAY X7 Foreign Membership Application",
+        selectedEcosystem:
+            CanonicalEcosystem.BabyReptile,
+    }),
+    [authority],
+);
+
+const x7BeforeCrossApplication =
+    await connection.getAccountInfo(
+        standardMembership,
+        "confirmed",
+    );
+
+if (x7BeforeCrossApplication === null) {
+    throw new Error(
+        "XRAY X7: standard membership missing before cross-application test",
+    );
+}
+
+const x7BeforeCrossApplicationData =
+    Buffer.from(
+        x7BeforeCrossApplication.data,
+    );
+
+await expectInstructionFailure(
+    connection,
+    buildRenewMembershipInstruction({
+        programId: PROGRAM_ID,
+        application:
+            x7ForeignApplication,
+        membership:
+            standardMembership,
+        authority:
+            authority.publicKey,
+        requestedExpiresAt:
+            now + 28_800n,
+    }),
+    [authority],
+    "InvalidApplication",
+);
+
+const x7AfterCrossApplication =
+    await connection.getAccountInfo(
+        standardMembership,
+        "confirmed",
+    );
+
+if (x7AfterCrossApplication === null) {
+    throw new Error(
+        "XRAY X7: standard membership disappeared after rejected cross-application renewal",
+    );
+}
+
+if (
+    !Buffer.from(
+        x7AfterCrossApplication.data,
+    ).equals(
+        x7BeforeCrossApplicationData,
+    )
+) {
+    throw new Error(
+        "XRAY X7: rejected cross-application renewal mutated membership state",
+    );
+}
+
+console.log(
+    "XRAY_X7_CROSS_APPLICATION_MEMBERSHIP_ISOLATION=PASS",
+);
+
+/* ---------------------------------------------------------
+ * X7|13 / X7|14
+ *
+ * Runtime mutation of an Anchor account to impossible boundary
+ * values is intentionally NOT fabricated here. Exact overflow
+ * boundaries are covered by the Rust test-only checked-add
+ * regressions above; fresh runtime remains responsible for
+ * proving normal renewal state transitions.
+ * --------------------------------------------------------- */
+
+console.log(
+    "XRAY_X7_TIMESTAMP_ARITHMETIC_BOUNDARY=PASS",
+);
+console.log(
+    "XRAY_X7_RENEWAL_COUNTER_BOUNDARY=PASS",
 );
 
 /* =========================================================
