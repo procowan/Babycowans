@@ -265,4 +265,98 @@ mod tests {
         assert_eq!(amounts.application_fee, 1);
         assert_eq!(amounts.net_amount, 99);
     }
+
+    #[test]
+    fn payment_amounts_accept_u64_max_without_fees() {
+        let amounts =
+            calculate_payment_amounts(u64::MAX, 0, 0).unwrap();
+
+        assert_eq!(
+            amounts.protocol_fee,
+            0,
+        );
+
+        assert_eq!(
+            amounts.application_fee,
+            0,
+        );
+
+        assert_eq!(
+            amounts.net_amount,
+            u64::MAX,
+        );
+
+        assert_eq!(
+            amounts
+                .net_amount
+                .checked_add(
+                    amounts.application_fee,
+                )
+                .and_then(
+                    |value| {
+                        value.checked_add(
+                            amounts.protocol_fee,
+                        )
+                    },
+                ),
+            Some(u64::MAX),
+        );
+    }
+
+    #[test]
+    fn payment_amounts_preserve_u64_max_with_full_fee_allocation() {
+        let amounts =
+            calculate_payment_amounts(
+                u64::MAX,
+                5_000,
+                5_000,
+            )
+            .unwrap();
+
+        assert_eq!(
+            amounts.protocol_fee,
+            u64::MAX / 2,
+        );
+
+        assert_eq!(
+            amounts.application_fee,
+            u64::MAX / 2,
+        );
+
+        assert_eq!(
+            amounts.net_amount,
+            1,
+        );
+
+        assert_eq!(
+            amounts
+                .net_amount
+                .checked_add(
+                    amounts.application_fee,
+                )
+                .and_then(
+                    |value| {
+                        value.checked_add(
+                            amounts.protocol_fee,
+                        )
+                    },
+                ),
+            Some(u64::MAX),
+        );
+    }
+
+    #[test]
+    fn payment_amounts_fail_closed_when_fee_allocation_exceeds_amount() {
+        let result =
+            calculate_payment_amounts(
+                u64::MAX,
+                10_000,
+                1,
+            );
+
+        assert!(
+            result.is_err(),
+            "fee allocation above 100% must fail closed",
+        );
+    }
 }

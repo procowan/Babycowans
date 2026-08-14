@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import {    execFileSync } from "node:child_process";
 import fs from "node:fs";
 
 import {
@@ -10,6 +10,7 @@ import {
 } from "@solana/web3.js";
 
 import {
+    BabycowansSDK,
     CanonicalEcosystem,
     buildClaimRewardInstruction,
     buildConfigureApplicationAssetInstruction,
@@ -35,6 +36,7 @@ import {
     findApplicationAssetPda,
     findApplicationConfigPda,
     findApplicationPda,
+    findPaymentPolicyPda,
     findApplicationRolePda,
     findAssetConfigPda,
     findAuditLogPda,
@@ -876,6 +878,113 @@ await send(
     [authority],
 );
 
+
+/*
+ * ==========================================================
+ * XRAY X5 — PAYMENT ENGINE CORE RUNTIME INVARIANTS
+ * TEST-ONLY SECURITY REGRESSIONS
+ * ==========================================================
+ */
+
+/*
+ * X5-1 — Duplicate PaymentPolicy initialization.
+ *
+ * The deterministic Application + ApplicationAsset policy PDA
+ * is already initialized. A second configure instruction must
+ * fail without replacing or mutating the existing account.
+ */
+await expectInstructionFailure(
+    connection,
+    buildConfigurePaymentPolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        authority: authority.publicKey,
+        minimumAmount: 100n,
+        maximumAmount: PAYMENT_AMOUNT,
+        paymentsEnabled: true,
+        protocolFeeBps: 0,
+        applicationFeeBps: 0,
+        treasury: protocolTreasuryTokenAccount,
+    }),
+    [authority],
+    "already in use",
+);
+
+console.log(
+    "XRAY_X5_DUPLICATE_PAYMENT_POLICY_REJECTED=PASS",
+);
+
+/*
+ * X5-2 — Payer token-account wrong owner.
+ *
+ * The supplied token account uses the correct canonical mint
+ * but belongs to another funded signer. The legitimate payer
+ * still signs the payment. process_payment must reject the
+ * substituted account through its explicit owner invariant.
+ */
+const x5WrongOwnerTokenAccount =
+    createTokenAccount(
+        CANONICAL_MINT,
+        unauthorizedAuthorityPath,
+    );
+
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount:
+            x5WrongOwnerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount:
+            protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "InvalidAuthority",
+);
+
+console.log(
+    "XRAY_X5_PAYER_WRONG_OWNER_REJECTED=PASS",
+);
+
+/*
+ * X5-3 — Treasury account substitution.
+ *
+ * Use a valid same-mint token account at an address different
+ * from the treasury persisted in ApplicationPaymentPolicy.
+ */
+await expectInstructionFailure(
+    connection,
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount:
+            x5WrongOwnerTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    }),
+    [payer],
+    "InvalidPaymentDestination",
+);
+
+console.log(
+    "XRAY_X5_TREASURY_ACCOUNT_SUBSTITUTION_REJECTED=PASS",
+);
+
+
 await expectInstructionFailure(
     connection,
     buildProcessPaymentInstruction({
@@ -1252,6 +1361,107 @@ await send(
     }),
     [authority],
 );
+
+
+/*
+ * X5-4 — Cross-Application PaymentPolicy substitution.
+ *
+ * buildProcessPaymentInstruction derives the legitimate policy
+ * automatically. A malicious low-level caller can still supply
+ * arbitrary AccountMeta values, so replace only the policy
+ * AccountMeta with a real policy belonging to another
+ * Application and prove that the on-chain PDA constraint rejects
+ * the substitution.
+ */
+const [x5ForeignPaymentPolicy] =
+    findPaymentPolicyPda(
+        PROGRAM_ID,
+        policyDisabledApplication,
+        policyDisabledApplicationAsset,
+    );
+
+const x5ForeignPaymentPolicyAccount =
+    await connection.getAccountInfo(
+        x5ForeignPaymentPolicy,
+    );
+
+if (x5ForeignPaymentPolicyAccount === null) {
+    throw new Error(
+        "XRAY_X5_FOREIGN_PAYMENT_POLICY_FIXTURE_MISSING",
+    );
+}
+
+if (
+    !x5ForeignPaymentPolicyAccount.owner.equals(
+        PROGRAM_ID,
+    )
+) {
+    throw new Error(
+        "XRAY_X5_FOREIGN_PAYMENT_POLICY_OWNER_INVALID",
+    );
+}
+
+const x5CrossApplicationPaymentPolicyInstruction =
+    buildProcessPaymentInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        assetConfig,
+        mint: CANONICAL_MINT,
+        payer: payer.publicKey,
+        payerTokenAccount,
+        destinationTokenAccount,
+        treasuryTokenAccount:
+            protocolTreasuryTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        amount: PAYMENT_AMOUNT,
+    });
+
+if (
+    x5CrossApplicationPaymentPolicyInstruction
+        .keys.length !== 11
+) {
+    throw new Error(
+        "XRAY_X5_PROCESS_PAYMENT_ACCOUNT_LAYOUT_CHANGED",
+    );
+}
+
+const [x5ExpectedPrimaryPaymentPolicy] =
+    findPaymentPolicyPda(
+        PROGRAM_ID,
+        application,
+        applicationAsset,
+    );
+
+if (
+    !x5CrossApplicationPaymentPolicyInstruction
+        .keys[3]
+        .pubkey
+        .equals(
+            x5ExpectedPrimaryPaymentPolicy,
+        )
+) {
+    throw new Error(
+        "XRAY_X5_PAYMENT_POLICY_ACCOUNT_INDEX_CHANGED",
+    );
+}
+
+x5CrossApplicationPaymentPolicyInstruction.keys[3] = {
+    ...x5CrossApplicationPaymentPolicyInstruction.keys[3],
+    pubkey: x5ForeignPaymentPolicy,
+};
+
+await expectInstructionFailure(
+    connection,
+    x5CrossApplicationPaymentPolicyInstruction,
+    [payer],
+    "ConstraintSeeds",
+);
+
+console.log(
+    "XRAY_X5_CROSS_APPLICATION_PAYMENT_POLICY_REJECTED=PASS",
+);
+
 
 await expectInstructionFailure(
     connection,
@@ -1657,7 +1867,7 @@ const feeDestinationBalanceBefore =
 const feeTreasuryBalanceBefore =
     readTokenAmount(feeTreasuryBefore.data);
 
-await send(
+const x5PaymentEventSignature = await send(
     connection,
     buildProcessPaymentInstruction({
         programId: PROGRAM_ID,
@@ -1674,6 +1884,221 @@ await send(
     }),
     [payer],
 );
+
+/*
+ * XRAY X5 — PaymentProcessed real-transaction fidelity.
+ *
+ * Decode the exact confirmed fee-engine payment transaction
+ * through the public BabycowansSDK event API and bind all
+ * emitted fields back to the transaction that actually ran.
+ */
+const x5PaymentEventClient =
+    new BabycowansSDK({
+        connection,
+        programId: PROGRAM_ID,
+    });
+
+const x5DecodedPaymentEvents =
+    await x5PaymentEventClient.decodeEvents(
+        x5PaymentEventSignature,
+    );
+
+const x5PaymentProcessedEvents =
+    x5DecodedPaymentEvents.filter(
+        (event) =>
+            event.name ===
+            "PaymentProcessed",
+    );
+
+if (
+    x5PaymentProcessedEvents.length !== 1
+) {
+    throw new Error(
+        `Expected exactly one PaymentProcessed event, received ${x5PaymentProcessedEvents.length}.`,
+    );
+}
+
+const x5PaymentEvent =
+    x5PaymentProcessedEvents[0]!
+        .data as {
+            application: PublicKey;
+            payer: PublicKey;
+            mint: PublicKey;
+            destination: PublicKey;
+            treasury: PublicKey;
+            amount: bigint;
+            net_amount: bigint;
+            protocol_fee: bigint;
+            application_fee: bigint;
+            timestamp: bigint;
+        };
+
+if (
+    !x5PaymentEvent.application.equals(
+        application,
+    )
+) {
+    throw new Error(
+        "PaymentProcessed application fidelity mismatch.",
+    );
+}
+
+if (
+    !x5PaymentEvent.payer.equals(
+        payer.publicKey,
+    )
+) {
+    throw new Error(
+        "PaymentProcessed payer fidelity mismatch.",
+    );
+}
+
+if (
+    !x5PaymentEvent.mint.equals(
+        CANONICAL_MINT,
+    )
+) {
+    throw new Error(
+        "PaymentProcessed mint fidelity mismatch.",
+    );
+}
+
+if (
+    !x5PaymentEvent.destination.equals(
+        destinationTokenAccount,
+    )
+) {
+    throw new Error(
+        "PaymentProcessed destination fidelity mismatch.",
+    );
+}
+
+if (
+    !x5PaymentEvent.treasury.equals(
+        protocolTreasuryTokenAccount,
+    )
+) {
+    throw new Error(
+        "PaymentProcessed treasury fidelity mismatch.",
+    );
+}
+
+if (
+    x5PaymentEvent.amount !==
+    FEE_ENGINE_AMOUNT
+) {
+    throw new Error(
+        "PaymentProcessed amount fidelity mismatch.",
+    );
+}
+
+if (
+    x5PaymentEvent.net_amount !==
+    EXPECTED_NET_AMOUNT
+) {
+    throw new Error(
+        "PaymentProcessed net_amount fidelity mismatch.",
+    );
+}
+
+if (
+    x5PaymentEvent.protocol_fee !==
+    EXPECTED_PROTOCOL_FEE
+) {
+    throw new Error(
+        "PaymentProcessed protocol_fee fidelity mismatch.",
+    );
+}
+
+if (
+    x5PaymentEvent.application_fee !==
+    EXPECTED_APPLICATION_FEE
+) {
+    throw new Error(
+        "PaymentProcessed application_fee fidelity mismatch.",
+    );
+}
+
+if (
+    x5PaymentEvent.net_amount +
+        x5PaymentEvent.protocol_fee +
+        x5PaymentEvent.application_fee !==
+    x5PaymentEvent.amount
+) {
+    throw new Error(
+        "PaymentProcessed financial conservation mismatch.",
+    );
+}
+
+if (
+    typeof x5PaymentEvent.amount !==
+        "bigint" ||
+    typeof x5PaymentEvent.net_amount !==
+        "bigint" ||
+    typeof x5PaymentEvent.protocol_fee !==
+        "bigint" ||
+    typeof x5PaymentEvent.application_fee !==
+        "bigint" ||
+    typeof x5PaymentEvent.timestamp !==
+        "bigint"
+) {
+    throw new Error(
+        "PaymentProcessed bigint fidelity mismatch.",
+    );
+}
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_EXACTLY_ONE=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_APPLICATION=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_PAYER=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_MINT=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_DESTINATION=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_TREASURY=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_AMOUNT=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_NET_AMOUNT=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_PROTOCOL_FEE=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_APPLICATION_FEE=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_BIGINT=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_FINANCIAL_CONSERVATION=PASS",
+);
+
+console.log(
+    "XRAY_X5_PAYMENT_EVENT_FIDELITY=PASS",
+);
+
 
 const feePayerAfter = await connection.getAccountInfo(
     payerTokenAccount,

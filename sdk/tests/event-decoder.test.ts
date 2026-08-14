@@ -343,3 +343,224 @@ test("program scoping ignores matching discriminators from unrelated programs", 
         500n,
     );
 });
+
+test(
+    "XRAY X5 PaymentProcessed preserves exact IDL field fidelity",
+    () => {
+        type X5EventDefinition = {
+            name: string;
+            discriminator: number[];
+        };
+
+        const x5EventDefinitions =
+            BABYCOWANS_IDL.events as readonly X5EventDefinition[];
+
+        const x5Definition =
+            x5EventDefinitions.find(
+                (candidate) =>
+                    candidate.name ===
+                    "PaymentProcessed",
+            );
+
+        assert.ok(
+            x5Definition,
+            "PaymentProcessed IDL event definition is missing.",
+        );
+
+        const x5EncodeU64 = (
+            value: bigint,
+        ): Buffer => {
+            const buffer =
+                Buffer.alloc(8);
+
+            buffer.writeBigUInt64LE(
+                value,
+            );
+
+            return buffer;
+        };
+
+        const x5EncodeI64 = (
+            value: bigint,
+        ): Buffer => {
+            const buffer =
+                Buffer.alloc(8);
+
+            buffer.writeBigInt64LE(
+                value,
+            );
+
+            return buffer;
+        };
+
+        const application =
+            new PublicKey(
+                Buffer.alloc(32, 41),
+            );
+
+        const payer =
+            new PublicKey(
+                Buffer.alloc(32, 42),
+            );
+
+        const mint =
+            new PublicKey(
+                Buffer.alloc(32, 43),
+            );
+
+        const destination =
+            new PublicKey(
+                Buffer.alloc(32, 44),
+            );
+
+        const treasury =
+            new PublicKey(
+                Buffer.alloc(32, 45),
+            );
+
+        const amount =
+            18_446_744_073_709_551_615n;
+
+        const protocolFee =
+            123_456n;
+
+        const applicationFee =
+            654_321n;
+
+        const netAmount =
+            amount -
+            protocolFee -
+            applicationFee;
+
+        const timestamp =
+            8_000_000_000_000_000_000n;
+
+        const payload =
+            Buffer.concat([
+                Buffer.from(
+                    x5Definition.discriminator,
+                ),
+                application.toBuffer(),
+                payer.toBuffer(),
+                mint.toBuffer(),
+                destination.toBuffer(),
+                treasury.toBuffer(),
+                x5EncodeU64(amount),
+                x5EncodeU64(netAmount),
+                x5EncodeU64(protocolFee),
+                x5EncodeU64(applicationFee),
+                x5EncodeI64(timestamp),
+            ]);
+
+        const events =
+            decodeBabycowansEventLogs([
+                `Program data: ${payload.toString("base64")}`,
+            ]);
+
+        assert.equal(
+            events.length,
+            1,
+        );
+
+        assert.equal(
+            events[0]?.name,
+            "PaymentProcessed",
+        );
+
+        const data =
+            events[0]?.data as {
+                application: PublicKey;
+                payer: PublicKey;
+                mint: PublicKey;
+                destination: PublicKey;
+                treasury: PublicKey;
+                amount: bigint;
+                net_amount: bigint;
+                protocol_fee: bigint;
+                application_fee: bigint;
+                timestamp: bigint;
+            };
+
+        assert.equal(
+            data.application.toBase58(),
+            application.toBase58(),
+        );
+
+        assert.equal(
+            data.payer.toBase58(),
+            payer.toBase58(),
+        );
+
+        assert.equal(
+            data.mint.toBase58(),
+            mint.toBase58(),
+        );
+
+        assert.equal(
+            data.destination.toBase58(),
+            destination.toBase58(),
+        );
+
+        assert.equal(
+            data.treasury.toBase58(),
+            treasury.toBase58(),
+        );
+
+        assert.equal(
+            data.amount,
+            amount,
+        );
+
+        assert.equal(
+            data.net_amount,
+            netAmount,
+        );
+
+        assert.equal(
+            data.protocol_fee,
+            protocolFee,
+        );
+
+        assert.equal(
+            data.application_fee,
+            applicationFee,
+        );
+
+        assert.equal(
+            data.timestamp,
+            timestamp,
+        );
+
+        assert.equal(
+            data.net_amount +
+                data.protocol_fee +
+                data.application_fee,
+            data.amount,
+        );
+
+        assert.equal(
+            typeof data.amount,
+            "bigint",
+        );
+
+        assert.equal(
+            typeof data.net_amount,
+            "bigint",
+        );
+
+        assert.equal(
+            typeof data.protocol_fee,
+            "bigint",
+        );
+
+        assert.equal(
+            typeof data.application_fee,
+            "bigint",
+        );
+
+        assert.equal(
+            typeof data.timestamp,
+            "bigint",
+        );
+    },
+);
