@@ -606,6 +606,41 @@ await expectRejected(
         ),
 );
 
+/*
+ * ----------------------------------------------------------
+ * Security regression:
+ * foreign-program account supplied as token evidence.
+ *
+ * `wallet.publicKey` is a funded system-owned account, not
+ * an SPL Token / Token-2022 account. Anchor must reject it
+ * while deserializing InterfaceAccount<TokenAccount>, before
+ * GatePolicy condition evaluation can trust its contents.
+ * ----------------------------------------------------------
+ */
+await expectRejected(
+    "Foreign-program hold token evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    holdTokenAccount:
+                        wallet.publicKey,
+                    membership,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log(
+    "X8_6_FOREIGN_TOKEN_EVIDENCE_REJECTED=PASS",
+);
+
 await expectRejected(
     "Membership-only evidence",
     () =>
