@@ -757,6 +757,137 @@ await expectRejected(
 );
 
 console.log("X8_7_STRUCTURAL_REJECTIONS=PASS");
+/*
+ * ----------------------------------------------------------
+ * X8.7 — independent fixture for HoldAmount equality and
+ * cross-application substitution.
+ *
+ * Reuse the existing repository bootstrap to create a second
+ * real Application/ApplicationAsset pair. Its GatePolicy PDA
+ * is independent from the primary GatePolicy, so no existing
+ * account is re-initialized.
+ * ----------------------------------------------------------
+ */
+
+const {
+    application: x8ForeignApplication,
+    applicationAsset: x8ForeignApplicationAsset,
+} = resolveGatePolicyBaseline();
+
+expect(
+    !x8ForeignApplication.equals(application),
+    "X8.7 foreign Application must differ from primary",
+);
+
+expect(
+    !x8ForeignApplicationAsset.equals(applicationAsset),
+    "X8.7 foreign ApplicationAsset must differ from primary",
+);
+
+const [x8ForeignGatePolicy] =
+    findGatePolicyPda(
+        PROGRAM_ID,
+        x8ForeignApplicationAsset,
+    );
+
+const brcRawBalance =
+    await connection.getTokenAccountBalance(
+        brcTokenAccount,
+        "confirmed",
+    );
+
+const holdEqualityAmount =
+    BigInt(brcRawBalance.value.amount);
+
+expect(
+    holdEqualityAmount > 0n,
+    "X8.7 HoldAmount equality fixture must be non-zero",
+);
+
+await send(
+    [
+        buildConfigureGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application: x8ForeignApplication,
+            applicationAsset:
+                x8ForeignApplicationAsset,
+            gatePolicy:
+                x8ForeignGatePolicy,
+            authority: authority.publicKey,
+            enabled: true,
+            conditions: [
+                {
+                    group: 0,
+                    conditionType: 0,
+                    mint: BRC_MINT,
+                    minimumAmount:
+                        holdEqualityAmount,
+                    minimumTier: 0,
+                },
+            ],
+        }),
+    ],
+    [authority],
+);
+
+expect(
+    await connection.getAccountInfo(
+        x8ForeignGatePolicy,
+    ) !== null,
+    "X8.7 foreign GatePolicy fixture missing",
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application: x8ForeignApplication,
+            applicationAsset:
+                x8ForeignApplicationAsset,
+            gatePolicy:
+                x8ForeignGatePolicy,
+            wallet: wallet.publicKey,
+            holdTokenAccount:
+                brcTokenAccount,
+        }),
+    ],
+    [wallet],
+);
+
+console.log(
+    "X8_7_HOLD_EQUALITY_BOUNDARY=PASS",
+);
+
+/*
+ * Hybridize the foreign Application with the primary
+ * ApplicationAsset/GatePolicy. The ApplicationAsset parent
+ * binding must reject the cross-application substitution.
+ */
+await expectRejected(
+    "Cross-application GatePolicy substitution",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application:
+                        x8ForeignApplication,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    holdTokenAccount:
+                        brcTokenAccount,
+                    membership,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log(
+    "X8_7_CROSS_APPLICATION_GATE_POLICY_REJECTED=PASS",
+);
+
 
 
 
