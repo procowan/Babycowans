@@ -13,6 +13,7 @@ import {
     CanonicalEcosystem,
     buildClaimRewardInstruction,
     buildConfigureApplicationAssetInstruction,
+    buildConfigureApplicationConfigInstruction,
     buildConfigurePaymentPolicyInstruction,
     buildUpdatePaymentPolicyInstruction,
     buildConfigureTokenGateInstruction,
@@ -25,13 +26,16 @@ import {
     buildRegisterApplicationInstruction,
     buildRegisterAssetInstruction,
     buildRegisterMembershipInstruction,
+    buildAssignApplicationRoleInstruction,
     buildSetProtocolPauseInstruction,
     buildNominateProtocolAuthorityInstruction,
     buildAcceptProtocolAuthorityInstruction,
     buildUpdateApplicationStatusInstruction,
     buildVerifyGateAccessInstruction,
     findApplicationAssetPda,
+    findApplicationConfigPda,
     findApplicationPda,
+    findApplicationRolePda,
     findAssetConfigPda,
     findAuditLogPda,
     findMembershipPda,
@@ -316,6 +320,172 @@ await send(
     [authority],
 );
 
+/*
+ * XRAY_X4_APPLICATION_INVARIANT_RUNTIME_REGRESSIONS
+ *
+ * These probes exercise source-enforced Application invariants
+ * without changing protocol or SDK production logic.
+ */
+
+/*
+ * X4-1 — duplicate Application registration.
+ *
+ * The same authority + application_id resolves to the already
+ * initialized Application PDA. Anchor init must fail closed.
+ */
+await expectInstructionFailure(
+    connection,
+    buildRegisterApplicationInstruction({
+        programId: PROGRAM_ID,
+        authority: authority.publicKey,
+        applicationId,
+        name: applicationName,
+        selectedEcosystem: phase.ecosystem,
+    }),
+    [authority],
+    "already in use",
+);
+
+console.log(
+    "XRAY_X4_DUPLICATE_APPLICATION_REGISTRATION_REJECTED=PASS",
+);
+
+/*
+ * X4-2 — duplicate ApplicationConfig.
+ *
+ * ApplicationConfig has exactly one PDA per Application. The
+ * second configure attempt targets the already initialized PDA.
+ */
+const [x4ApplicationConfig] = findApplicationConfigPda(
+    PROGRAM_ID,
+    application,
+);
+
+await send(
+    connection,
+    buildConfigureApplicationConfigInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        websiteUri: "https://babycowans.example",
+        logoUri: "https://babycowans.example/logo.png",
+        supportUri: "https://babycowans.example/support",
+        description: "Xray X4 Application invariant probe",
+        metadataUri: "https://babycowans.example/metadata.json",
+    }),
+    [authority],
+);
+
+if (
+    (await connection.getAccountInfo(x4ApplicationConfig)) === null
+) {
+    throw new Error(
+        "XRAY_X4_APPLICATION_CONFIG_CREATION_FAILED",
+    );
+}
+
+await expectInstructionFailure(
+    connection,
+    buildConfigureApplicationConfigInstruction({
+        programId: PROGRAM_ID,
+        application,
+        authority: authority.publicKey,
+        websiteUri: "https://duplicate.babycowans.example",
+        logoUri: "https://duplicate.babycowans.example/logo.png",
+        supportUri: "https://duplicate.babycowans.example/support",
+        description: "Duplicate Xray X4 ApplicationConfig",
+        metadataUri: "https://duplicate.babycowans.example/metadata.json",
+    }),
+    [authority],
+    "already in use",
+);
+
+console.log(
+    "XRAY_X4_DUPLICATE_APPLICATION_CONFIG_REJECTED=PASS",
+);
+
+/*
+ * X4-3 — ApplicationRole unauthorized authority.
+ *
+ * The Application is legitimate and the role PDA is correctly
+ * derived. Only the signer is substituted. has_one = authority
+ * must reject the transaction.
+ */
+const x4RoleMember = Keypair.generate().publicKey;
+
+const x4UnauthorizedRoleAuthority = Keypair.generate();
+
+runCommand("solana", [
+    "airdrop",
+    "2",
+    x4UnauthorizedRoleAuthority.publicKey.toBase58(),
+    "--url",
+    RPC_URL,
+]);
+
+const [x4ApplicationRole] = findApplicationRolePda(
+    PROGRAM_ID,
+    application,
+    x4RoleMember,
+);
+
+await expectInstructionFailure(
+    connection,
+    buildAssignApplicationRoleInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationRole: x4ApplicationRole,
+        member: x4RoleMember,
+        authority: x4UnauthorizedRoleAuthority.publicKey,
+        role: 1,
+    }),
+    [x4UnauthorizedRoleAuthority],
+    "ConstraintHasOne",
+);
+
+console.log(
+    "XRAY_X4_APPLICATION_ROLE_UNAUTHORIZED_REJECTED=PASS",
+);
+
+/*
+ * X4-4 — foreign/orphan ApplicationRole child.
+ *
+ * Derive the supplied ApplicationRole PDA from a different
+ * Application while passing the primary Application account.
+ * Anchor's PDA seed constraint must reject the foreign child
+ * before initialization.
+ */
+const x4ForeignApplicationId = applicationId + 10_000_000n;
+
+const [x4ForeignApplication] = findApplicationPda(
+    PROGRAM_ID,
+    authority.publicKey,
+    x4ForeignApplicationId,
+);
+
+const [x4ForeignApplicationRole] = findApplicationRolePda(
+    PROGRAM_ID,
+    x4ForeignApplication,
+    x4RoleMember,
+);
+
+await expectInstructionFailure(
+    connection,
+    buildAssignApplicationRoleInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationRole: x4ForeignApplicationRole,
+        member: x4RoleMember,
+        authority: authority.publicKey,
+        role: 1,
+    }),
+    [authority],
+    "ConstraintSeeds",
+);
+
+console.log(
+    "XRAY_X4_FOREIGN_APPLICATION_CHILD_REJECTED=PASS",
+);
 
 const mismatchedPhase =
     phaseCode === "BRC" ? PHASES.BEC : PHASES.BRC;
