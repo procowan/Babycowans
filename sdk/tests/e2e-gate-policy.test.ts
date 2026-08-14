@@ -1372,6 +1372,193 @@ console.log(
     "✓ AND branch succeeded: Hold BRC + Tier >= 3",
 );
 
+
+/*
+ * ----------------------------------------------------------
+ * XRAY X8.9 — NftOwnership adversarial runtime matrix.
+ * ----------------------------------------------------------
+ */
+
+/*
+ * Wrong owner.
+ *
+ * The NFT token account is valid and funded, but it belongs
+ * to the baseline wallet. A different signer cannot present
+ * it as its own NFT evidence.
+ */
+const x8NftWrongOwner = Keypair.generate();
+
+await expectRejected(
+    "Wrong-owner NFT evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: x8NftWrongOwner.publicKey,
+                    nftTokenAccount,
+                }),
+            ],
+            [x8NftWrongOwner],
+        ),
+);
+
+console.log("X8_9_WRONG_OWNER_REJECTED=PASS");
+
+/*
+ * Wrong mint / substituted token account.
+ *
+ * brcTokenAccount is a valid SPL token account owned by the
+ * correct wallet and has positive balance, but its mint is BRC
+ * rather than the NFT mint configured by the policy.
+ */
+await expectRejected(
+    "Wrong-mint NFT token-account substitution",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    nftTokenAccount:
+                        brcTokenAccount,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_9_WRONG_MINT_REJECTED=PASS");
+console.log("X8_9_SUBSTITUTED_TOKEN_ACCOUNT_REJECTED=PASS");
+
+/*
+ * Foreign-program account.
+ *
+ * wallet.publicKey is System Program owned, not an SPL Token
+ * or Token-2022 account. InterfaceAccount<TokenAccount> must
+ * reject it before NFT condition evaluation.
+ */
+await expectRejected(
+    "Foreign-program NFT evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    nftTokenAccount:
+                        wallet.publicKey,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_9_FOREIGN_PROGRAM_NFT_REJECTED=PASS");
+
+/*
+ * Zero balance.
+ *
+ * Burn the single NFT unit from the correct account. The same
+ * owner and mint must no longer satisfy NftOwnership.
+ */
+runCli(
+    "spl-token",
+    [
+        "burn",
+        nftTokenAccount.toBase58(),
+        "1",
+        "--owner",
+        walletPath,
+        "--url",
+        RPC_URL,
+    ],
+);
+
+const x8ZeroNftBalance =
+    await connection.getTokenAccountBalance(
+        nftTokenAccount,
+        "confirmed",
+    );
+
+expect(
+    x8ZeroNftBalance.value.amount === "0",
+    "X8.9 NFT zero-balance fixture was not established",
+);
+
+await expectRejected(
+    "Zero-balance NFT evidence",
+    () =>
+        send(
+            [
+                buildVerifyGatePolicyInstruction({
+                    programId: PROGRAM_ID,
+                    application,
+                    applicationAsset,
+                    gatePolicy,
+                    wallet: wallet.publicKey,
+                    nftTokenAccount,
+                }),
+            ],
+            [wallet],
+        ),
+);
+
+console.log("X8_9_ZERO_BALANCE_REJECTED=PASS");
+
+/*
+ * Restore the NFT fixture and prove the same account becomes
+ * valid again after positive balance is restored.
+ */
+runCli(
+    "spl-token",
+    [
+        "mint",
+        nftMint.toBase58(),
+        "1",
+        nftTokenAccount.toBase58(),
+        "--url",
+        RPC_URL,
+    ],
+);
+
+const x8RestoredNftBalance =
+    await connection.getTokenAccountBalance(
+        nftTokenAccount,
+        "confirmed",
+    );
+
+expect(
+    BigInt(x8RestoredNftBalance.value.amount) > 0n,
+    "X8.9 NFT balance recovery failed",
+);
+
+await send(
+    [
+        buildVerifyGatePolicyInstruction({
+            programId: PROGRAM_ID,
+            application,
+            applicationAsset,
+            gatePolicy,
+            wallet: wallet.publicKey,
+            nftTokenAccount,
+        }),
+    ],
+    [wallet],
+);
+
+console.log("X8_9_NFT_BALANCE_RECOVERY=PASS");
+console.log("X8_9_NFT_ADVERSARIAL_MATRIX=PASS");
+
 /*
  * ----------------------------------------------------------
  * Positive OR path:
