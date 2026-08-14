@@ -317,6 +317,9 @@ await send(
 );
 
 
+const mismatchedPhase =
+    phaseCode === "BRC" ? PHASES.BEC : PHASES.BRC;
+
 const [assetConfig] = findAssetConfigPda(
     PROGRAM_ID,
     CANONICAL_MINT,
@@ -335,6 +338,130 @@ if ((await connection.getAccountInfo(assetConfig)) === null) {
         [authority],
     );
 }
+
+/*
+ * The non-canonical registration invariant is global rather
+ * than ecosystem-specific. Run it once on BRC before the
+ * six-slot canonical registry becomes saturated by the
+ * six-ecosystem runtime matrix.
+ */
+if (phaseCode === "BRC") {
+    /*
+     * ----------------------------------------------------------
+     * Xray X2 — canonical asset enforcement.
+     *
+     * A valid SPL mint that is not one of the six canonical
+     * Babycowans mints must be rejected by register_asset.
+     * ----------------------------------------------------------
+     */
+
+    const nonCanonicalMintPath =
+        `/tmp/babycowans-x2-noncanonical-mint-${process.pid}.json`;
+
+    runCommand("solana-keygen", [
+        "new",
+        "--outfile",
+        nonCanonicalMintPath,
+        "--no-bip39-passphrase",
+        "--force",
+        "--silent",
+    ]);
+
+    runCommand("spl-token", [
+        "create-token",
+        nonCanonicalMintPath,
+        "--decimals",
+        "9",
+        "--mint-authority",
+        authority.publicKey.toBase58(),
+        "--url",
+        RPC_URL,
+    ]);
+
+    const nonCanonicalMint = new PublicKey(
+        runCommand("solana-keygen", [
+            "pubkey",
+            nonCanonicalMintPath,
+        ]),
+    );
+
+    const [nonCanonicalAssetConfig] =
+        findAssetConfigPda(
+            PROGRAM_ID,
+            nonCanonicalMint,
+        );
+
+    await expectInstructionFailure(
+        connection,
+        buildRegisterAssetInstruction({
+            programId: PROGRAM_ID,
+            authority: authority.publicKey,
+            mint: nonCanonicalMint,
+            assetCode: "ZZZ",
+            domain: 4,
+        }),
+        [authority],
+        "UnsupportedMint",
+    );
+
+    if (
+        (await connection.getAccountInfo(
+            nonCanonicalAssetConfig,
+        )) !== null
+    ) {
+        throw new Error(
+            "Rejected non-canonical mint created an AssetConfig.",
+        );
+    }
+
+    console.log(
+        "NON_CANONICAL_REGISTER_ASSET_REJECTED=PASS",
+    );
+}
+
+/*
+ * Prepare a valid canonical AssetConfig belonging to a
+ * different ecosystem. This is used below to prove that an
+ * Application cannot substitute another canonical ecosystem.
+ */
+
+const [mismatchedAssetConfig] =
+    findAssetConfigPda(
+        PROGRAM_ID,
+        mismatchedPhase.mint,
+    );
+
+if (
+    (await connection.getAccountInfo(
+        mismatchedAssetConfig,
+    )) === null
+) {
+    await send(
+        connection,
+        buildRegisterAssetInstruction({
+            programId: PROGRAM_ID,
+            authority: authority.publicKey,
+            mint: mismatchedPhase.mint,
+            assetCode: mismatchedPhase.assetCode,
+            domain: 4,
+        }),
+        [authority],
+    );
+}
+
+const mismatchedMintAccount =
+    await connection.getAccountInfo(
+        mismatchedPhase.mint,
+    );
+
+if (mismatchedMintAccount === null) {
+    throw new Error(
+        "Opposite canonical mint is missing from the local validator.",
+    );
+}
+
+const mismatchedTokenProgram =
+    mismatchedMintAccount.owner;
 
 runCommand("solana-keygen", [
     "new",
@@ -475,6 +602,64 @@ await send(
         newStatus: 1,
     }),
     [authority],
+);
+
+/*
+ * ----------------------------------------------------------
+ * Xray X2 — cross-ecosystem canonical substitution.
+ *
+ * The Application selected `phase.ecosystem`. Supplying the
+ * valid AssetConfig + mint of another canonical ecosystem
+ * must therefore fail with InvalidAsset.
+ * ----------------------------------------------------------
+ */
+
+const mismatchedPaymentDestination =
+    createTokenAccount(
+        mismatchedPhase.mint,
+        `${process.env.HOME}/.config/solana/id.json`,
+    );
+
+const [mismatchedApplicationAsset] =
+    findApplicationAssetPda(
+        PROGRAM_ID,
+        application,
+        mismatchedPhase.mint,
+    );
+
+await expectInstructionFailure(
+    connection,
+    buildConfigureApplicationAssetInstruction({
+        programId: PROGRAM_ID,
+        application,
+        assetConfig: mismatchedAssetConfig,
+        mint: mismatchedPhase.mint,
+        applicationAsset:
+            mismatchedApplicationAsset,
+        paymentDestination:
+            mismatchedPaymentDestination,
+        authority: authority.publicKey,
+        tokenProgram: mismatchedTokenProgram,
+        paymentsEnabled: true,
+        gatingEnabled: true,
+        rewardsEnabled: true,
+    }),
+    [authority],
+    "InvalidAsset",
+);
+
+if (
+    (await connection.getAccountInfo(
+        mismatchedApplicationAsset,
+    )) !== null
+) {
+    throw new Error(
+        "Rejected cross-ecosystem configuration created an ApplicationAsset.",
+    );
+}
+
+console.log(
+    "CROSS_ECOSYSTEM_APPLICATION_ASSET_REJECTED=PASS",
 );
 
 runCommand("spl-token", [
@@ -1116,9 +1301,6 @@ await expectInstructionFailure(
     [insufficientWallet],
     "InsufficientTokenBalance",
 );
-
-const mismatchedPhase =
-    phaseCode === "BRC" ? PHASES.BEC : PHASES.BRC;
 
 const mismatchedTokenAccount = createTokenAccount(
     mismatchedPhase.mint,
