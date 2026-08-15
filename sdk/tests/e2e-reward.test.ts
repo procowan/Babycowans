@@ -22,7 +22,9 @@ import {
     findRewardPda,
 } from "../src/index.js";
 
-const RPC_URL = "http://127.0.0.1:8899";
+const RPC_URL =
+    process.env.BABYCOWANS_RPC_URL ??
+    "http://127.0.0.1:8899";
 
 function loadKeypair(path: string): Keypair {
     return Keypair.fromSecretKey(
