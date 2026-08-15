@@ -30,6 +30,7 @@
     "test:e2e:golden": "tsx tests/e2e-golden-path.test.ts",
     "test:god:phase": "tsx tests/e2e-golden-path.test.ts",
     "test:god": "BABYCOWANS_PHASE=BRC yarn test:god:phase && BABYCOWANS_PHASE=BEC yarn test:god:phase && BABYCOWANS_PHASE=BGC yarn test:god:phase && BABYCOWANS_PHASE=BLC yarn test:god:phase && BABYCOWANS_PHASE=BBC yarn test:god:phase && BABYCOWANS_PHASE=BAC yarn test:god:phase",
+    "test:god:isolated": "BABYCOWANS_ISOLATED_SUITE=god tsx tests/run-e2e-isolated.ts",
     "postinstall": "patch-package"
   },
   "dependencies": {

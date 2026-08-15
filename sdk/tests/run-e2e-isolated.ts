@@ -98,7 +98,10 @@ const legacyTokenProgram =
 const token2022Program =
     "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 
-const e2eScripts = [
+const e2eScripts =
+    process.env.BABYCOWANS_ISOLATED_SUITE === "god"
+        ? ["test:god"]
+        : [
     "test:e2e:initialize",
     "test:e2e:application",
     "test:e2e:asset",

@@ -46,7 +46,9 @@ import {
     findTokenGatePda,
 } from "../src/index.js";
 
-const RPC_URL = "http://127.0.0.1:8899";
+const RPC_URL =
+    process.env.BABYCOWANS_RPC_URL ??
+    "http://127.0.0.1:8899";
 
 const PROGRAM_ID = new PublicKey(
     "BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp",
