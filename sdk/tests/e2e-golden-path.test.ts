@@ -1610,6 +1610,53 @@ const [tokenGate] = findTokenGatePda(
     applicationAsset,
 );
 
+/*
+ * XRAY X10 — TokenGate foreign PDA substitution.
+ *
+ * Security invariant:
+ * the supplied TokenGate address must be the canonical PDA derived
+ * from TOKEN_GATE_SEED + application + application_asset.
+ *
+ * Derive a foreign TokenGate PDA from a different ApplicationAsset,
+ * then supply it alongside the valid primary ApplicationAsset.
+ * Anchor seed validation must reject it before account creation.
+ */
+const [x10ForeignTokenGate] = findTokenGatePda(
+    PROGRAM_ID,
+    application,
+    policyDisabledApplicationAsset,
+);
+
+await expectInstructionFailure(
+    connection,
+    buildConfigureTokenGateInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        tokenGate: x10ForeignTokenGate,
+        authority: authority.publicKey,
+        gateType: HOLD_AMOUNT_GATE_TYPE,
+        minimumAmount: TOKEN_GATE_MINIMUM_AMOUNT,
+        minimumTier: 0,
+        enabled: true,
+    }),
+    [authority],
+    "ConstraintSeeds",
+);
+
+if (
+    await connection.getAccountInfo(x10ForeignTokenGate)
+    !== null
+) {
+    throw new Error(
+        "Rejected foreign TokenGate PDA substitution created an account.",
+    );
+}
+
+console.log(
+    "XRAY_X10_TOKEN_GATE_FOREIGN_PDA_REJECTED=PASS",
+);
+
 await send(
     connection,
     buildConfigureTokenGateInstruction({

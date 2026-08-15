@@ -217,6 +217,59 @@ const instruction = buildRecordAuditLogInstruction({
     metadata,
 });
 
+/*
+ * XRAY X10 — AuditLog wrong-seed PDA substitution.
+ *
+ * Security invariant:
+ * AuditLog identity is canonical over
+ * AUDIT_LOG_SEED + application + authority + nonce.
+ *
+ * Supply a PDA derived with a different nonce while keeping the
+ * instruction nonce equal to successNonce. Anchor seed validation
+ * must reject the foreign PDA before any AuditLog account is created.
+ */
+const [x10WrongSeedAuditLog] = findAuditLogPda(
+    PROGRAM_ID,
+    application,
+    authority.publicKey,
+    invalidReferenceNonce,
+);
+
+const x10WrongSeedInstruction =
+    buildRecordAuditLogInstruction({
+        programId: PROGRAM_ID,
+        application,
+        auditLog: x10WrongSeedAuditLog,
+        authority: authority.publicKey,
+        nonce: successNonce,
+        action: PROCESS_PAYMENT_ACTION,
+        category: PAYMENT_CATEGORY,
+        severity: NOTICE_SEVERITY,
+        reference,
+        indexedReferences,
+        metadata,
+    });
+
+await expectInstructionFailure(
+    connection,
+    x10WrongSeedInstruction,
+    authority,
+    "ConstraintSeeds",
+);
+
+if (
+    await connection.getAccountInfo(x10WrongSeedAuditLog)
+    !== null
+) {
+    throw new Error(
+        "Rejected wrong-seed AuditLog substitution created an account.",
+    );
+}
+
+console.log(
+    "XRAY_X10_AUDIT_LOG_WRONG_SEED_REJECTED=PASS",
+);
+
 const signature = await sendAndConfirmTransaction(
     connection,
     new Transaction().add(instruction),
