@@ -104,7 +104,9 @@ const repositoryRoot =
     ).pathname.replace(/\/$/, "");
 
 const runtimeRoot =
-    `${repositoryRoot}/.phase15-runtime`;
+    fs.mkdtempSync(
+        `${process.env.TMPDIR ?? "/tmp"}/babycowans-phase15-`,
+    );
 
 const laneRoot =
     `${runtimeRoot}/payment-lanes`;
@@ -115,6 +117,16 @@ fs.mkdirSync(
         recursive: true,
     },
 );
+
+process.on("exit", () => {
+    fs.rmSync(
+        runtimeRoot,
+        {
+            recursive: true,
+            force: true,
+        },
+    );
+});
 
 const connection =
     new Connection(
