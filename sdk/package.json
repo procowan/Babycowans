@@ -7,7 +7,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "scripts/runtime-dependency-guard.cjs"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -31,23 +32,21 @@
     "test:god:phase": "tsx tests/e2e-golden-path.test.ts",
     "test:god": "BABYCOWANS_PHASE=BRC yarn test:god:phase && BABYCOWANS_PHASE=BEC yarn test:god:phase && BABYCOWANS_PHASE=BGC yarn test:god:phase && BABYCOWANS_PHASE=BLC yarn test:god:phase && BABYCOWANS_PHASE=BBC yarn test:god:phase && BABYCOWANS_PHASE=BAC yarn test:god:phase",
     "test:god:isolated": "BABYCOWANS_ISOLATED_SUITE=god tsx tests/run-e2e-isolated.ts",
-    "postinstall": "patch-package"
+    "postinstall": "node scripts/runtime-dependency-guard.cjs",
+    "test:dependencies": "node scripts/runtime-dependency-guard.cjs --verify"
   },
   "dependencies": {
     "@anchor-lang/core": "1.0.2",
-    "@solana/web3.js": "^1.98.0",
+    "@solana/web3.js": "1.98.4",
     "punycode": "2.3.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
-    "patch-package": "8.0.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.0"
   },
-  "resolutions": {
-    "jayson": "file:vendor/jayson"
-  },
   "bin": {
     "babycowans": "dist/onboarding/DeveloperOnboarding.js"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
