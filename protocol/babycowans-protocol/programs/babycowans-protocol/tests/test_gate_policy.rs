@@ -10,10 +10,74 @@ use babycowans_protocol::{
 };
 
 #[test]
-fn gate_policy_limits_are_stable() {
+fn gate_policy_limits_and_serialized_space_are_stable() {
     assert_eq!(GatePolicy::MAX_CONDITIONS, 6);
     assert_eq!(GatePolicy::MAX_GROUPS, 3);
-    assert!(GatePolicy::SPACE > 0);
+
+    let conditions = vec![
+        GateCondition {
+            group: 0,
+            condition_type: GateConditionType::HoldAmount,
+            mint: Pubkey::new_unique(),
+            minimum_amount: 1,
+            minimum_tier: 0,
+        },
+        GateCondition {
+            group: 0,
+            condition_type: GateConditionType::MembershipTier,
+            mint: Pubkey::default(),
+            minimum_amount: 0,
+            minimum_tier: 1,
+        },
+        GateCondition {
+            group: 0,
+            condition_type: GateConditionType::NftOwnership,
+            mint: Pubkey::new_unique(),
+            minimum_amount: 0,
+            minimum_tier: 0,
+        },
+        GateCondition {
+            group: 1,
+            condition_type: GateConditionType::HoldAmount,
+            mint: Pubkey::new_unique(),
+            minimum_amount: u64::MAX,
+            minimum_tier: 0,
+        },
+        GateCondition {
+            group: 1,
+            condition_type: GateConditionType::MembershipTier,
+            mint: Pubkey::default(),
+            minimum_amount: 0,
+            minimum_tier: u16::MAX,
+        },
+        GateCondition {
+            group: 1,
+            condition_type: GateConditionType::NftOwnership,
+            mint: Pubkey::new_unique(),
+            minimum_amount: 0,
+            minimum_tier: 0,
+        },
+    ];
+
+    assert_eq!(conditions.len(), GatePolicy::MAX_CONDITIONS);
+
+    let policy = GatePolicy {
+        version: 1,
+        application: Pubkey::new_unique(),
+        application_asset: Pubkey::new_unique(),
+        conditions,
+        enabled: true,
+        created_at: i64::MIN,
+        updated_at: i64::MAX,
+        bump: u8::MAX,
+    };
+
+    let mut serialized = Vec::new();
+
+    anchor_lang::AccountSerialize::try_serialize(&policy, &mut serialized)
+        .expect("maximum GatePolicy must serialize");
+
+    assert_eq!(serialized.len(), GatePolicy::SPACE);
 }
 
 #[test]
