@@ -48,6 +48,18 @@ jobs:
       - name: Run protocol tests
         run: cargo test --workspace --all-targets --locked
 
+      - name: Install pinned Anchor CLI for ABI generation
+        run: cargo install --git https://github.com/solana-foundation/anchor --tag v1.0.2 anchor-cli --locked
+
+      - name: Verify pinned Anchor CLI
+        run: anchor --version | grep -F 'anchor-cli 1.0.2'
+
+      - name: Generate IDL from Rust ABI
+        run: anchor idl build
+
+      - name: Verify Protocol V1.0.0 ABI compatibility
+        run: python3 ../../scripts/check-idl-abi.py
+
   sdk:
     name: SDK Build and Tests
     runs-on: ubuntu-latest
@@ -84,6 +96,15 @@ jobs:
 
       - name: Test account decoder
         run: yarn test:decoder
+
+      - name: Test Read API ABI boundaries
+        run: yarn tsx tests/read-api.test.ts
+
+      - name: Test event decoder ABI boundaries
+        run: yarn tsx tests/event-decoder.test.ts
+
+      - name: Test event decoder client integration
+        run: yarn tsx tests/event-decoder-client.test.ts
 
       - name: Audit runtime dependencies
         run: yarn audit --groups dependencies

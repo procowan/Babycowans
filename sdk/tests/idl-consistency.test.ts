@@ -63,6 +63,13 @@ for (const instructionName of requiredInstructions) {
         discriminator.length === 8,
         `Invalid discriminator length: ${instructionName}`,
     );
+
+    expect(
+        Buffer.from(
+            instruction.discriminator,
+        ).equals(discriminator),
+        `IDL discriminator mismatch: ${instructionName}`,
+    );
 }
 
 expect(
