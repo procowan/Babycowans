@@ -15,6 +15,7 @@ cd "$ROOT" || exit 1
 ASSETS="$ROOT/protocol/babycowans-protocol/programs/babycowans-protocol/src/canonical_assets.rs"
 LEDGER="${BABYCOWANS_LEDGER:-$ROOT/test-ledger}"
 BUILD_DIR="${BABYCOWANS_FIXTURE_DIR:-/tmp/babycowans-canonical-fixtures}"
+LAYOUT_MANIFEST="$ROOT/protocol/babycowans-protocol/tests/fixtures/canonical-local-mint-layouts.json"
 
 SOURCE_RPC_PORT="${BABYCOWANS_FIXTURE_RPC_PORT:-18999}"
 SOURCE_FAUCET_PORT="${BABYCOWANS_FIXTURE_FAUCET_PORT:-19901}"
@@ -27,7 +28,7 @@ SOURCE_LEDGER="${BUILD_DIR}/source-ledger"
 MAIN_RPC_PORT="${BABYCOWANS_RPC_PORT:-8899}"
 MAIN_FAUCET_PORT="${BABYCOWANS_FAUCET_PORT:-9900}"
 MAIN_GOSSIP_PORT="${BABYCOWANS_GOSSIP_PORT:-8001}"
-MAIN_DYNAMIC_PORT_RANGE="${BABYCOWANS_DYNAMIC_PORT_RANGE:-1024-65535}"
+MAIN_DYNAMIC_PORT_RANGE="${BABYCOWANS_DYNAMIC_PORT_RANGE:-}"
 
 for tool in \
     solana-test-validator \
@@ -118,45 +119,121 @@ done < "$CANONICAL_TSV"
 
 : > "$MINT_INFO_TSV"
 
-while IFS=$'\t' read -r CODE MINT; do
-    DISPLAY="$(
-        spl-token display \
-            --url mainnet-beta \
-            "$MINT" \
-            2>/dev/null
-    )"
+if [ ! -s "$LAYOUT_MANIFEST" ]; then
+    echo "STARTUP_ABORTED=LOCAL_LAYOUT_MANIFEST_MISSING"
+    exit 1
+fi
 
-    if [ "$?" -ne 0 ]; then
-        echo "STARTUP_ABORTED=CANONICAL_MINT_INSPECTION_FAILED:$CODE"
-        exit 1
-    fi
+python3 - \
+    "$CANONICAL_TSV" \
+    "$LAYOUT_MANIFEST" \
+    "$MINT_INFO_TSV" <<'PY_LOCAL_LAYOUT'
+from pathlib import Path
+import json
+import sys
 
-    PROGRAM="$(
-        printf '%s\n' "$DISPLAY" |
-        sed -n 's/^[[:space:]]*Program:[[:space:]]*//p' |
-        head -n1
-    )"
+canonical_path = Path(sys.argv[1])
+manifest_path = Path(sys.argv[2])
+output_path = Path(sys.argv[3])
 
-    DECIMALS="$(
-        printf '%s\n' "$DISPLAY" |
-        sed -n 's/^[[:space:]]*Decimals:[[:space:]]*//p' |
-        head -n1
-    )"
+expected_codes = [
+    "BRC",
+    "BEC",
+    "BGC",
+    "BLC",
+    "BBC",
+    "BAC",
+]
 
-    if [ -z "$PROGRAM" ] || [ -z "$DECIMALS" ]; then
-        echo "STARTUP_ABORTED=CANONICAL_MINT_LAYOUT_UNRESOLVED:$CODE"
-        exit 1
-    fi
+allowed_programs = {
+    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+}
 
-    printf '%s\t%s\t%s\t%s\n' \
-        "$CODE" \
-        "$MINT" \
-        "$PROGRAM" \
-        "$DECIMALS" \
-        >> "$MINT_INFO_TSV"
+canonical_rows = []
 
+for line in canonical_path.read_text(
+    encoding="utf-8"
+).splitlines():
+    if not line:
+        continue
+
+    parts = line.split("\t")
+
+    if len(parts) != 2:
+        raise SystemExit(1)
+
+    canonical_rows.append(
+        (parts[0], parts[1])
+    )
+
+if [code for code, _ in canonical_rows] != expected_codes:
+    raise SystemExit(2)
+
+if len({mint for _, mint in canonical_rows}) != 6:
+    raise SystemExit(3)
+
+try:
+    manifest = json.loads(
+        manifest_path.read_text(
+            encoding="utf-8"
+        )
+    )
+except Exception:
+    raise SystemExit(4)
+
+if list(manifest.keys()) != expected_codes:
+    raise SystemExit(5)
+
+lines = []
+
+for code, mint in canonical_rows:
+    entry = manifest.get(code)
+
+    if not isinstance(entry, dict):
+        raise SystemExit(6)
+
+    if set(entry.keys()) != {
+        "tokenProgram",
+        "decimals",
+    }:
+        raise SystemExit(7)
+
+    token_program = entry["tokenProgram"]
+    decimals = entry["decimals"]
+
+    if token_program not in allowed_programs:
+        raise SystemExit(8)
+
+    if (
+        not isinstance(decimals, int)
+        or decimals < 0
+        or decimals > 255
+    ):
+        raise SystemExit(9)
+
+    lines.append(
+        f"{code}\t{mint}\t"
+        f"{token_program}\t{decimals}"
+    )
+
+output_path.write_text(
+    "\n".join(lines) + "\n",
+    encoding="utf-8",
+)
+PY_LOCAL_LAYOUT
+
+LAYOUT_MANIFEST_RC=$?
+
+if [ "$LAYOUT_MANIFEST_RC" -ne 0 ]; then
+    echo "STARTUP_ABORTED=LOCAL_LAYOUT_MANIFEST_INVALID"
+    exit 1
+fi
+
+while IFS=$'\t' read -r CODE MINT PROGRAM DECIMALS; do
     echo "CANONICAL_LAYOUT=$CODE:$PROGRAM:$DECIMALS"
-done < "$CANONICAL_TSV"
+    echo "CANONICAL_LAYOUT_SOURCE=$CODE:REPOSITORY_TEST_MANIFEST"
+done < "$MINT_INFO_TSV"
 
 rm -rf -- "$SOURCE_LEDGER"
 
@@ -347,6 +424,15 @@ if [ -n "$EXISTING_PID" ]; then
     exit 1
 fi
 
+MAIN_DYNAMIC_ARGS=()
+
+if [ -n "$MAIN_DYNAMIC_PORT_RANGE" ]; then
+    MAIN_DYNAMIC_ARGS+=(
+        --dynamic-port-range
+        "$MAIN_DYNAMIC_PORT_RANGE"
+    )
+fi
+
 VALIDATOR_ARGS=()
 
 while IFS=$'\t' read -r CODE MINT; do
@@ -382,7 +468,7 @@ solana-test-validator \
     --rpc-port "$MAIN_RPC_PORT" \
     --faucet-port "$MAIN_FAUCET_PORT" \
     --gossip-port "$MAIN_GOSSIP_PORT" \
-    --dynamic-port-range "$MAIN_DYNAMIC_PORT_RANGE" \
+    "${MAIN_DYNAMIC_ARGS[@]}" \
     "${VALIDATOR_ARGS[@]}"
 
 RC=$?

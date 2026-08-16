@@ -812,7 +812,7 @@ async function main(): Promise<void> {
         ];
 
         console.log(
-            "X21_CANONICAL_FIXTURE_MODE=NETWORK_BOOTSTRAP_FALLBACK",
+            "X21_CANONICAL_FIXTURE_MODE=REPOSITORY_BOOTSTRAP_FALLBACK",
         );
     }
 
