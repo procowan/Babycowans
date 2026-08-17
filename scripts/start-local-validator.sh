@@ -450,6 +450,32 @@ while IFS=$'\t' read -r CODE MINT; do
     )
 done < "$CANONICAL_TSV"
 
+PROGRAM_PRELOAD_ID="${BABYCOWANS_PROGRAM_PRELOAD_ID:-}"
+PROGRAM_PRELOAD_SO="${BABYCOWANS_PROGRAM_PRELOAD_SO:-}"
+
+if [ -n "$PROGRAM_PRELOAD_ID" ] || [ -n "$PROGRAM_PRELOAD_SO" ]; then
+    if [ -z "$PROGRAM_PRELOAD_ID" ] || [ -z "$PROGRAM_PRELOAD_SO" ]; then
+        echo "STARTUP_ABORTED=INCOMPLETE_PROGRAM_PRELOAD_CONTRACT"
+        exit 1
+    fi
+
+    if [ ! -s "$PROGRAM_PRELOAD_SO" ]; then
+        echo "STARTUP_ABORTED=PROGRAM_PRELOAD_SO_MISSING"
+        echo "PROGRAM_PRELOAD_SO=$PROGRAM_PRELOAD_SO"
+        exit 1
+    fi
+
+    VALIDATOR_ARGS+=(
+        --upgradeable-program
+        "$PROGRAM_PRELOAD_ID"
+        "$PROGRAM_PRELOAD_SO"
+        none
+    )
+
+    echo "BABYCOWANS_PROGRAM_PRELOAD=ENABLED"
+    echo "BABYCOWANS_PROGRAM_PRELOAD_ID=$PROGRAM_PRELOAD_ID"
+fi
+
 rm -rf -- "$LEDGER"
 
 echo

@@ -1,3 +1,5 @@
+import { loadConfiguredProgramId } from "../program-id.js";
+
 import fs from "node:fs";
 import { statfs } from "node:fs/promises";
 
@@ -141,22 +143,9 @@ export function loadAuthority(): Keypair {
 export function loadProgramId(
     repositoryRoot: string,
 ): PublicKey {
-    const path =
-        `${repositoryRoot}`
-        + "/protocol/babycowans-protocol"
-        + "/target/deploy/"
-        + "babycowans_protocol-keypair.json";
-
-    const secret =
-        Uint8Array.from(
-            JSON.parse(
-                fs.readFileSync(path, "utf8"),
-            ),
-        );
-
-    return Keypair
-        .fromSecretKey(secret)
-        .publicKey;
+    return loadConfiguredProgramId(
+        repositoryRoot,
+    );
 }
 
 export async function sendInstruction(

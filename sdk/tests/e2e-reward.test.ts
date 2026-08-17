@@ -1,3 +1,5 @@
+import { loadConfiguredProgramId } from "./program-id.js";
+
 import fs from "node:fs";
 
 import {
@@ -40,15 +42,7 @@ const authority = loadKeypair(
     `${process.env.HOME}/.config/solana/id.json`,
 );
 
-/*
- * Repository deployment artifact is the source of truth
- * for the local Program ID.
- */
-const programKeypair = loadKeypair(
-    "../protocol/babycowans-protocol/target/deploy/babycowans_protocol-keypair.json",
-);
-
-const PROGRAM_ID = programKeypair.publicKey;
+const PROGRAM_ID = loadConfiguredProgramId();
 
 const connection = new Connection(
     RPC_URL,

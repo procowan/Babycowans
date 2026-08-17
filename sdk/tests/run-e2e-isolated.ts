@@ -62,14 +62,6 @@ const programSo =
         "babycowans_protocol.so",
     );
 
-const programKeypair =
-    path.join(
-        protocolRoot,
-        "target",
-        "deploy",
-        "babycowans_protocol-keypair.json",
-    );
-
 const anchorToml =
     path.join(
         protocolRoot,
@@ -456,17 +448,6 @@ async function stopOwnedProcessGroup(
     }
 }
 
-function deriveProgramId(): string {
-    return run(
-        "solana",
-        [
-            "address",
-            "-k",
-            programKeypair,
-        ],
-    );
-}
-
 function anchorProgramId(): string {
     const source =
         readFileSync(
@@ -645,43 +626,23 @@ function resolveCanonicalFixtures():
 
 async function main(): Promise<void> {
     const programId =
-        deriveProgramId();
-
-    const configuredProgramId =
         anchorProgramId();
 
-    if (
-        programId !==
-        configuredProgramId
-    ) {
-        throw new Error(
-            `Program ID mismatch: ${programId} != ${configuredProgramId}`,
-        );
-    }
-
-    const deployHelp =
+    const validatorHelp =
         run(
-            "solana",
+            "solana-test-validator",
             [
-                "program",
-                "deploy",
                 "--help",
             ],
         );
 
     if (
-        !deployHelp.includes(
-            "--program-id",
-        ) ||
-        !deployHelp.includes(
-            "--url",
-        ) ||
-        !deployHelp.includes(
-            "--use-rpc",
+        !validatorHelp.includes(
+            "--upgradeable-program",
         )
     ) {
         throw new Error(
-            "Installed Solana CLI does not expose the required deploy contract.",
+            "Installed validator does not expose the required canonical program preload contract.",
         );
     }
 
@@ -696,10 +657,14 @@ async function main(): Promise<void> {
         );
     }
 
+    const isolatedRuntimeParent =
+        process.env.BABYCOWANS_ISOLATED_RUNTIME_PARENT ??
+        tmpdir();
+
     const runtimeRoot =
         mkdtempSync(
             path.join(
-                tmpdir(),
+                isolatedRuntimeParent,
                 "babycowans-e2e-isolated-",
             ),
         );
@@ -757,6 +722,12 @@ async function main(): Promise<void> {
 
         BABYCOWANS_FIXTURE_DYNAMIC_PORT_RANGE:
             `${plan.sourceDynamicStart}-${plan.sourceDynamicEnd}`,
+        BABYCOWANS_PROGRAM_PRELOAD_ID:
+            programId,
+
+        BABYCOWANS_PROGRAM_PRELOAD_SO:
+            programSo,
+
     };
 
     const canonicalFixtures =
@@ -795,6 +766,13 @@ async function main(): Promise<void> {
                 fixture.path,
             );
         }
+
+        validatorArguments.push(
+            "--upgradeable-program",
+            programId,
+            programSo,
+            "none",
+        );
 
         console.log(
             "X21_CANONICAL_FIXTURE_MODE=VALIDATED_CACHE_REUSE",
@@ -911,25 +889,6 @@ async function main(): Promise<void> {
             "X21_ISOLATED_AUTHORITY_FUNDING=PASS",
         );
 
-        const deployOutput =
-            run(
-                "solana",
-                [
-                    "program",
-                    "deploy",
-                    programSo,
-                    "--program-id",
-                    programKeypair,
-                    "--url",
-                    rpcUrl,
-                    "--use-rpc",
-                ],
-        );
-
-        console.log(
-            deployOutput,
-        );
-
         const programShow =
             run(
                 "solana",
@@ -957,7 +916,7 @@ async function main(): Promise<void> {
         );
 
         console.log(
-            "X21_ISOLATED_PROGRAM_DEPLOY=PASS",
+            "X21_ISOLATED_PROGRAM_PRELOAD=PASS",
         );
 
         const testEnvironment: NodeJS.ProcessEnv = {
