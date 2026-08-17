@@ -51,7 +51,7 @@ Decode transaction events
 
 ## Requirements
 
-Repository development uses Git, Rust, Solana CLI, SPL Token CLI, Anchor CLI 1.0.2, Node.js, and Yarn 1.x.
+Repository development uses Git, the repository-pinned Rust toolchain (Rust 1.89.0 with rustfmt and Clippy), Solana CLI, SPL Token CLI, Anchor CLI 1.0.2, Node.js 22.22.1, and Yarn 1.22.22. The certified Solana development baseline is solana-cli 3.1.10 with spl-token-cli 5.5.0.
 
 ## First five minutes
 
@@ -89,31 +89,33 @@ cd ..
 
 The onboarding displays Full Name, Ticker, Token Address, and Mission. Use the Up and Down Arrow keys to move and Enter to select.
 
-### 4. Start the repository-owned six-canonical validator
+### 4. Build the canonical program artifact
+
+Open Terminal 2 from the repository root:
+
+```bash
+cd protocol/babycowans-protocol
+anchor build --ignore-keys
+cd ../..
+```
+
+Babycowans keeps the canonical Program ID in repository source. A clean clone does not require the corresponding private deploy keypair. `--ignore-keys` prevents an ephemeral generated build keypair from blocking or rewriting that identity contract.
+
+### 5. Start the repository-owned six-canonical validator with the program preloaded
 
 Open Terminal 1 from the repository root:
 
 ```bash
+export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
+
+BABYCOWANS_PROGRAM_PRELOAD_ID="$BABYCOWANS_PROGRAM_ID" \
+BABYCOWANS_PROGRAM_PRELOAD_SO="$PWD/protocol/babycowans-protocol/target/deploy/babycowans_protocol.so" \
 ./scripts/start-local-validator.sh
 ```
 
-Leave Terminal 1 open. The validator runs in the foreground and derives the canonical mint identities from the current repository.
+Leave Terminal 1 open. The repository-owned validator derives the six canonical mint identities from current repository definitions and preloads the built program at the canonical repository Program ID.
 
-Do not substitute a plain empty solana-test-validator for Babycowans canonical integration flows.
-
-### 5. Build and deploy
-
-Open Terminal 2:
-
-```bash
-cd protocol/babycowans-protocol
-anchor build
-
-solana program deploy \
-  --url http://127.0.0.1:8899 \
-  --program-id target/deploy/babycowans_protocol-keypair.json \
-  target/deploy/babycowans_protocol.so
-```
+Do not run `anchor keys sync`, do not rewrite the repository Program ID, and do not substitute a plain empty `solana-test-validator` for Babycowans canonical integration flows.
 
 ### 6. Initialize the SDK
 
@@ -134,8 +136,10 @@ yarn application-bootstrap
 
 ```bash
 cd protocol/babycowans-protocol
-anchor build
+anchor build --ignore-keys
 ```
+
+The build intentionally preserves the canonical repository Program ID without requiring its private deploy keypair.
 
 ## Build and typecheck the SDK
 
@@ -216,30 +220,31 @@ sdk/src/ecosystems/
 The development workflow uses three persistent terminals:
 
 ```text
-Terminal 1 → local Solana validator
-Terminal 2 → build / deployment freshness
+Terminal 1 → repository-owned canonical validator
+Terminal 2 → protocol build artifact
 Terminal 3 → main protocol + SDK workspace
 ```
 
-Build:
+In Terminal 2, build the canonical program artifact:
 
 ```bash
 cd protocol/babycowans-protocol
-anchor build
+anchor build --ignore-keys
 ```
 
-Use the supported deployment command:
+Then, from the repository root in Terminal 1, start the validator with that artifact preloaded at the canonical repository Program ID:
 
 ```bash
-anchor program deploy \
-  target/deploy/babycowans_protocol.so \
-  --provider.cluster localnet \
-  --no-idl
+export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
+
+BABYCOWANS_PROGRAM_PRELOAD_ID="$BABYCOWANS_PROGRAM_ID" \
+BABYCOWANS_PROGRAM_PRELOAD_SO="$PWD/protocol/babycowans-protocol/target/deploy/babycowans_protocol.so" \
+./scripts/start-local-validator.sh
 ```
 
-Do not use deprecated `anchor deploy` in new Babycowans instructions.
+The clean-clone local workflow requires no private canonical program keypair. Do not run `anchor keys sync` or rewrite the repository Program ID.
 
-The canonical validator setup must derive ecosystem mint addresses from repository canonical definitions.
+The canonical validator setup derives ecosystem mint addresses from repository canonical definitions.
 
 ## Documentation
 

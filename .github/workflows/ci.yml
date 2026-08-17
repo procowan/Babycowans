@@ -48,6 +48,32 @@ jobs:
       - name: Run protocol tests
         run: cargo test --workspace --all-targets --locked
 
+      - name: Run release Clippy gate
+        run: |
+          cargo clippy \
+            --workspace \
+            --all-targets \
+            --locked \
+            --offline \
+            -- \
+            -D warnings \
+            -A clippy::too_many_arguments
+
+      - name: Fetch locked fuzz dependencies
+        run: cargo fetch --manifest-path programs/babycowans-protocol/fuzz/Cargo.toml --locked
+
+      - name: Compile fuzz targets from the locked graph
+        run: |
+          cargo check \
+            --manifest-path programs/babycowans-protocol/fuzz/Cargo.toml \
+            --locked \
+            --offline
+
+      - name: Verify deterministic canonical ecosystem generation
+        env:
+          RUSTUP_TOOLCHAIN: "1.89.0"
+        run: python3 ../../scripts/check-canonical-ecosystems.py
+
       - name: Install pinned Anchor CLI for ABI generation
         run: cargo install --git https://github.com/solana-foundation/anchor --rev 1314a6b83b16e6a31947b372d57988fd0e81559c anchor-cli --locked
 
@@ -75,12 +101,22 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: sdk/yarn.lock
+          node-version: 22.22.1
+
+      - name: Activate pinned Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          test "$(yarn --version)" = "1.22.22"
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile --non-interactive
+
+      - name: Verify runtime dependency contract
+        run: yarn test:dependencies
+
+      - name: Typecheck SDK
+        run: yarn typecheck
 
       - name: Build SDK
         run: yarn build

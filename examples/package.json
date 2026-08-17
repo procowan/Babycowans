@@ -1,6 +1,7 @@
 {
   "private": true,
   "type": "module",
+  "packageManager": "yarn@1.22.22",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "application-bootstrap": "tsx application-bootstrap.ts",

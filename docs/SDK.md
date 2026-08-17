@@ -383,17 +383,22 @@ Build protocol:
 
 ```bash
 cd ../protocol/babycowans-protocol
-anchor build
+anchor build --ignore-keys
 ```
 
-Deploy:
+For clean-clone local integration, return to the repository root and start the repository-owned validator with the built program preloaded at the canonical repository Program ID:
 
 ```bash
-anchor program deploy \
-  target/deploy/babycowans_protocol.so \
-  --provider.cluster localnet \
-  --no-idl
+cd ../..
+
+export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
+
+BABYCOWANS_PROGRAM_PRELOAD_ID="$BABYCOWANS_PROGRAM_ID" \
+BABYCOWANS_PROGRAM_PRELOAD_SO="$PWD/protocol/babycowans-protocol/target/deploy/babycowans_protocol.so" \
+./scripts/start-local-validator.sh
 ```
+
+This clean-clone local workflow requires no private canonical deploy keypair and must not run `anchor keys sync` or rewrite the repository Program ID.
 
 ## 23. Avoid these integration mistakes
 
