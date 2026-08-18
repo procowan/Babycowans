@@ -1274,6 +1274,201 @@ console.log(
     "✓ Cross-application batch Reward seed substitution was rejected",
 );
 
+/* =========================================================
+ * XRAY X26 — EXACT REWARD ERROR REJECTION REASONS
+ *
+ * Fresh Reward PDAs are used so Anchor init reaches the
+ * create_reward handler before the rejection is asserted.
+ * ========================================================= */
+
+const x26RewardBoundaryBaseId =
+    BigInt(Date.now()) * 1_000n;
+
+const x26ReasonTooLongId =
+    x26RewardBoundaryBaseId + 1n;
+
+const x26InvalidScheduleId =
+    x26RewardBoundaryBaseId + 2n;
+
+const x26InvalidExpirationId =
+    x26RewardBoundaryBaseId + 3n;
+
+const [x26ReasonTooLongReward] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        x26ReasonTooLongId,
+    );
+
+const [x26InvalidScheduleReward] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        x26InvalidScheduleId,
+    );
+
+const [x26InvalidExpirationReward] =
+    findRewardPda(
+        PROGRAM_ID,
+        application,
+        beneficiary.publicKey,
+        x26InvalidExpirationId,
+    );
+
+for (
+    const [label, reward]
+    of [
+        [
+            "RewardReasonTooLong",
+            x26ReasonTooLongReward,
+        ],
+        [
+            "InvalidRewardSchedule",
+            x26InvalidScheduleReward,
+        ],
+        [
+            "InvalidRewardExpiration",
+            x26InvalidExpirationReward,
+        ],
+    ] as const
+) {
+    if (
+        await connection.getAccountInfo(
+            reward,
+            "confirmed",
+        ) !== null
+    ) {
+        throw new Error(
+            `X26 ${label} fixture Reward PDA already exists.`,
+        );
+    }
+}
+
+await expectFailure(
+    new Transaction().add(
+        buildCreateRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward:
+                x26ReasonTooLongReward,
+            authority:
+                authority.publicKey,
+            beneficiary:
+                beneficiary.publicKey,
+            rewardId:
+                x26ReasonTooLongId,
+            asset,
+            amount: 1n,
+            claimableAt: 0n,
+            expiresAt: 0n,
+            category: 0,
+            reason:
+                "x".repeat(128 + 1),
+        }),
+    ),
+    [authority],
+    "RewardReasonTooLong",
+);
+
+if (
+    await connection.getAccountInfo(
+        x26ReasonTooLongReward,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X26 RewardReasonTooLong rejection mutated Reward state.",
+    );
+}
+
+console.log(
+    "X26_REWARD_REASON_TOO_LONG_RUNTIME=PASS",
+);
+
+await expectFailure(
+    new Transaction().add(
+        buildCreateRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward:
+                x26InvalidScheduleReward,
+            authority:
+                authority.publicKey,
+            beneficiary:
+                beneficiary.publicKey,
+            rewardId:
+                x26InvalidScheduleId,
+            asset,
+            amount: 1n,
+            claimableAt: -1n,
+            expiresAt: 0n,
+            category: 0,
+            reason:
+                "x26-invalid-schedule",
+        }),
+    ),
+    [authority],
+    "InvalidRewardSchedule",
+);
+
+if (
+    await connection.getAccountInfo(
+        x26InvalidScheduleReward,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X26 InvalidRewardSchedule rejection mutated Reward state.",
+    );
+}
+
+console.log(
+    "X26_INVALID_REWARD_SCHEDULE_RUNTIME=PASS",
+);
+
+await expectFailure(
+    new Transaction().add(
+        buildCreateRewardInstruction({
+            programId: PROGRAM_ID,
+            application,
+            reward:
+                x26InvalidExpirationReward,
+            authority:
+                authority.publicKey,
+            beneficiary:
+                beneficiary.publicKey,
+            rewardId:
+                x26InvalidExpirationId,
+            asset,
+            amount: 1n,
+            claimableAt: 0n,
+            expiresAt: 1n,
+            category: 0,
+            reason:
+                "x26-invalid-expiration",
+        }),
+    ),
+    [authority],
+    "InvalidRewardExpiration",
+);
+
+if (
+    await connection.getAccountInfo(
+        x26InvalidExpirationReward,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X26 InvalidRewardExpiration rejection mutated Reward state.",
+    );
+}
+
+console.log(
+    "X26_INVALID_REWARD_EXPIRATION_RUNTIME=PASS",
+);
+
 /* ---------------------------------------------------------
  * Same reward ID cannot be redirected to attacker-selected PDA
  * ------------------------------------------------------ */

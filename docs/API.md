@@ -369,3 +369,34 @@ Files under `specifications/` may contain earlier design API names.
 They are not the current public SDK reference.
 
 Use this document plus current SDK source for integration work.
+
+## Transaction failures
+
+High-level `BabycowansSDK` write methods throw
+`BabycowansTransactionError` when transaction submission
+or confirmation fails.
+
+The error exposes four diagnostic fields:
+
+- `anchorErrorCode: string | null`
+- `anchorErrorMessage: string | null`
+- `logs: readonly string[]`
+- `originalError: unknown`
+
+When Anchor information is present, `anchorErrorCode`
+identifies the Babycowans or Anchor error.
+
+For example, protocol validation can report
+`InvalidApplicationName`, while an Anchor account
+relationship rejection can report `ConstraintHasOne`.
+
+`anchorErrorMessage` contains the corresponding Anchor
+message when available.
+
+`logs` preserves available transaction logs and
+`originalError` preserves the original Solana/Web3 failure
+for lower-level diagnostics.
+
+Application code using the high-level SDK should prefer
+these normalized fields rather than parsing raw transaction
+log text.

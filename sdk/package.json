@@ -33,7 +33,8 @@
     "test:god": "BABYCOWANS_PHASE=BRC yarn test:god:phase && BABYCOWANS_PHASE=BEC yarn test:god:phase && BABYCOWANS_PHASE=BGC yarn test:god:phase && BABYCOWANS_PHASE=BLC yarn test:god:phase && BABYCOWANS_PHASE=BBC yarn test:god:phase && BABYCOWANS_PHASE=BAC yarn test:god:phase",
     "test:god:isolated": "BABYCOWANS_ISOLATED_SUITE=god tsx tests/run-e2e-isolated.ts",
     "postinstall": "node scripts/runtime-dependency-guard.cjs",
-    "test:dependencies": "node scripts/runtime-dependency-guard.cjs --verify"
+    "test:dependencies": "node scripts/runtime-dependency-guard.cjs --verify",
+    "test:audit": "node scripts/runtime-audit-gate.cjs"
   },
   "dependencies": {
     "@anchor-lang/core": "1.0.2",

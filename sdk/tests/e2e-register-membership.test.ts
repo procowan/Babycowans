@@ -818,6 +818,77 @@ console.log(
  * ========================================================= */
 
 /* ---------------------------------------------------------
+ * XRAY X26 — INVALID MEMBERSHIP CONFIGURATION
+ *
+ * Fresh member => fresh canonical Membership PDA.
+ * Valid expiration is supplied so execution reaches the
+ * auto_extend => renewable semantic guard in the handler.
+ * --------------------------------------------------------- */
+
+const x26InvalidConfigMember =
+    Keypair.generate();
+
+const [
+    x26InvalidConfigMembership,
+] = findMembershipPda(
+    PROGRAM_ID,
+    application,
+    x26InvalidConfigMember.publicKey,
+);
+
+if (
+    await connection.getAccountInfo(
+        x26InvalidConfigMembership,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X26 InvalidMembershipConfiguration fixture already exists.",
+    );
+}
+
+await expectInstructionFailure(
+    connection,
+    buildRegisterMembershipInstruction({
+        programId: PROGRAM_ID,
+        application,
+        membership:
+            x26InvalidConfigMembership,
+        authority:
+            authority.publicKey,
+        member:
+            x26InvalidConfigMember.publicKey,
+        tier: 1,
+        expiresAt:
+            now + 3_600n,
+        renewable: false,
+        autoExtend: true,
+        renewalDuration: 0n,
+        membershipKind: 0,
+        nftMint:
+            PublicKey.default,
+    }),
+    [authority],
+    "InvalidMembershipConfiguration",
+);
+
+const x26InvalidConfigAccount =
+    await connection.getAccountInfo(
+        x26InvalidConfigMembership,
+        "confirmed",
+    );
+
+if (x26InvalidConfigAccount !== null) {
+    throw new Error(
+        "X26 InvalidMembershipConfiguration rejection mutated Membership state.",
+    );
+}
+
+console.log(
+    "X26_INVALID_MEMBERSHIP_CONFIGURATION_RUNTIME=PASS",
+);
+
+/* ---------------------------------------------------------
  * X7|04 — EXPIRATION
  * Past expiration must be rejected and state must not mutate.
  * --------------------------------------------------------- */

@@ -381,6 +381,38 @@ Do not treat these two normal states as malformed-account errors.
 
 ## 27. Diagnose write failures
 
+### High-level SDK transaction failures
+
+High-level `BabycowansSDK` write methods normalize failed
+transaction submission or confirmation as
+`BabycowansTransactionError`.
+
+The normalized error exposes:
+
+- `anchorErrorCode`
+- `anchorErrorMessage`
+- `logs`
+- `originalError`
+
+When Anchor information is available, `anchorErrorCode`
+identifies the Babycowans or Anchor error and
+`anchorErrorMessage` contains its developer-facing message.
+
+A Babycowans validation failure can report
+`InvalidApplicationName`. An Anchor account relationship
+failure can report `ConstraintHasOne`.
+
+`logs` preserves available transaction logs.
+`originalError` preserves the original Solana/Web3 error.
+
+When no Anchor error can be recovered, the SDK still throws
+`BabycowansTransactionError` with the original failure
+context preserved.
+
+Use these normalized fields before parsing raw logs or
+changing protocol code.
+
+
 Distinguish:
 
 ```text

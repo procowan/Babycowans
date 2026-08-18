@@ -1,3 +1,4 @@
+import { normalizeBabycowansTransactionError } from "../errors.js";
 import {
     Connection,
     PublicKey,
@@ -334,6 +335,19 @@ export interface VerifyGateAccessResult {
     wallet: PublicKey;
 }
 
+
+async function sendAndConfirmBabycowansTransaction(
+    ...args: Parameters<typeof sendAndConfirmTransaction>
+): Promise<
+    Awaited<ReturnType<typeof sendAndConfirmTransaction>>
+> {
+    try {
+        return await sendAndConfirmTransaction(...args);
+    } catch (error: unknown) {
+        throw normalizeBabycowansTransactionError(error);
+    }
+}
+
 export class BabycowansSDK {
     readonly connection: Connection;
     readonly programId: PublicKey;
@@ -509,7 +523,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -561,7 +575,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -640,7 +654,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.payer],
@@ -721,7 +735,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -782,7 +796,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.beneficiary],
@@ -833,7 +847,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -891,7 +905,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -955,7 +969,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -1010,7 +1024,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [params.authority],
@@ -1063,7 +1077,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [authority],
@@ -1115,7 +1129,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [authority],
@@ -1166,7 +1180,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [member],
@@ -1217,7 +1231,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [authority],
@@ -1268,7 +1282,7 @@ export class BabycowansSDK {
             );
 
         const signature =
-            await sendAndConfirmTransaction(
+            await sendAndConfirmBabycowansTransaction(
                 this.connection,
                 transaction,
                 [wallet],

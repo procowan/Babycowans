@@ -299,22 +299,80 @@ async function send(
     );
 }
 
+const X26_EXACT_REJECTION_BY_LABEL =
+    new Map<string, string>([
+        [
+            "Empty evidence",
+            "GatePolicyNotSatisfied",
+        ],
+    ]);
+
 async function expectRejected(
     label: string,
     operation: () => Promise<unknown>,
 ): Promise<void> {
     let rejected = false;
+    let rejection: unknown = null;
 
     try {
         await operation();
-    } catch {
+    } catch (error: unknown) {
         rejected = true;
+        rejection = error;
     }
 
     expect(
         rejected,
         `${label} should have been rejected`,
     );
+
+    const expectedError =
+        X26_EXACT_REJECTION_BY_LABEL.get(
+            label,
+        );
+
+    if (expectedError !== undefined) {
+        const message =
+            rejection instanceof Error
+                ? rejection.message
+                : String(rejection);
+
+        const logs =
+            typeof rejection === "object"
+            && rejection !== null
+            && "logs" in rejection
+            && Array.isArray(
+                (
+                    rejection as {
+                        logs?: unknown[];
+                    }
+                ).logs,
+            )
+                ? (
+                    rejection as {
+                        logs: unknown[];
+                    }
+                ).logs
+                    .map(String)
+                    .join("\n")
+                : "";
+
+        const complete =
+            `${message}\n${logs}`;
+
+        expect(
+            complete.includes(
+                expectedError,
+            ),
+            `${label} expected ${expectedError}, received:\n${complete}`,
+        );
+
+        console.log(
+            `✓ ${label} rejected with ${expectedError}`,
+        );
+
+        return;
+    }
 
     console.log(`✓ ${label} rejected`);
 }

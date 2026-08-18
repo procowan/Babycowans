@@ -17,3 +17,4 @@ export * from "./events/index.js";
 export * from "./read/index.js";
 
 export * from "./batch/index.js";
+export * from "./errors.js";

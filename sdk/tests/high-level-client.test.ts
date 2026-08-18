@@ -421,7 +421,7 @@ console.log(
 
         if (
             !source.includes(
-                "sendAndConfirmTransaction",
+                "sendAndConfirmBabycowansTransaction",
             )
         ) {
             throw new Error(
@@ -527,7 +527,7 @@ console.log(
 
         if (
             !source.includes(
-                "sendAndConfirmTransaction",
+                "sendAndConfirmBabycowansTransaction",
             )
         ) {
             throw new Error(

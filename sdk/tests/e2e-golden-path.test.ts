@@ -1606,6 +1606,120 @@ if (
     );
 }
 
+/*
+ * ==========================================================
+ * XRAY X26 — UNSUPPORTED GATE TYPE
+ *
+ * NFTCollection is a valid GateType state value, but the
+ * verify_gate_access operation supports HoldAmount only.
+ *
+ * A fresh canonical TokenGate is created for the existing
+ * policyDisabledApplication fixture. Its ApplicationAsset has
+ * gating enabled and uses the same canonical mint as the
+ * existing payerTokenAccount, ensuring account constraints do
+ * not shadow the handler-level UnsupportedGateType rejection.
+ * ==========================================================
+ */
+
+const [
+    x26UnsupportedGateTypeTokenGate,
+] = findTokenGatePda(
+    PROGRAM_ID,
+    policyDisabledApplication,
+    policyDisabledApplicationAsset,
+);
+
+if (
+    await connection.getAccountInfo(
+        x26UnsupportedGateTypeTokenGate,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X26 UnsupportedGateType TokenGate fixture already exists.",
+    );
+}
+
+await send(
+    connection,
+    buildConfigureTokenGateInstruction({
+        programId: PROGRAM_ID,
+        application:
+            policyDisabledApplication,
+        applicationAsset:
+            policyDisabledApplicationAsset,
+        tokenGate:
+            x26UnsupportedGateTypeTokenGate,
+        authority:
+            authority.publicKey,
+        gateType: 1,
+        minimumAmount:
+            TOKEN_GATE_MINIMUM_AMOUNT,
+        minimumTier: 0,
+        enabled: true,
+    }),
+    [authority],
+);
+
+const x26UnsupportedGateBefore =
+    await connection.getAccountInfo(
+        x26UnsupportedGateTypeTokenGate,
+        "confirmed",
+    );
+
+if (x26UnsupportedGateBefore === null) {
+    throw new Error(
+        "X26 UnsupportedGateType TokenGate fixture was not created.",
+    );
+}
+
+const x26UnsupportedGateBeforeData =
+    Buffer.from(
+        x26UnsupportedGateBefore.data,
+    );
+
+await expectInstructionFailure(
+    connection,
+    buildVerifyGateAccessInstruction({
+        programId: PROGRAM_ID,
+        application:
+            policyDisabledApplication,
+        applicationAsset:
+            policyDisabledApplicationAsset,
+        tokenGate:
+            x26UnsupportedGateTypeTokenGate,
+        wallet:
+            payer.publicKey,
+        userTokenAccount:
+            payerTokenAccount,
+    }),
+    [payer],
+    "UnsupportedGateType",
+);
+
+const x26UnsupportedGateAfter =
+    await connection.getAccountInfo(
+        x26UnsupportedGateTypeTokenGate,
+        "confirmed",
+    );
+
+if (
+    x26UnsupportedGateAfter === null
+    || !Buffer.from(
+        x26UnsupportedGateAfter.data,
+    ).equals(
+        x26UnsupportedGateBeforeData,
+    )
+) {
+    throw new Error(
+        "X26 UnsupportedGateType rejection mutated TokenGate state.",
+    );
+}
+
+console.log(
+    "X26_UNSUPPORTED_GATE_TYPE_RUNTIME=PASS",
+);
+
 const [tokenGate] = findTokenGatePda(
     PROGRAM_ID,
     application,

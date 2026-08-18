@@ -143,4 +143,4 @@ jobs:
         run: yarn tsx tests/event-decoder-client.test.ts
 
       - name: Audit runtime dependencies
-        run: yarn audit --groups dependencies
+        run: yarn test:audit
