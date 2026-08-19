@@ -1,129 +1,92 @@
-# Babycowans
+# Babycowans Protocol
 
-**Six canonical ecosystems. One Solana developer infrastructure.**
+**Open developer infrastructure on Solana for building applications across six canonical Babycowans ecosystems — with application registration, payments, rewards, membership, token gating, batch composition, event decoding, and a typed SDK.**
 
-Babycowans Protocol V1.0.0 is a Solana protocol and TypeScript SDK for developers building applications around the six canonical Babycowans ecosystems.
+Babycowans Protocol V1.0.0 gives builders one coherent protocol surface instead of requiring every application to recreate the same token-aware primitives from scratch.
 
-The repository contains:
-
-- an Anchor/Rust protocol;
-- the `@babycowans/core-sdk` TypeScript SDK;
-- canonical ecosystem identity;
-- application registration and configuration;
-- payments;
-- memberships;
-- rewards;
-- token gates and composable gate policies;
-- application roles;
-- audit logging;
-- event decoding;
-- typed state Read APIs;
-- atomic application bootstrap batching.
+> **Build the application. Reuse the infrastructure. Keep the protocol truth on-chain.**
 
 ## Start here
 
-If you are new to Babycowans, follow this path:
+| Goal | Go here |
+|---|---|
+| Understand the protocol | [Protocol Guide](docs/PROTOCOL.md) |
+| See the architecture | [Architecture](docs/ARCHITECTURE.md) |
+| Integrate the SDK | [SDK Guide](docs/SDK.md) |
+| Look up exact APIs | [API Reference](docs/API.md) |
+| Follow practical flows | [Cookbook](docs/COOKBOOK.md) |
+| Check compatibility | [Migration / Compatibility](docs/MIGRATION.md) |
 
-1. [Protocol Guide](docs/PROTOCOL.md)
-2. [Architecture](docs/ARCHITECTURE.md)
-3. [SDK Guide](docs/SDK.md)
-4. [API Reference](docs/API.md)
-5. [Cookbook](docs/COOKBOOK.md)
-6. [Integration Compatibility](docs/MIGRATION.md)
+## Why Babycowans
 
-A normal integration moves through:
+Modern Solana applications often need the same infrastructure layers: application identity, asset-aware payments, rewards, membership state, access rules, deterministic addresses, events, and client-side integration. Babycowans exposes those capabilities through one Protocol V1.0.0 surface and one developer SDK.
+
+Use Babycowans when you want to:
+
+- build against a defined six-ecosystem model instead of inventing a new integration contract;
+- compose application registration, payments, rewards, membership, and gating from reusable protocol primitives;
+- work through a typed high-level SDK while retaining access to lower-level builders and PDA helpers;
+- rely on repository-defined canonical identities rather than copying token addresses from documentation or memory;
+- integrate against a codebase protected by protocol tests, SDK tests, CI gates, dependency guards, and runtime audit checks.
+
+## Six canonical ecosystems
+
+Every Babycowans integration begins from one of the six canonical ecosystem mint identities defined by the protocol source of truth.
+
+| Ecosystem | Canonical mint |
+|---|---|
+| **BRC** | `25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump` |
+| **BEC** | `BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump` |
+| **BGC** | `BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump` |
+| **BLC** | `GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump` |
+| **BBC** | `2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump` |
+| **BAC** | `DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump` |
+
+> Canonical mint identities above are derived from `canonical_assets.rs`; do not substitute remembered or manually copied addresses.
+
+## Architecture at a glance
 
 ```text
-Choose canonical ecosystem
-        ↓
-Create BabycowansSDK
-        ↓
-Register or bootstrap an Application
-        ↓
-Configure required application capabilities
-        ↓
-Payments / memberships / rewards / gates
-        ↓
-Read protocol state
-        ↓
-Decode transaction events
+Developer application
+        │
+        ├── @babycowans/core-sdk
+        │       ├── high-level client
+        │       ├── instruction builders
+        │       ├── PDA helpers
+        │       ├── account / event decoding
+        │       └── batch composition
+        │
+        └── Babycowans Protocol (BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp)
+                ├── Application
+                ├── Payments
+                ├── Rewards
+                ├── Membership
+                └── Token gating / policies
 ```
 
-## Requirements
+For the complete account model, PDA model, authority boundaries, state relationships, and architectural trade-offs, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-Repository development uses Git, the repository-pinned Rust toolchain (Rust 1.89.0 with rustfmt and Clippy), Solana CLI, SPL Token CLI, Anchor CLI 1.0.2, Node.js 22.22.1, and Yarn 1.22.22. The certified Solana development baseline is solana-cli 3.1.10 with spl-token-cli 5.5.0.
+## Quick Start
 
-## First five minutes
+**SDK package:** `@babycowans/core-sdk`
 
-A new developer can move from a fresh clone to the first Babycowans Application without historical project or chat knowledge.
+**Protocol version:** `V1.0.0`
 
-### 1. Clone
+**SDK package version:** `1.0.0`
 
-```bash
-git clone ssh://git@ssh.github.com:443/procowan/Babycowans.git
-cd Babycowans
-```
-
-### 2. Install dependencies
+For repository development, install and build the SDK from the tracked workspace:
 
 ```bash
 cd sdk
 yarn install --frozen-lockfile
-
-cd ../protocol/babycowans-protocol
-yarn install --frozen-lockfile
-
-cd ../../examples
-yarn install --frozen-lockfile
-
-cd ..
+yarn build
 ```
 
-### 3. Select one of the six canonical ecosystems
+Then initialize the high-level client using the exact setup documented in the [SDK Guide](docs/SDK.md).
 
-```bash
-cd sdk
-yarn onboard
-cd ..
-```
+## Build Your First Application
 
-The onboarding displays Full Name, Ticker, Token Address, and Mission. Use the Up and Down Arrow keys to move and Enter to select.
-
-### 4. Build the canonical program artifact
-
-Open Terminal 2 from the repository root:
-
-```bash
-cd protocol/babycowans-protocol
-anchor build --ignore-keys
-cd ../..
-```
-
-Babycowans keeps the canonical Program ID in repository source. A clean clone does not require the corresponding private deploy keypair. `--ignore-keys` prevents an ephemeral generated build keypair from blocking or rewriting that identity contract.
-
-### 5. Start the repository-owned six-canonical validator with the program preloaded
-
-Open Terminal 1 from the repository root:
-
-```bash
-export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
-
-BABYCOWANS_PROGRAM_PRELOAD_ID="$BABYCOWANS_PROGRAM_ID" \
-BABYCOWANS_PROGRAM_PRELOAD_SO="$PWD/protocol/babycowans-protocol/target/deploy/babycowans_protocol.so" \
-./scripts/start-local-validator.sh
-```
-
-Leave Terminal 1 open. The repository-owned validator derives the six canonical mint identities from current repository definitions and preloads the built program at the canonical repository Program ID.
-
-Do not run `anchor keys sync`, do not rewrite the repository Program ID, and do not substitute a plain empty `solana-test-validator` for Babycowans canonical integration flows.
-
-### 6. Initialize the SDK
-
-The official TypeScript SDK is @babycowans/core-sdk. Use BabycowansSDK with a Solana connection and the Program ID defined by the current repository.
-
-### 7. Create the first Application
-
-The repository provides examples/application-bootstrap.ts as the executable first-Application path.
+The repository includes an executable application-bootstrap flow. It is the fastest source-backed path from a fresh checkout to a real Babycowans Application flow.
 
 ```bash
 export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
@@ -132,189 +95,113 @@ cd examples
 yarn application-bootstrap
 ```
 
-## Build the protocol
+The command above resolves to the tracked example script `tsx application-bootstrap.ts` in `examples/package.json`.
 
-```bash
-cd protocol/babycowans-protocol
-anchor build --ignore-keys
-```
+For the complete application lifecycle, continue with the [Cookbook](docs/COOKBOOK.md).
 
-The build intentionally preserves the canonical repository Program ID without requiring its private deploy keypair.
+## Core Developer Flows
 
-## Build and typecheck the SDK
+The high-level `BabycowansSDK` composes existing protocol primitives. The examples below intentionally keep parameters abstract; use the [API Reference](docs/API.md) for the exact current parameter and account contract.
 
-```bash
-cd sdk
-npm run build
-npm run typecheck
-```
-
-The official package is:
-
-```text
-@babycowans/core-sdk
-```
-
-## Minimal SDK setup
+### Payments
 
 ```ts
-import {
-    BabycowansSDK,
-} from "@babycowans/core-sdk";
-
-import {
-    Connection,
-    PublicKey,
-} from "@solana/web3.js";
-
-const connection =
-    new Connection(
-        "http://127.0.0.1:8899",
-        "confirmed",
-    );
-
-const client =
-    new BabycowansSDK({
-        connection,
-        programId:
-            new PublicKey(
-                process.env.BABYCOWANS_PROGRAM_ID!,
-            ),
-    });
+const result = await sdk.processPayment(params);
 ```
 
-For deployment, validator startup, and integration tests, resolve immutable protocol identifiers from the current repository. Do not rely on remembered Base58 values.
+`processPayment` is present in the current high-level SDK surface.
 
-## Canonical ecosystems
+### Rewards
 
-Babycowans contains exactly six canonical ecosystems:
+```ts
+const created = await sdk.createReward(params);
+const claimed = await sdk.claimReward(params);
+const cancelled = await sdk.cancelReward(params);
+```
 
-| Ecosystem | Ticker |
+Reward creation, claim, and cancellation are exposed through the current high-level SDK.
+
+### Membership
+
+```ts
+const membership = await sdk.registerMembership(params);
+const updated = await sdk.updateMembership(params);
+const renewed = await sdk.renewMembership(params);
+const verified = await sdk.verifyNftMembership(params);
+```
+
+Membership lifecycle and NFT-membership verification are part of the current SDK surface.
+
+### Token gating
+
+```ts
+const gate = await sdk.configureTokenGate(params);
+const access = await sdk.verifyGateAccess(params);
+```
+
+Token-gate configuration and access verification are exposed through the current SDK.
+
+## SDK and API
+
+`@babycowans/core-sdk` is the developer-facing SDK for Babycowans Protocol V1.0.0.
+
+| Surface | Reference |
 |---|---|
-| Baby Reptile Coin | `$BRC` |
-| Baby Eagle Coin | `$BEC` |
-| Baby Goat Coin | `$BGC` |
-| Baby Lion Coin | `$BLC` |
-| Baby Bee Coin | `$BBC` |
-| Baby Agent Coin | `$BAC` |
+| High-level SDK | [SDK Guide](docs/SDK.md) |
+| Exact public API | [API Reference](docs/API.md) |
+| Protocol concepts | [Protocol Guide](docs/PROTOCOL.md) |
+| Architecture and PDAs | [Architecture](docs/ARCHITECTURE.md) |
+| Practical integrations | [Cookbook](docs/COOKBOOK.md) |
 
-Every ecosystem has four canonical identity attributes:
+The API Reference contains the source-aligned Protocol V1.0.0 public surface, including instructions, accounts, events, errors, IDL types, high-level methods, and SDK developer commands.
 
-- Full Name
-- Ticker
-- Token Address
-- Mission
+## Security and Testing
 
-Application metadata cannot redefine those properties.
+Babycowans treats security evidence as an engineering contract, not as a marketing claim. The repository includes protocol tests, SDK tests, CI enforcement, runtime dependency verification, and an adjudicated runtime audit gate.
 
-Repository source of truth:
+Current proof surfaces include:
 
-```text
-protocol/babycowans-protocol/programs/babycowans-protocol/src/canonical_assets.rs
-protocol/babycowans-protocol/programs/babycowans-protocol/src/canonical_ecosystems.rs
-sdk/src/ecosystems/
-```
+- `.github/workflows/ci.yml` — formatting, protocol tests, release Clippy, locked compile checks, ABI generation/compatibility and SDK gates;
+- `protocol/babycowans-protocol/tests/` — protocol-level test coverage;
+- `sdk/tests/` — SDK, decoder, read API, E2E and regression coverage;
+- `sdk/scripts/runtime-dependency-guard.cjs` — runtime dependency contract;
+- `sdk/scripts/runtime-audit-gate.cjs` — fail-closed runtime advisory policy with repository-specific adjudication.
 
-## Local development
-
-The development workflow uses three persistent terminals:
-
-```text
-Terminal 1 → repository-owned canonical validator
-Terminal 2 → protocol build artifact
-Terminal 3 → main protocol + SDK workspace
-```
-
-In Terminal 2, build the canonical program artifact:
-
-```bash
-cd protocol/babycowans-protocol
-anchor build --ignore-keys
-```
-
-Then, from the repository root in Terminal 1, start the validator with that artifact preloaded at the canonical repository Program ID:
-
-```bash
-export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
-
-BABYCOWANS_PROGRAM_PRELOAD_ID="$BABYCOWANS_PROGRAM_ID" \
-BABYCOWANS_PROGRAM_PRELOAD_SO="$PWD/protocol/babycowans-protocol/target/deploy/babycowans_protocol.so" \
-./scripts/start-local-validator.sh
-```
-
-The clean-clone local workflow requires no private canonical program keypair. Do not run `anchor keys sync` or rewrite the repository Program ID.
-
-The canonical validator setup derives ecosystem mint addresses from repository canonical definitions.
+For exact authority, ownership, PDA, lifecycle and protocol-security semantics, use the [Protocol Guide](docs/PROTOCOL.md), [Architecture](docs/ARCHITECTURE.md), and [API Reference](docs/API.md).
 
 ## Documentation
 
-### Protocol Guide
+- [Protocol Guide](docs/PROTOCOL.md) — protocol concepts and integration model.
+- [Architecture](docs/ARCHITECTURE.md) — accounts, PDAs, relationships and system design.
+- [SDK Guide](docs/SDK.md) — SDK setup and developer integration.
+- [API Reference](docs/API.md) — exact source-aligned public surface.
+- [Cookbook](docs/COOKBOOK.md) — practical application flows.
+- [Migration / Compatibility](docs/MIGRATION.md) — compatibility and migration guidance.
+- [SDK package README](sdk/README.md) — package-level SDK documentation.
 
-[`docs/PROTOCOL.md`](docs/PROTOCOL.md)
+## Repository development
 
-Protocol concepts, canonical identities, accounts, capabilities and lifecycle.
+Canonical local development uses the repository-owned validator startup contract and repository-defined canonical mint identities. Do not substitute a plain empty validator for canonical integration flows.
 
-### Architecture
+For build, validator, local-development and executable-example details, use:
 
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- [Protocol Guide](docs/PROTOCOL.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [SDK Guide](docs/SDK.md)
+- [Cookbook](docs/COOKBOOK.md)
 
-Protocol / SDK / IDL boundaries, accounts, PDAs, Read API, Event Decoder and Batch architecture.
+## Support the Future of Babycowans
 
-### SDK Guide
+**Babycowans is being built as open infrastructure for developers, builders, researchers, and teams exploring the next generation of products across Solana, DeFi, Web3, tokenized real-world assets, and the six Babycowans ecosystems.**
 
-[`docs/SDK.md`](docs/SDK.md)
+If this protocol helps your work—or if you believe in the value of making powerful blockchain infrastructure easier to build on—you can help us continue developing it. Voluntary contributions of any size support the time, infrastructure, testing resources, equipment, and engineering effort required to keep Babycowans growing, secure, accessible, and useful to the wider developer community.
 
-High-Level SDK integration, signers, integer/address fidelity, Read API and Low-Level escape hatches.
+**Support wallet (Solana):** `6kqHeyAm7jqaYnPSn2yJFjAAdQ2XKzz1xq96vdt8txEc`
 
-### API Reference
+**Every contribution is appreciated. Whether you contribute code, ideas, testing, adoption, or financial support, you are helping build the next chapter of Babycowans and infrastructure for the broader blockchain ecosystem.**
 
-[`docs/API.md`](docs/API.md)
-
-Reference for the current public SDK surface.
-
-### Cookbook
-
-[`docs/COOKBOOK.md`](docs/COOKBOOK.md)
-
-Task-oriented integration recipes.
-
-### Integration Compatibility
-
-[`docs/MIGRATION.md`](docs/MIGRATION.md)
-
-Compatibility, upgrade and integration-maintenance guidance for Babycowans Protocol V1.0.0.
-
-## Executable examples
-
-See:
-
-```text
-examples/application-bootstrap.ts
-examples/read-api.ts
-examples/event-decoder.ts
-```
-
-These examples are typechecked against the current repository SDK.
-
-## Repository structure
-
-```text
-Babycowans/
-├── protocol/
-│   └── babycowans-protocol/
-├── sdk/
-├── docs/
-├── examples/
-├── specifications/
-└── scripts/
-```
-
-`specifications/` contains historical design material. It is not the authoritative current SDK API reference.
-
-## Security
-
-See `SECURITY.md`.
+> Support is voluntary. Contributions do not represent an investment contract, ownership interest, entitlement to protocol returns, or a promise of financial performance.
 
 ## License
 
-MIT
+See [LICENSE](LICENSE).
