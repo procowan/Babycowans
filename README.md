@@ -95,6 +95,8 @@ cd examples
 yarn application-bootstrap
 ```
 
+**Fresh local validator:** `application-bootstrap` checks the global `ProtocolConfig` PDA before registering the Application. When that PDA is absent on the repository-owned local validator, the example initializes it once with the configured local wallet as protocol authority. On a non-local RPC endpoint the example fails closed; the deployment/operator flow must initialize `ProtocolConfig` first.
+
 The command above resolves to the tracked example script `tsx application-bootstrap.ts` in `examples/package.json`.
 
 For the complete application lifecycle, continue with the [Cookbook](docs/COOKBOOK.md).

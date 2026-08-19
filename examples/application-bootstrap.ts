@@ -3,12 +3,16 @@ import fs from "node:fs";
 import {
     BabycowansSDK,
     CanonicalEcosystem,
-} from "@babycowans/core-sdk";
+    buildInitializeProtocolInstruction,
+    findProtocolConfigPda,
+    } from "@babycowans/core-sdk";
 
 import {
     Connection,
     Keypair,
     PublicKey,
+    Transaction,
+    sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
 const rpcUrl =
@@ -40,22 +44,91 @@ const authority =
         ),
     );
 
+const connection =
+    new Connection(
+        rpcUrl,
+        "confirmed",
+    );
+
+const programId =
+    new PublicKey(
+        programIdValue,
+    );
+
 const client =
     new BabycowansSDK({
-        connection:
-            new Connection(
-                rpcUrl,
-                "confirmed",
-            ),
-
-        programId:
-            new PublicKey(
-                programIdValue,
-            ),
+        connection,
+        programId,
     });
 
 const applicationId =
     BigInt(Date.now());
+
+/*
+ * X29_LOCAL_PROTOCOL_INITIALIZATION
+ *
+ * RegisterApplication requires the global ProtocolConfig PDA.
+ * A fresh repository-owned local validator does not contain it yet.
+ * This example initializes it exactly once on local RPC only.
+ * Non-local endpoints fail closed instead of silently creating
+ * global protocol state.
+ */
+const [protocolConfig] =
+    findProtocolConfigPda(
+        programId,
+    );
+
+const protocolConfigAccount =
+    await connection.getAccountInfo(
+        protocolConfig,
+        "confirmed",
+    );
+
+if (protocolConfigAccount === null) {
+    const rpcHostname =
+        new URL(rpcUrl).hostname;
+
+    const localRpcHosts =
+        new Set([
+            "127.0.0.1",
+            "localhost",
+            "::1",
+        ]);
+
+    if (!localRpcHosts.has(rpcHostname)) {
+        throw new Error(
+            "ProtocolConfig is not initialized. " +
+            "Automatic initialization is restricted " +
+            "to a local RPC endpoint. Initialize the " +
+            "protocol through the deployment/operator " +
+            "flow before registering an Application.",
+        );
+    }
+
+    const initializeProtocolInstruction =
+        buildInitializeProtocolInstruction({
+            programId,
+            authority:
+                authority.publicKey,
+        });
+
+    const initializeProtocolSignature =
+        await sendAndConfirmTransaction(
+            connection,
+            new Transaction().add(
+                initializeProtocolInstruction,
+            ),
+            [authority],
+            {
+                commitment:
+                    "confirmed",
+            },
+        );
+
+    console.log(
+        `BABYCOWANS_PROTOCOL_INITIALIZATION_SIGNATURE=${initializeProtocolSignature}`,
+    );
+}
 
 const result =
     await client.bootstrapApplication({
@@ -99,4 +172,20 @@ console.log(
 console.log(
     "applicationConfig",
     result.applicationConfig.toBase58(),
+);
+
+console.log(
+    `BABYCOWANS_APPLICATION_ID=${result.applicationId.toString()}`,
+);
+
+console.log(
+    `BABYCOWANS_APPLICATION_ADDRESS=${result.application.toBase58()}`,
+);
+
+console.log(
+    `BABYCOWANS_APPLICATION_AUTHORITY=${authority.publicKey.toBase58()}`,
+);
+
+console.log(
+    `BABYCOWANS_TRANSACTION_SIGNATURE=${result.signature}`,
 );
