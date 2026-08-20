@@ -195,7 +195,17 @@ client.configureTokenGate(...)
 client.verifyGateAccess(...)
 ```
 
-## 16. Read an Application
+## 16. Configure and verify composable GatePolicy
+
+Use TokenGate for a direct single-gate flow. Use GatePolicy when access requires composable conditions.
+
+GatePolicy evaluation uses AND inside a group and OR across groups. For example: Group 0 = HoldAmount + MembershipTier; Group 1 = NftOwnership. The resulting policy is (HoldAmount AND MembershipTier) OR NftOwnership.
+
+Use the exported Low-Level SDK primitives `findGatePolicyPda`, `buildConfigureGatePolicyInstruction`, and `buildVerifyGatePolicyInstruction`. Verification evidence is supplied with the optional `holdTokenAccount`, `membership`, and `nftTokenAccount` accounts required by the configured branch.
+
+For the simpler direct gate, use `client.configureTokenGate(...)` and `client.verifyGateAccess(...)`.
+
+## 17. Read an Application
 
 ```ts
 const application =
@@ -219,7 +229,7 @@ if (application === null) {
 }
 ```
 
-## 17. Read Membership state
+## 18. Read Membership state
 
 ```ts
 const membership =
@@ -234,7 +244,7 @@ if (membership !== null) {
 }
 ```
 
-## 18. Read a Reward
+## 19. Read a Reward
 
 ```ts
 const reward =
@@ -250,7 +260,7 @@ if (reward !== null) {
 }
 ```
 
-## 19. Read audit history
+## 20. Read audit history
 
 ```ts
 const history =
@@ -271,7 +281,7 @@ for (const entry of history) {
 
 No matching audit records returns `[]`.
 
-## 20. Decode events from a write
+## 21. Decode events from a write
 
 ```ts
 const result =
@@ -295,7 +305,7 @@ for (const event of events) {
 }
 ```
 
-## 21. Use strict Low-Level event decoding
+## 22. Use strict Low-Level event decoding
 
 The Low-Level Event Decoder supports strict malformed-event behavior:
 
@@ -311,7 +321,7 @@ decodeBabycowansEventLogs(
 
 Use this when malformed known Babycowans event data must become an integration error.
 
-## 22. Build a custom transaction
+## 23. Build a custom transaction
 
 ```ts
 const transaction =
@@ -323,7 +333,7 @@ const transaction =
 
 Use Low-Level builders to produce the instructions.
 
-## 23. Build a versioned transaction
+## 24. Build a versioned transaction
 
 ```ts
 const transaction =
@@ -333,7 +343,7 @@ const transaction =
     );
 ```
 
-## 24. Resolve canonical identity safely
+## 25. Resolve canonical identity safely
 
 ```ts
 const identity =
@@ -344,7 +354,7 @@ const identity =
 
 Avoid manually copied Base58 constants.
 
-## 25. Serialize bigint intentionally
+## 26. Serialize bigint intentionally
 
 JSON does not serialize `bigint` by default.
 
@@ -363,7 +373,7 @@ const json =
 
 Do not silently coerce large protocol integers to `number`.
 
-## 26. Handle missing state
+## 27. Handle missing state
 
 For single-account reads:
 
@@ -379,7 +389,7 @@ no matching records → []
 
 Do not treat these two normal states as malformed-account errors.
 
-## 27. Diagnose write failures
+## 28. Diagnose write failures
 
 ### High-level SDK transaction failures
 
@@ -424,19 +434,8 @@ signing error
 
 If a transaction simulation fails, inspect Solana transaction logs before changing protocol code.
 
-## 28. Use historical specifications carefully
+## 29. Use historical specifications carefully
 
 Do not copy API names from `specifications/` into new integrations without confirming that the current SDK exports them.
 
 The production API reference is [API.md](API.md).
-
-
-## Composable GatePolicy
-
-Use TokenGate for a direct single-gate flow. Use GatePolicy when access requires composable conditions.
-
-GatePolicy evaluation uses AND inside a group and OR across groups. For example: Group 0 = HoldAmount + MembershipTier; Group 1 = NftOwnership. The resulting policy is (HoldAmount AND MembershipTier) OR NftOwnership.
-
-Use the exported Low-Level SDK primitives `findGatePolicyPda`, `buildConfigureGatePolicyInstruction`, and `buildVerifyGatePolicyInstruction`. Verification evidence is supplied with the optional `holdTokenAccount`, `membership`, and `nftTokenAccount` accounts required by the configured branch.
-
-For the simpler direct gate, use `client.configureTokenGate(...)` and `client.verifyGateAccess(...)`.
