@@ -10,6 +10,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@babycowans/core-sdk": "file:../sdk",
     "@solana/web3.js": "^1.98.0",
     "punycode": "2.3.1"
   },

@@ -77,9 +77,11 @@ For the complete account model, PDA model, authority boundaries, state relations
 For repository development, install and build the SDK from the tracked workspace:
 
 ```bash
-cd sdk
-yarn install --frozen-lockfile
-yarn build
+(
+  cd sdk &&
+  yarn install --frozen-lockfile &&
+  yarn build
+)
 ```
 
 Then initialize the high-level client using the exact setup documented in the [SDK Guide](docs/SDK.md).
@@ -88,7 +90,14 @@ Then initialize the high-level client using the exact setup documented in the [S
 
 The repository includes an executable application-bootstrap flow. It is the fastest source-backed path from a fresh checkout to a real Babycowans Application flow.
 
+From the repository root, install the tracked examples workspace after building the SDK:
+
 ```bash
+(
+  cd examples &&
+  yarn install --frozen-lockfile
+)
+
 export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
 
 cd examples
@@ -98,6 +107,21 @@ yarn application-bootstrap
 **Fresh local validator:** `application-bootstrap` checks the global `ProtocolConfig` PDA before registering the Application. When that PDA is absent on the repository-owned local validator, the example initializes it once with the configured local wallet as protocol authority. On a non-local RPC endpoint the example fails closed; the deployment/operator flow must initialize `ProtocolConfig` first.
 
 The command above resolves to the tracked example script `tsx application-bootstrap.ts` in `examples/package.json`.
+
+The bootstrap prints the exact values required by the tracked follow-on examples. Export those printed values in the same shell before running the Read API or Event Decoder examples:
+
+```bash
+export BABYCOWANS_APPLICATION_ID="<value printed by application-bootstrap>"
+export BABYCOWANS_APPLICATION_AUTHORITY="<value printed by application-bootstrap>"
+export BABYCOWANS_TRANSACTION_SIGNATURE="<value printed by application-bootstrap>"
+
+yarn read-api
+yarn event-decoder
+```
+
+`read-api` uses `BABYCOWANS_PROGRAM_ID`, `BABYCOWANS_APPLICATION_AUTHORITY`, and `BABYCOWANS_APPLICATION_ID`.
+
+`event-decoder` uses `BABYCOWANS_PROGRAM_ID` and `BABYCOWANS_TRANSACTION_SIGNATURE`.
 
 For the complete application lifecycle, continue with the [Cookbook](docs/COOKBOOK.md).
 
