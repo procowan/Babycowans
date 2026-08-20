@@ -26,14 +26,14 @@ Payments / Membership / Rewards / Gates / Audit
 
 The six canonical ecosystems are:
 
-| Ecosystem | SDK enum |
-|---|---|
-| Baby Reptile Coin | `CanonicalEcosystem.BabyReptile` |
-| Baby Eagle Coin | `CanonicalEcosystem.BabyEagle` |
-| Baby Goat Coin | `CanonicalEcosystem.BabyGoat` |
-| Baby Lion Coin | `CanonicalEcosystem.BabyLion` |
-| Baby Bee Coin | `CanonicalEcosystem.BabyBee` |
-| Baby Agent Coin | `CanonicalEcosystem.BabyAgent` |
+| Ecosystem | Ticker | SDK enum | Token Address | Mission |
+|---|---|---|---|---|
+| Baby Reptile Coin | `$BRC` | `CanonicalEcosystem.BabyReptile` | `25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump` | This meme coin has come to revolutionize human interactions with the aim of tokenizing all kinds of entertainment and pleasure without any boundaries. |
+| Baby Eagle Coin | `$BEC` | `CanonicalEcosystem.BabyEagle` | `BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of trades; Import / Export businesses and Logistics without any boundaries. |
+| Baby Goat Coin | `$BGC` | `CanonicalEcosystem.BabyGoat` | `BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Intellectual property rights (IPR) & Luxury without any boundaries. |
+| Baby Lion Coin | `$BLC` | `CanonicalEcosystem.BabyLion` | `GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of manufacturing infrastructures and supply-chains, without any boundaries. |
+| Baby Bee Coin | `$BBC` | `CanonicalEcosystem.BabyBee` | `2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Medical services & Health insurance without any boundaries. |
+| Baby Agent Coin | `$BAC` | `CanonicalEcosystem.BabyAgent` | `DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Ai services along with IOT and Web3 without any boundaries. |
 
 Each contains four protocol identity properties:
 
