@@ -161,6 +161,8 @@ The API Reference contains the source-aligned Protocol V1.0.0 public surface, in
 
 Babycowans treats security evidence as an engineering contract, not as a marketing claim. The repository includes protocol tests, SDK tests, CI enforcement, runtime dependency verification, and an adjudicated runtime audit gate.
 
+For supported-version information and private vulnerability reporting, see the [Security Policy](SECURITY.md).
+
 Current proof surfaces include:
 
 - `.github/workflows/ci.yml` — formatting, protocol tests, release Clippy, locked compile checks, ABI generation/compatibility and SDK gates;
