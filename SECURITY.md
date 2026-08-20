@@ -54,6 +54,34 @@ Treat deploy-authority, protocol-authority, application-authority, and operation
 
 Local development keypairs, test-validator accounts, fixtures, and local RPC configuration must not be treated as production credentials or production deployment instructions.
 
+## Production Deployment and Upgrade Authority
+
+Babycowans Protocol supports an upgradeable Solana program deployment model. A local-validator upgrade authority is local test infrastructure and must never be represented as a production authority.
+
+For a public production deployment:
+
+- deploy and upgrade authority are operator-security responsibilities;
+- production authority credentials must not use disposable local-development keypairs;
+- an upgradeable deployment should use an operational model appropriate to production risk, such as hardware-backed signing and/or multisignature-controlled authority;
+- making a deployed program immutable is a separate, irreversible operator decision;
+- production authority addresses are deployment-specific and must not be copied from localnet or invented in documentation.
+
+Compromise or loss of a production deployment authority, protocol authority, application authority, or other privileged signer must be treated as an operational security incident.
+
+## Token Program Compatibility Boundary
+
+Babycowans supports SPL Token and Token-2022 through the protocol's TokenInterface account and transfer model, including the standard mint, token-account, owner, token-program, and checked-transfer semantics exercised by repository tests.
+
+This does not imply blanket semantic support for every optional Token-2022 extension. Extensions that alter transfer behavior, fees, authority, hooks, confidentiality, account state, delegation, or other token semantics are integration-specific and must be validated against the actual mint before production use.
+
+## Real-World Asset and External-Truth Boundary
+
+Babycowans provides on-chain application, payment, membership, reward, access-policy, audit, and tokenization infrastructure.
+
+The protocol does not by itself establish or verify legal title, physical possession, regulatory status, medical facts, shipment completion, provenance, sensor truth, valuation, or other off-chain facts.
+
+Applications that depend on real-world facts are responsible for the external legal, operational, oracle, attestation, custody, identity, or verification systems that establish those facts.
+
 ## Local Development and Production
 
 The repository-owned Solana test-validator workflow is a **local development and testing environment**.

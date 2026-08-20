@@ -187,6 +187,40 @@ anchor program deploy \
   --no-idl
 ```
 
+The command above documents the repository's local-development deployment contract. It is not a production-cluster deployment procedure.
+
+### Production deployment authority
+
+For a production deployment, verify the intended Solana cluster and deployment artifact independently. Do not reuse local-validator authority assumptions, local test keypairs, local RPC configuration, or generated fixtures as production authority policy.
+
+Babycowans supports an upgradeable program deployment model. The production deploy/upgrade authority is an operator-security decision and should be protected according to production risk, for example through hardware-backed signing and/or a multisignature-controlled authority. Making a deployment immutable is a separate irreversible decision and is not implied by the localnet workflow.
+
+### Verifiable release provenance
+
+For release provenance, a reviewer should be able to relate the public repository source to the program bytecode intended for deployment.
+
+The installed Anchor toolchain exposes verifiable-build and verification support. Inspect the exact options supported by the installed toolchain with:
+
+```bash
+anchor build --help
+anchor verify --help
+```
+
+When producing a production release artifact, use the repository-supported verifiable-build workflow with an explicitly selected Solana/toolchain environment appropriate to that release, then record the resulting source revision and artifact identity.
+
+After deployment, verify the deployed program against the intended release artifact/source using the repository-supported Anchor verification workflow and the actual target cluster. Do not substitute local-validator bytecode equality for production-cluster verification.
+
+Release provenance should preserve, at minimum:
+
+- the exact Git commit used for the release;
+- the Program ID derived from current repository truth;
+- the intended Solana cluster;
+- the build/toolchain environment;
+- the program artifact identity or cryptographic hash;
+- the deployed-program verification result.
+
+A successful local build alone is not proof that a public production deployment contains the same bytecode.
+
 ## 15. IDL compatibility checklist
 
 When the IDL changes, verify:
