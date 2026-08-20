@@ -81,7 +81,7 @@ jobs:
         run: anchor --version | grep -F 'anchor-cli 1.0.2'
 
       - name: Generate IDL from Rust ABI
-        run: anchor idl build
+        run: mkdir -p target/idl && anchor idl build --out target/idl/babycowans_protocol.json
 
       - name: Verify Protocol V1.0.0 ABI compatibility
         run: python3 ../../scripts/check-idl-abi.py
