@@ -12,6 +12,7 @@ import {
 import {
     BabycowansSDK,
     CanonicalEcosystem,
+    getCanonicalEcosystem,
     buildClaimRewardInstruction,
     buildConfigureApplicationAssetInstruction,
     buildConfigureApplicationConfigInstruction,
@@ -123,6 +124,31 @@ if (phase === undefined) {
 }
 
 const CANONICAL_MINT = phase.mint;
+
+const x37CanonicalIdentity =
+    getCanonicalEcosystem(phase.ecosystem);
+
+if (
+    x37CanonicalIdentity.ecosystem !== phase.ecosystem
+) {
+    throw new Error(
+        "X37 canonical discovery ecosystem mismatch.",
+    );
+}
+
+if (
+    !x37CanonicalIdentity.tokenAddress.equals(
+        CANONICAL_MINT,
+    )
+) {
+    throw new Error(
+        "X37 canonical discovery mint mismatch.",
+    );
+}
+
+console.log(
+    "X37_CANONICAL_DISCOVERY_READBACK=PASS",
+);
 
 const TOKEN_PROGRAM_ID = new PublicKey(
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
@@ -2363,6 +2389,188 @@ await send(
         }),
     }),
     [authority],
+);
+
+/*
+ * XRAY X37 — Golden Journey High-Level Read API closure.
+ *
+ * Read back the exact Application, Membership, Reward, and
+ * AuditLog created by this journey through the public
+ * BabycowansSDK surface.
+ */
+const x37ReadClient =
+    new BabycowansSDK({
+        connection,
+        programId: PROGRAM_ID,
+    });
+
+const x37Application =
+    await x37ReadClient.getApplication({
+        authority: authority.publicKey,
+        applicationId,
+    });
+
+if (x37Application === null) {
+    throw new Error(
+        "X37 Application read-back returned null.",
+    );
+}
+
+if (!x37Application.address.equals(application)) {
+    throw new Error(
+        "X37 Application PDA mismatch.",
+    );
+}
+
+if (
+    x37Application.data.selectedEcosystem !==
+    phase.ecosystem
+) {
+    throw new Error(
+        "X37 Application ecosystem mismatch.",
+    );
+}
+
+console.log(
+    "X37_APPLICATION_READBACK=PASS",
+);
+
+const x37Membership =
+    await x37ReadClient.getMembership({
+        application,
+        member: payer.publicKey,
+    });
+
+if (x37Membership === null) {
+    throw new Error(
+        "X37 Membership read-back returned null.",
+    );
+}
+
+if (!x37Membership.address.equals(membership)) {
+    throw new Error(
+        "X37 Membership PDA mismatch.",
+    );
+}
+
+if (
+    !x37Membership.data.application.equals(
+        application,
+    )
+) {
+    throw new Error(
+        "X37 Membership application mismatch.",
+    );
+}
+
+if (
+    !x37Membership.data.member.equals(
+        payer.publicKey,
+    )
+) {
+    throw new Error(
+        "X37 Membership member mismatch.",
+    );
+}
+
+console.log(
+    "X37_MEMBERSHIP_READBACK=PASS",
+);
+
+const x37Reward =
+    await x37ReadClient.getReward({
+        application,
+        beneficiary: payer.publicKey,
+        rewardId: GOLDEN_REWARD_ID,
+    });
+
+if (x37Reward === null) {
+    throw new Error(
+        "X37 Reward read-back returned null.",
+    );
+}
+
+if (!x37Reward.address.equals(reward)) {
+    throw new Error(
+        "X37 Reward PDA mismatch.",
+    );
+}
+
+if (
+    !x37Reward.data.application.equals(
+        application,
+    )
+) {
+    throw new Error(
+        "X37 Reward application mismatch.",
+    );
+}
+
+if (
+    !x37Reward.data.beneficiary.equals(
+        payer.publicKey,
+    )
+) {
+    throw new Error(
+        "X37 Reward beneficiary mismatch.",
+    );
+}
+
+if (
+    x37Reward.data.rewardId !==
+    GOLDEN_REWARD_ID
+) {
+    throw new Error(
+        "X37 Reward ID mismatch.",
+    );
+}
+
+console.log(
+    "X37_REWARD_READBACK=PASS",
+);
+
+const x37AuditHistory =
+    await x37ReadClient.getAuditHistory({
+        application,
+    });
+
+const x37AuditEntry =
+    x37AuditHistory.find((entry) =>
+        entry.address.equals(auditLog),
+    );
+
+if (x37AuditEntry === undefined) {
+    throw new Error(
+        "X37 written AuditLog missing from history.",
+    );
+}
+
+if (
+    !x37AuditEntry.data.application.equals(
+        application,
+    )
+) {
+    throw new Error(
+        "X37 AuditLog application mismatch.",
+    );
+}
+
+if (
+    !x37AuditEntry.data.reference.equals(
+        reward,
+    )
+) {
+    throw new Error(
+        "X37 AuditLog reference mismatch.",
+    );
+}
+
+console.log(
+    "X37_AUDIT_HISTORY_READBACK=PASS",
+);
+
+console.log(
+    "X37_HIGH_LEVEL_READ_API_CLOSURE=PASS",
 );
 
 const requiredAccounts = [
