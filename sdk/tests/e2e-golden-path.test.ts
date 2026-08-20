@@ -380,6 +380,69 @@ console.log(
     "XRAY_X4_DUPLICATE_APPLICATION_REGISTRATION_REJECTED=PASS",
 );
 
+
+/*
+ * XRAY X38 — adversarial Application-name boundary.
+ *
+ * Application::MAX_NAME_LENGTH is 64 bytes. A 65-byte name
+ * must fail in the deployed register_application handler,
+ * and Anchor init rollback must leave no Application PDA.
+ *
+ * This protocol-wide boundary needs one runtime proof, so it
+ * runs only during the BRC Golden Journey.
+ */
+if (phaseCode === "BRC") {
+    const x38OversizedNameApplicationId =
+        applicationId + 38_000_001n;
+
+    const [x38OversizedNameApplication] =
+        findApplicationPda(
+            PROGRAM_ID,
+            authority.publicKey,
+            x38OversizedNameApplicationId,
+        );
+
+    if (
+        await connection.getAccountInfo(
+            x38OversizedNameApplication,
+            "confirmed",
+        ) !== null
+    ) {
+        throw new Error(
+            "X38 oversized-name Application fixture already exists.",
+        );
+    }
+
+    await expectInstructionFailure(
+        connection,
+        buildRegisterApplicationInstruction({
+            programId: PROGRAM_ID,
+            authority: authority.publicKey,
+            applicationId:
+                x38OversizedNameApplicationId,
+            name: "x".repeat(65),
+            selectedEcosystem: phase.ecosystem,
+        }),
+        [authority],
+        "InvalidApplicationName",
+    );
+
+    if (
+        await connection.getAccountInfo(
+            x38OversizedNameApplication,
+            "confirmed",
+        ) !== null
+    ) {
+        throw new Error(
+            "X38 InvalidApplicationName rejection left an Application PDA behind.",
+        );
+    }
+
+    console.log(
+        "X38_APPLICATION_NAME_MAX_PLUS_ONE=PASS",
+    );
+}
+
 /*
  * X4-2 — duplicate ApplicationConfig.
  *

@@ -589,6 +589,194 @@ const [gatePolicy] =
         applicationAsset,
     );
 
+/*
+ * XRAY X38 — adversarial GatePolicy collection boundary.
+ *
+ * GatePolicy::MAX_CONDITIONS is 6. Seven otherwise
+ * serializable conditions must reach the deployed handler,
+ * fail specifically with TooManyGateConditions, and roll
+ * back the init so the GatePolicy PDA remains absent.
+ */
+if (
+    await connection.getAccountInfo(
+        gatePolicy,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X38 oversized GatePolicy fixture is not fresh.",
+    );
+}
+
+let x38TooManyConditionsRejected = false;
+let x38TooManyConditionsError: unknown = null;
+
+/*
+ * The public SDK builder intentionally rejects >6 conditions
+ * before transaction construction. For this adversarial runtime
+ * boundary only, derive the canonical discriminator + account metas
+ * from a valid SDK-built instruction, then replace only its data
+ * with a correctly serialized seven-condition payload.
+ */
+const x38RawTemplate =
+    buildConfigureGatePolicyInstruction({
+        programId: PROGRAM_ID,
+        application,
+        applicationAsset,
+        gatePolicy,
+        authority: authority.publicKey,
+        enabled: true,
+        conditions: [
+            {
+                group: 0,
+                conditionType: 1,
+                mint: PublicKey.default,
+                minimumAmount: 0n,
+                minimumTier: 1,
+            },
+        ],
+    });
+
+const x38ConditionCount = Buffer.alloc(4);
+x38ConditionCount.writeUInt32LE(7);
+
+const x38MinimumAmount = Buffer.alloc(8);
+x38MinimumAmount.writeBigUInt64LE(0n);
+
+const x38MinimumTier = Buffer.alloc(2);
+x38MinimumTier.writeUInt16LE(1);
+
+const x38EncodedCondition = Buffer.concat([
+    Buffer.from([0]),
+    Buffer.from([1]),
+    PublicKey.default.toBuffer(),
+    x38MinimumAmount,
+    x38MinimumTier,
+]);
+
+const x38RawSevenConditionInstruction =
+    new TransactionInstruction({
+        programId: x38RawTemplate.programId,
+        keys: x38RawTemplate.keys,
+        data: Buffer.concat([
+            x38RawTemplate.data.subarray(0, 8),
+            x38ConditionCount,
+            ...Array.from(
+                { length: 7 },
+                () => x38EncodedCondition,
+            ),
+            Buffer.from([1]),
+        ]),
+    });
+
+try {
+    await send(
+        [x38RawSevenConditionInstruction],
+        [authority],
+    );
+} catch (error: unknown) {
+    x38TooManyConditionsRejected = true;
+    x38TooManyConditionsError = error;
+}
+
+expect(
+    x38TooManyConditionsRejected,
+    "X38 seven-condition GatePolicy should have been rejected",
+);
+
+let x38TooManyConditionsLogs: string[] = [];
+
+if (
+    typeof x38TooManyConditionsError === "object" &&
+    x38TooManyConditionsError !== null
+) {
+    if (
+        "logs" in x38TooManyConditionsError &&
+        Array.isArray(
+            (
+                x38TooManyConditionsError as {
+                    logs?: unknown;
+                }
+            ).logs,
+        )
+    ) {
+        x38TooManyConditionsLogs =
+            (
+                x38TooManyConditionsError as {
+                    logs: unknown[];
+                }
+            ).logs.map((entry) => String(entry));
+    }
+
+    if (
+        x38TooManyConditionsLogs.length === 0 &&
+        "getLogs" in x38TooManyConditionsError &&
+        typeof (
+            x38TooManyConditionsError as {
+                getLogs?: unknown;
+            }
+        ).getLogs === "function"
+    ) {
+        const fetchedLogs =
+            await (
+                x38TooManyConditionsError as {
+                    getLogs: (
+                        connection: Connection,
+                    ) => Promise<string[]>;
+                }
+            ).getLogs(connection);
+
+        x38TooManyConditionsLogs =
+            fetchedLogs.map((entry) =>
+                String(entry),
+            );
+    }
+}
+
+const x38TooManyConditionsDiagnostic = [
+    String(x38TooManyConditionsError),
+    ...x38TooManyConditionsLogs,
+].join("\n");
+
+const x38TooManyConditionsIdentityMatched =
+    x38TooManyConditionsDiagnostic.includes(
+        "TooManyGateConditions",
+    ) ||
+    x38TooManyConditionsDiagnostic.includes(
+        "Error Number: 6039",
+    ) ||
+    x38TooManyConditionsDiagnostic.includes(
+        "custom program error: 0x1797",
+    ) ||
+    x38TooManyConditionsDiagnostic.includes(
+        "custom program error: 0X1797",
+    );
+
+expect(
+    x38TooManyConditionsIdentityMatched,
+    [
+        "X38 seven-condition GatePolicy did not expose",
+        "TooManyGateConditions / 6039 / 0x1797.",
+        "Observed diagnostic:",
+        x38TooManyConditionsDiagnostic,
+    ].join("\n"),
+);
+
+if (
+    await connection.getAccountInfo(
+        gatePolicy,
+        "confirmed",
+    ) !== null
+) {
+    throw new Error(
+        "X38 TooManyGateConditions rejection left a GatePolicy PDA behind.",
+    );
+}
+
+console.log(
+    "X38_GATE_POLICY_MAX_CONDITIONS_PLUS_ONE=PASS",
+);
+
 await send(
     [
         buildConfigureGatePolicyInstruction({
