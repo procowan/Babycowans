@@ -33,14 +33,14 @@ Use Babycowans when you want to:
 
 Every Babycowans integration begins from one of the six canonical ecosystem mint identities defined by the protocol source of truth.
 
-| Ecosystem | Canonical mint |
-|---|---|
-| **BRC** | `25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump` |
-| **BEC** | `BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump` |
-| **BGC** | `BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump` |
-| **BLC** | `GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump` |
-| **BBC** | `2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump` |
-| **BAC** | `DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump` |
+| Ecosystem | Ticker | Canonical Token Address | Mission |
+|---|---|---|---|
+| **Baby Reptile Coin** | `$BRC` | `25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump` | This meme coin has come to revolutionize human interactions with the aim of tokenizing all kinds of entertainment and pleasure without any boundaries. |
+| **Baby Eagle Coin** | `$BEC` | `BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of trades; Import / Export businesses and Logistics without any boundaries. |
+| **Baby Goat Coin** | `$BGC` | `BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Intellectual property rights (IPR) & Luxury without any boundaries. |
+| **Baby Lion Coin** | `$BLC` | `GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of manufacturing infrastructures and supply-chains, without any boundaries. |
+| **Baby Bee Coin** | `$BBC` | `2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Medical services & Health insurance without any boundaries. |
+| **Baby Agent Coin** | `$BAC` | `DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump` | This meme coin has come to revolutionize Legal interactions with the aim of tokenizing all kinds of Ai services along with IOT and Web3 without any boundaries. |
 
 > Canonical mint identities above are derived from `canonical_assets.rs`; do not substitute remembered or manually copied addresses.
 
