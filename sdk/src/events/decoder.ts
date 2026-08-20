@@ -410,10 +410,29 @@ export function decodeBabycowansEventLogs(
 
             // Node's base64 decoder is intentionally permissive. Reject
             // malformed encodings before discriminator decoding.
+            const canonicalBase64 =
+                payload.toString("base64");
+
+            let canonicalEnd = canonicalBase64.length;
+            while (
+                canonicalEnd > 0 &&
+                canonicalBase64.charCodeAt(canonicalEnd - 1) === 61
+            ) {
+                canonicalEnd -= 1;
+            }
+
+            let encodedEnd = encoded.length;
+            while (
+                encodedEnd > 0 &&
+                encoded.charCodeAt(encodedEnd - 1) === 61
+            ) {
+                encodedEnd -= 1;
+            }
+
             if (
                 payload.length === 0 ||
-                payload.toString("base64").replace(/=+$/u, "") !==
-                    encoded.replace(/=+$/u, "")
+                canonicalBase64.slice(0, canonicalEnd) !==
+                    encoded.slice(0, encodedEnd)
             ) {
                 throw new Error(
                     "Malformed Babycowans event base64 payload",

@@ -79,11 +79,25 @@ function readBorshString(
 
     return {
         value:
-            buffer
-                .subarray(start, end)
-                .toString("utf8")
-                .replace(/\0+$/g, "")
-                .trim(),
+            (() => {
+                const decoded =
+                    buffer
+                        .subarray(start, end)
+                        .toString("utf8");
+
+                let decodedEnd = decoded.length;
+
+                while (
+                    decodedEnd > 0 &&
+                    decoded.charCodeAt(decodedEnd - 1) === 0
+                ) {
+                    decodedEnd -= 1;
+                }
+
+                return decoded
+                    .slice(0, decodedEnd)
+                    .trim();
+            })(),
         nextOffset: end,
     };
 }
