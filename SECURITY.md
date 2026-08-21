@@ -97,3 +97,19 @@ Production-sensitive deployment decisions must be validated independently agains
 Repository tests, CI gates, audits, and security controls provide evidence about specific tested invariants. They are not a guarantee that vulnerabilities cannot exist.
 
 Security-sensitive integrations should verify the current protocol contract rather than relying on assumptions, historical specifications, or copied examples.
+
+## Protocol V1.0.0 security assurance
+
+The final release security examination documents authority blast radius,
+cross-Application protection, token and mint validation, replay and
+state-machine protection, malformed-input boundaries, resource
+protection, RPC trust boundaries, and production operational security
+requirements.
+
+- [Security Attack Assurance](docs/assurance/TEST2_SECURITY_ATTACKS.md)
+- [Final Scale + Security Verdict](docs/assurance/FINAL_SCALE_SECURITY_VERDICT.md)
+
+Production operators should separately maintain hardened privileged-key
+custody, deliberate upgrade governance, RPC resilience, operational
+observability, incident response, production capacity planning, and
+integration-specific Token-2022 extension review where relevant.

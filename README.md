@@ -218,6 +218,24 @@ For build, validator, local-development and executable-example details, use:
 - [SDK Guide](docs/SDK.md)
 - [Cookbook](docs/COOKBOOK.md)
 
+
+## Protocol V1.0.0 release assurance
+
+The final Babycowans Protocol V1.0.0 repository includes developer-facing
+Scale and Security Assurance covering the final protocol, SDK, isolated
+runtime behavior, Application and Payment scaling, authority boundaries,
+cross-Application containment, token validation, replay protection,
+malformed-input handling, resource protection, and production operational
+trust boundaries.
+
+- [Release Assurance Overview](docs/assurance/README.md)
+- [Scale Assurance](docs/assurance/TEST1_SCALE.md)
+- [Security Attack Assurance](docs/assurance/TEST2_SECURITY_ATTACKS.md)
+- [Final Scale + Security Verdict](docs/assurance/FINAL_SCALE_SECURITY_VERDICT.md)
+
+The assurance surface presents the final usable Protocol V1.0.0
+engineering state for developers and production teams.
+
 ## Support the Future of Babycowans
 
 **Babycowans is being built as open infrastructure for developers, builders, researchers, and teams exploring the next generation of products across Solana, DeFi, Web3, tokenized real-world assets, and the six Babycowans ecosystems.**
