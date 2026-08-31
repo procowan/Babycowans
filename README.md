@@ -15,6 +15,7 @@ Babycowans Protocol V1.0.0 gives builders one coherent protocol surface instead 
 | Integrate the SDK | [SDK Guide](docs/SDK.md) |
 | Look up exact APIs | [API Reference](docs/API.md) |
 | Follow practical flows | [Cookbook](docs/COOKBOOK.md) |
+| Design for a Babycowans ecosystem | [Ecosystem Reference Architectures](docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md) |
 | Check compatibility | [Migration / Compatibility](docs/MIGRATION.md) |
 
 ## Why Babycowans
@@ -204,6 +205,7 @@ For exact authority, ownership, PDA, lifecycle and protocol-security semantics, 
 - [SDK Guide](docs/SDK.md) — SDK setup and developer integration.
 - [API Reference](docs/API.md) — exact source-aligned public surface.
 - [Cookbook](docs/COOKBOOK.md) — practical application flows.
+- [Ecosystem Reference Architectures](docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md) — real-product integration boundaries for all six canonical ecosystems.
 - [Migration / Compatibility](docs/MIGRATION.md) — compatibility and migration guidance.
 - [SDK package README](sdk/README.md) — package-level SDK documentation.
 
