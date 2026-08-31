@@ -253,3 +253,7 @@ Before updating a production integration:
 Documentation is an integration aid, not an independent protocol schema.
 
 When a production assumption matters, verify the repository contract.
+
+## 18. Related documentation
+
+For ecosystem-specific integration patterns, see [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md).
