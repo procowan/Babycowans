@@ -393,6 +393,10 @@ This is a bounded canonical batch, not a generic workflow engine.
 
 Production documentation is downstream of implementation and must never become an independent protocol schema.
 
+## Ecosystem application architectures
+
+For real-product architecture patterns across all six canonical ecosystems, including the boundary between Babycowans primitives, application-owned business logic, and external systems, see [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md).
+
 ## Next
 
 - [Architecture](ARCHITECTURE.md)
