@@ -71,6 +71,8 @@ console.log(identity.mission);
 
 Prefer the canonical registry over duplicated token-address constants.
 
+After selecting an ecosystem, use [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md) to map the existing Babycowans primitives to product-specific application and external-system responsibilities.
+
 ## 4. Signer model
 
 High-Level write operations use operation-scoped signers.
@@ -417,4 +419,5 @@ Do not:
 - [API Reference](API.md)
 - [Cookbook](COOKBOOK.md)
 - [Architecture](ARCHITECTURE.md)
+- [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md)
 - [Integration Compatibility](MIGRATION.md)

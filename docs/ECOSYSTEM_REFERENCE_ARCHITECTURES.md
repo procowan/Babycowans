@@ -352,3 +352,12 @@ requires them.
 This separation keeps the same programmable Babycowans protocol usable across
 six very different ecosystems without embedding any one industry's business
 logic into the Core.
+
+## 12. Next
+
+- [Protocol Guide](PROTOCOL.md)
+- [Architecture](ARCHITECTURE.md)
+- [SDK Guide](SDK.md)
+- [API Reference](API.md)
+- [Cookbook](COOKBOOK.md)
+- [Security Policy](../SECURITY.md)

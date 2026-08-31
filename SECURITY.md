@@ -82,6 +82,8 @@ The protocol does not by itself establish or verify legal title, physical posses
 
 Applications that depend on real-world facts are responsible for the external legal, operational, oracle, attestation, custody, identity, or verification systems that establish those facts.
 
+For ecosystem-specific examples of this separation, see [Ecosystem Reference Architectures](docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md).
+
 ## Local Development and Production
 
 The repository-owned Solana test-validator workflow is a **local development and testing environment**.

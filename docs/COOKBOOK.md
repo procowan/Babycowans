@@ -28,6 +28,8 @@ console.log(identity.mission);
 
 Do not duplicate canonical identity constants in application code.
 
+For product-level architecture after ecosystem selection, see [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md). It shows how the same protocol primitives map to application-owned business logic and external integrations without changing the Core.
+
 ## 2. Bootstrap a new application
 
 Use the atomic canonical batch when you want registration + config in one transaction.

@@ -403,4 +403,5 @@ For real-product architecture patterns across all six canonical ecosystems, incl
 - [SDK Guide](SDK.md)
 - [API Reference](API.md)
 - [Cookbook](COOKBOOK.md)
+- [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md)
 - [Integration Compatibility](MIGRATION.md)
