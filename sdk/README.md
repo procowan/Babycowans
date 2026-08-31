@@ -28,6 +28,8 @@ yarn onboard
 
 The onboarding displays Full Name, Ticker, Token Address, and Mission. Use the Up and Down Arrow keys to move and Enter to select.
 
+For product-level patterns after ecosystem selection, see `docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md` from the repository root.
+
 ## Client setup
 
 ```ts
@@ -92,6 +94,7 @@ Start from the repository root:
 - `docs/SDK.md`
 - `docs/API.md`
 - `docs/COOKBOOK.md`
+- `docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md`
 - `docs/MIGRATION.md`
 
 ## Important integration rules

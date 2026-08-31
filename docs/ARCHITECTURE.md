@@ -175,6 +175,8 @@ Mission
 
 Application metadata remains application-owned information.
 
+For product-level composition across the six canonical ecosystems, including the boundary between protocol primitives, application-owned business logic, and external systems, see [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md).
+
 ## 7. Write architecture
 
 ```mermaid
