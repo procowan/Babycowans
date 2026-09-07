@@ -4,6 +4,7 @@ use anchor_lang::prelude::Pubkey;
 
 use crate::{
     canonical_assets::is_canonical_mint, canonical_ecosystems::CanonicalEcosystem,
+    instructions::process_payment::calculate_payment_amounts_for_fuzz_bridge,
     state::ApplicationConfig,
 };
 
@@ -45,6 +46,22 @@ pub fn calculate_payment_amounts_for_fuzz(
     if reconstructed != amount {
         return None;
     }
+
+    Some(FuzzPaymentAmounts {
+        protocol_fee,
+        application_fee,
+        net_amount,
+    })
+}
+
+pub fn calculate_payment_amounts_production_for_fuzz(
+    amount: u64,
+    protocol_fee_bps: u16,
+    application_fee_bps: u16,
+) -> Option<FuzzPaymentAmounts> {
+    let (protocol_fee, application_fee, net_amount) =
+        calculate_payment_amounts_for_fuzz_bridge(amount, protocol_fee_bps, application_fee_bps)
+            .ok()?;
 
     Some(FuzzPaymentAmounts {
         protocol_fee,

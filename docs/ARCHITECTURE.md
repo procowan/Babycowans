@@ -249,6 +249,15 @@ The decoder:
 - ignores unrelated logs;
 - supports strict malformed-payload handling.
 
+The Event Decoder is a log-decoding boundary, not a transaction-success
+oracle. `BabycowansSDK.decodeEvents()` obtains transaction log messages but
+does not gate decoding on `meta.err === null`.
+
+Applications that use events as evidence of committed state must separately
+verify transaction success and their required confirmation/finality level.
+Decoded event presence alone must not authorize settlement, accounting,
+access-control or other irreversible application behavior.
+
 ## 10. Batch architecture
 
 ```mermaid

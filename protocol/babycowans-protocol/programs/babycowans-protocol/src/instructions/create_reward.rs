@@ -35,6 +35,7 @@ pub struct CreateReward<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create_reward_handler(
     ctx: Context<CreateReward>,
     beneficiary: Pubkey,

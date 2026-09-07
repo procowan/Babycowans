@@ -162,6 +162,7 @@ pub mod babycowans_protocol {
         update_application_role_handler(ctx, role, active)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn register_membership(
         ctx: Context<RegisterMembership>,
         member: Pubkey,
@@ -217,6 +218,7 @@ pub mod babycowans_protocol {
         verify_nft_membership_handler(ctx)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn create_reward(
         ctx: Context<CreateReward>,
         beneficiary: Pubkey,
@@ -290,6 +292,7 @@ pub mod babycowans_protocol {
         accept_protocol_authority_handler(ctx)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn record_audit_log(
         ctx: Context<RecordAuditLog>,
         nonce: u64,

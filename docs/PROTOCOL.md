@@ -77,6 +77,63 @@ It records:
 
 The ecosystem choice is persisted on-chain.
 
+### Application PDA and authority rotation
+
+The Application PDA is established during registration from the Application
+seed domain, the registering authority, and the application ID. Later
+application-authority rotation does not derive a replacement Application PDA.
+
+Application authority rotation uses a separate two-step lifecycle. The current
+authority nominates `Application.pending_authority`; the nominated signer then
+accepts, which updates `Application.authority` and clears
+`pending_authority`.
+
+Application-scoped role records are not part of that authority-transfer
+lifecycle.
+
+Authority rotation also does not automatically migrate token-account control.
+`ApplicationAsset.payment_destination` remains the configured destination
+address until application-owned configuration is deliberately changed.
+Likewise, separately configured treasury/token-account ownership remains an
+external token-account concern.
+
+### Protocol pause and Application status enforcement
+
+Protocol pause and Application status are separate enforcement mechanisms.
+`ProtocolConfig.paused` is not a universal kill switch over every Babycowans
+instruction.
+
+The current implementation explicitly enforces protocol pause on
+`register_application`, `register_asset`, and `process_payment`.
+
+The current implementation explicitly requires
+`ApplicationStatus::Active` on the following paths:
+
+- `process_payment`;
+- `configure_application_config`;
+- `update_application_config`;
+- `configure_application_asset`;
+- `configure_payment_policy`;
+- `update_payment_policy`;
+- `configure_token_gate`;
+- `verify_gate_access`;
+- `verify_gate_policy`.
+
+Other instruction families must not be assumed to inherit those checks unless
+their own Rust account constraints or handler logic enforce them.
+
+Application status transitions are also explicit. The current allowed
+transitions are:
+
+- Pending to Active;
+- Pending to Disabled;
+- Active to Suspended;
+- Active to Disabled;
+- Suspended to Active;
+- Suspended to Disabled.
+
+No transition out of Disabled is defined by the current transition table.
+
 ## 5. ApplicationConfig
 
 `ApplicationConfig` stores application-specific metadata:
@@ -221,6 +278,26 @@ Create
 
 Scheduled and expiring rewards use the protocol's time fields rather than a separate reward system.
 
+### Reward entitlement and settlement boundary
+
+A Babycowans `Reward` is an on-chain entitlement and lifecycle record.
+
+`create_reward` records the beneficiary, asset, amount, timing and reward
+metadata. `claim_reward` validates the beneficiary and reward lifecycle,
+changes the reward state to Claimed, records the claim timestamp and emits the
+reward event. `cancel_reward` changes eligible reward state to Cancelled and
+emits its event.
+
+The current reward create, claim and cancel instructions do not perform an SPL
+Token or Token-2022 transfer.
+
+Therefore `Reward.asset` and `Reward.amount` describe protocol reward state;
+they do not by themselves prove that a token payout occurred. Applications
+that require token settlement, distribution or another external benefit must
+implement and verify that settlement separately.
+
+A `RewardClaimed` event must not be interpreted as token-transfer proof.
+
 ## 11. Token gates
 
 `TokenGate` represents direct application access gating.
@@ -233,6 +310,16 @@ State includes:
 - minimum amount;
 - minimum tier;
 - enabled state.
+
+The `TokenGate` account schema contains multiple gate-type variants. However,
+the current direct verification instruction, `verify_gate_access`, explicitly
+supports only `GateType::HoldAmount`.
+
+Direct HoldAmount verification requires the supplied token account to belong
+to the signing wallet, match the ApplicationAsset mint and satisfy the
+configured minimum amount. A different direct gate type is rejected with
+`UnsupportedGateType`; it is not silently treated as membership or NFT
+verification.
 
 ## 12. Composable gate policies
 
@@ -247,6 +334,20 @@ Multiple groups           → OR
 
 Developers should use the protocol policy model instead of implementing a second incompatible policy engine.
 
+Current GatePolicy predicate semantics are distinct:
+
+- `HoldAmount` checks wallet ownership, exact condition mint and minimum token
+  amount.
+- `MembershipTier` checks that the Membership belongs to the same Application
+  and wallet, is Active, is not expired and meets the minimum tier. This
+  predicate does not require `membership.nft_verified` and does not require
+  current NFT ownership.
+- `NftOwnership` checks a wallet-owned token account for the exact condition
+  mint and an amount of at least one.
+
+Membership NFT verification and GatePolicy NFT ownership are separate
+verification concepts and must not be conflated by integrations.
+
 ## 13. Application roles
 
 `ApplicationRole` is application-scoped authorization.
@@ -260,6 +361,17 @@ Application + Member
 Role management is separate from protocol authority.
 
 The role lifecycle supports assignment and later updates.
+
+`Role::Owner` and `Role::Admin` are Application-scoped authorization values.
+Assigning or updating either role changes the `ApplicationRole` record; it does
+not mutate `Application.authority`, populate `Application.pending_authority`,
+or transfer the Application PDA.
+
+Application authority changes only through the dedicated nomination and
+acceptance lifecycle.
+
+An Owner/Admin role record therefore must not be treated as proof that the
+member controls the Application authority key.
 
 ## 14. Audit logs
 
@@ -355,6 +467,27 @@ The decoder preserves:
 - `u64` / `i64` fidelity through `bigint`.
 
 Unrelated logs are ignored.
+
+### Transaction-success and finality boundary
+
+`client.decodeEvents(signature)` requests the transaction and passes
+`transaction.meta.logMessages` to the Babycowans event decoder.
+
+The current helper does not reject the transaction merely because
+`transaction.meta.err` is non-null.
+
+Failed Solana transactions can contain program logs. Consequently, a
+syntactically valid Babycowans event payload present in failed-transaction logs
+can still be decoded.
+
+Decoded event presence therefore proves that a Babycowans event payload was
+found and decoded from the scoped logs. It does not by itself prove that the
+transaction successfully committed state.
+
+Applications that use decoded events as committed-state evidence must
+independently require transaction success and apply the confirmation/finality
+policy appropriate to their integration before performing settlement,
+accounting, access-control or other irreversible actions.
 
 ## 19. Atomic application bootstrap
 

@@ -182,6 +182,11 @@ client.cancelReward(...)
 
 Reward IDs, amounts and time values preserve protocol integer fidelity.
 
+Reward lifecycle methods operate on Babycowans Reward state.
+`client.claimReward(...)` does not itself transfer SPL Token or Token-2022
+funds. Application-owned payout or settlement logic must be implemented and
+verified separately when required.
+
 ## 10. Memberships
 
 High-Level lifecycle:
@@ -205,6 +210,17 @@ client.verifyGateAccess(...)
 ```
 
 Composable gate-policy primitives are available through the Low-Level SDK.
+
+Although the on-chain `TokenGate` account carries a gate type, the current
+direct `verifyGateAccess` path supports HoldAmount verification only.
+
+Use the composable GatePolicy path for MembershipTier or exact-mint NFT
+ownership predicates.
+
+A GatePolicy MembershipTier condition evaluates Application/member binding,
+Active membership status, expiry and tier. It does not require
+`nftVerified`. NFT ownership is evaluated separately as an exact-mint
+token-account condition.
 
 ## 12. Read API
 
@@ -255,6 +271,14 @@ The High-Level client automatically scopes decoding to its configured program ID
 A transaction with no Babycowans events returns an empty array.
 
 Low-Level decoding exposes strict malformed-payload behavior when needed.
+
+`decodeEvents()` is a decoding helper, not proof of transaction success. The
+current helper decodes transaction log messages without rejecting
+`meta.err !== null`.
+
+Before treating decoded events as committed state, integrations must
+independently verify that the transaction succeeded and meets their required
+confirmation/finality policy.
 
 ## 14. bigint
 

@@ -8,18 +8,11 @@
     "skipLibCheck": true,
     "noEmit": true,
     "baseUrl": "..",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "paths": {
-      "@babycowans/core-sdk": [
-        "sdk/src/index.ts"
-      ]
+      "@babycowans/core-sdk": ["sdk/src/index.ts"],
+      "@babycowans/core-sdk/onboarding": ["sdk/src/onboarding/index.ts"]
     }
   },
-  "include": [
-    "application-bootstrap.ts",
-    "read-api.ts",
-    "event-decoder.ts"
-  ]
+  "include": ["application-bootstrap.ts", "read-api.ts", "event-decoder.ts"]
 }
