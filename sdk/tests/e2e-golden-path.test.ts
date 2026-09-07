@@ -102,14 +102,30 @@ const PHASES = {
 
 type PhaseCode = keyof typeof PHASES;
 
-const phaseCode = (process.env.BABYCOWANS_PHASE ?? "BRC") as PhaseCode;
-const phase = PHASES[phaseCode];
+const requestedPhaseCode = process.env.BABYCOWANS_PHASE ?? "BRC";
 
-if (phase === undefined) {
-  throw new Error(
-    `Unknown God Examination phase: ${process.env.BABYCOWANS_PHASE}`
-  );
-}
+const phaseCode: PhaseCode = (() => {
+  switch (requestedPhaseCode) {
+    case "BRC":
+      return "BRC";
+    case "BEC":
+      return "BEC";
+    case "BGC":
+      return "BGC";
+    case "BLC":
+      return "BLC";
+    case "BBC":
+      return "BBC";
+    case "BAC":
+      return "BAC";
+    default:
+      throw new Error(
+        `Unknown God Examination phase: ${requestedPhaseCode}`
+      );
+  }
+})();
+
+const phase = PHASES[phaseCode];
 
 const CANONICAL_MINT = phase.mint;
 
@@ -745,7 +761,7 @@ runCommand("solana", [
 
 const destinationTokenAccount = createTokenAccount(
   CANONICAL_MINT,
-  `${process.env.HOME}/.config/solana/id.json`,
+  SOLANA_AUTHORITY_PATH,
   TOKEN_PROGRAM_ID
 );
 
@@ -769,7 +785,7 @@ runCommand("spl-token", [
   CANONICAL_MINT.toBase58(),
   protocolTreasuryTokenAccountPath,
   "--owner",
-  `${process.env.HOME}/.config/solana/id.json`,
+  SOLANA_AUTHORITY_PATH,
   "--program-id",
   TOKEN_PROGRAM_ID.toBase58(),
   "--url",
@@ -853,7 +869,7 @@ await send(
 
 const mismatchedPaymentDestination = createTokenAccount(
   mismatchedPhase.mint,
-  `${process.env.HOME}/.config/solana/id.json`,
+  SOLANA_AUTHORITY_PATH,
   mismatchedTokenProgram
 );
 
