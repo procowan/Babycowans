@@ -1,5 +1,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   Connection,
@@ -38,6 +40,13 @@ const TOKEN_2022_PROGRAM_ID = new PublicKey(
 );
 
 const PAYMENT_AMOUNT = 1_000_000_000n;
+
+const solanaAuthorityPath = path.join(
+  os.homedir(),
+  ".config",
+  "solana",
+  "id.json"
+);
 
 function loadKeypair(path: string): Keypair {
   const secretKey = Uint8Array.from(JSON.parse(fs.readFileSync(path, "utf8")));
@@ -95,7 +104,7 @@ async function send(
 async function main(): Promise<void> {
   const connection = new Connection(RPC_URL, "confirmed");
 
-  const authority = loadKeypair(`${process.env.HOME}/.config/solana/id.json`);
+  const authority = loadKeypair(solanaAuthorityPath);
 
   const mintAccount = await connection.getAccountInfo(BAC_CANONICAL_MINT);
 
@@ -206,7 +215,7 @@ async function main(): Promise<void> {
 
   const destinationTokenAccount = createToken2022Account(
     BAC_CANONICAL_MINT,
-    `${process.env.HOME}/.config/solana/id.json`
+    solanaAuthorityPath
   );
 
   const payerTokenAccount = createToken2022Account(
@@ -227,7 +236,7 @@ async function main(): Promise<void> {
     "--program-id",
     TOKEN_2022_PROGRAM_ID.toBase58(),
     "--fee-payer",
-    `${process.env.HOME}/.config/solana/id.json`,
+    solanaAuthorityPath,
     "--url",
     RPC_URL,
   ]);
@@ -240,7 +249,7 @@ async function main(): Promise<void> {
     "--program-id",
     TOKEN_2022_PROGRAM_ID.toBase58(),
     "--fee-payer",
-    `${process.env.HOME}/.config/solana/id.json`,
+    solanaAuthorityPath,
     "--url",
     RPC_URL,
   ]);

@@ -27,27 +27,41 @@ if (!programIdValue) {
   throw new Error("BABYCOWANS_PROGRAM_ID is required");
 }
 
-const walletPathValue =
-  process.env.SOLANA_WALLET ??
-  path.join(os.homedir(), ".config/solana/id.json");
+const defaultWalletPath = path.join(
+  os.homedir(),
+  ".config",
+  "solana",
+  "id.json"
+);
 
-const walletPath = fs.realpathSync(path.resolve(walletPathValue));
+const configuredWalletPath = process.env.SOLANA_WALLET;
 
-const walletStat = fs.statSync(walletPath);
+if (
+  configuredWalletPath !== undefined &&
+  path.resolve(configuredWalletPath) !== path.resolve(defaultWalletPath)
+) {
+  throw new Error(
+    "This bootstrap example accepts only the active default Solana wallet path"
+  );
+}
+
+const walletStat = fs.statSync(defaultWalletPath);
 
 if (!walletStat.isFile()) {
-  throw new Error("SOLANA_WALLET must resolve to a regular file");
+  throw new Error("The default Solana wallet must be a regular file");
 }
 
 if (
   typeof process.getuid === "function" &&
   walletStat.uid !== process.getuid()
 ) {
-  throw new Error("SOLANA_WALLET must be owned by the current user");
+  throw new Error("The default Solana wallet must be owned by the current user");
 }
 
 const authority = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(fs.readFileSync(walletPath, "utf8")))
+  Uint8Array.from(
+    JSON.parse(fs.readFileSync(defaultWalletPath, "utf8"))
+  )
 );
 
 const connection = new Connection(rpcUrl, "confirmed");

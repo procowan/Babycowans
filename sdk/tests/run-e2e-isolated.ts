@@ -58,9 +58,10 @@ const canonicalLayoutManifest = path.join(
   "canonical-local-mint-layouts.json"
 );
 
-const canonicalFixtureCache =
-  process.env.BABYCOWANS_CANONICAL_FIXTURE_CACHE ??
-  path.join(tmpdir(), "babycowans-canonical-fixtures");
+const canonicalFixtureCache = path.join(
+  tmpdir(),
+  "babycowans-canonical-fixtures"
+);
 
 const legacyTokenProgram = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 

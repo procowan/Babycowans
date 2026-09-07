@@ -91,14 +91,17 @@ function expect(condition: boolean, message: string): asserts condition {
   }
 }
 
-function loadKeypair(path: string): Keypair {
-  return Keypair.fromSecretKey(
-    Uint8Array.from(JSON.parse(fs.readFileSync(path, "utf8")))
-  );
-}
+const authorityPath = path.join(
+  os.homedir(),
+  ".config",
+  "solana",
+  "id.json"
+);
 
-const authority = loadKeypair(
-  path.join(os.homedir(), ".config/solana/id.json")
+const authority = Keypair.fromSecretKey(
+  Uint8Array.from(
+    JSON.parse(fs.readFileSync(authorityPath, "utf8"))
+  )
 );
 
 const connection = new Connection(RPC_URL, "confirmed");

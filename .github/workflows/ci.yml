@@ -201,6 +201,12 @@ jobs:
             anchor --version
             sha256sum protocol/babycowans-protocol/target/deploy/babycowans_protocol.so
           } | tee .astra-evidence/runtime-identity.txt
+      - name: Provision ephemeral runtime authority
+        run: |
+          mkdir -p "$HOME/.config/solana"
+          solana-keygen new             --no-bip39-passphrase             --force             --silent             --outfile "$HOME/.config/solana/id.json"
+          solana config set --keypair "$HOME/.config/solana/id.json"
+          test -n "$(solana address)"
       - name: Default release-critical E2E
         run: |
           set -o pipefail
