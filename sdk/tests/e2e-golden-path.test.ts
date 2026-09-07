@@ -1,5 +1,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   Connection,
@@ -133,6 +135,13 @@ const TOKEN_2022_PROGRAM_ID = new PublicKey(
 
 const PAYER_KEYPAIR_PATH = "/tmp/babycowans-golden-path-payer.json";
 
+const SOLANA_AUTHORITY_PATH = path.join(
+  os.homedir(),
+  ".config",
+  "solana",
+  "id.json"
+);
+
 const PAYMENT_AMOUNT = 1_000_000_000n;
 const REWARD_AMOUNT = 500_000_000n;
 const MEMBERSHIP_TIER = 1;
@@ -234,22 +243,63 @@ async function expectInstructionFailure(
   throw new Error(`Expected transaction failure: ${expectedAnchorError}`);
 }
 
+const GOLDEN_BLOCKHASH_RETRY_LIMIT = 3;
+const GOLDEN_BLOCKHASH_RETRY_DELAY_MS = 1_500;
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 async function send(
   connection: Connection,
   instruction: ReturnType<typeof buildInitializeProtocolInstruction>,
   signers: Keypair[]
 ): Promise<string> {
-  return sendAndConfirmTransaction(
-    connection,
-    new Transaction().add(instruction),
-    signers,
-    {
-      commitment: "confirmed",
+  for (
+    let attempt = 1;
+    attempt <= GOLDEN_BLOCKHASH_RETRY_LIMIT;
+    attempt += 1
+  ) {
+    try {
+      return await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(instruction),
+        signers,
+        {
+          commitment: "confirmed",
+        }
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : String(error);
+
+      const blockhashAcquisitionFailure = message.includes(
+        "Unable to obtain a new blockhash"
+      );
+
+      if (
+        !blockhashAcquisitionFailure ||
+        attempt === GOLDEN_BLOCKHASH_RETRY_LIMIT
+      ) {
+        throw error;
+      }
+
+      console.log(
+        `GOLDEN_BLOCKHASH_RETRY=${attempt}/${GOLDEN_BLOCKHASH_RETRY_LIMIT}`
+      );
+
+      await wait(GOLDEN_BLOCKHASH_RETRY_DELAY_MS);
     }
-  );
+  }
+
+  throw new Error("Golden blockhash retry state is unreachable");
 }
 
-const authority = loadKeypair(`${process.env.HOME}/.config/solana/id.json`);
+const authoritySecretKey = Uint8Array.from(
+  JSON.parse(fs.readFileSync(SOLANA_AUTHORITY_PATH, "utf8"))
+);
+
+const authority = Keypair.fromSecretKey(authoritySecretKey);
 
 const connection = new Connection(RPC_URL, "confirmed");
 
