@@ -19,5 +19,8 @@
     "tsx": "^4.20.3",
     "typescript": "^5.8.0",
     "patch-package": "8.0.0"
+  },
+  "resolutions": {
+    "tmp": "0.2.7"
   }
 }

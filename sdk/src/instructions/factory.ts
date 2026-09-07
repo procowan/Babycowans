@@ -16,7 +16,9 @@ import {
     encodeEnum,
     encodeFixedBytes3,
     encodeString,
+    encodeU16,
     encodeU64,
+    encodeU8,
     instructionDiscriminator,
 } from "./codec.js";
 
@@ -275,11 +277,13 @@ export function buildConfigurePaymentPolicyInstruction(
         params.applicationAsset,
     );
 
-    const protocolFeeBps = Buffer.alloc(2);
-    protocolFeeBps.writeUInt16LE(params.protocolFeeBps);
+    const protocolFeeBps = encodeU16(
+        params.protocolFeeBps,
+    );
 
-    const applicationFeeBps = Buffer.alloc(2);
-    applicationFeeBps.writeUInt16LE(params.applicationFeeBps);
+    const applicationFeeBps = encodeU16(
+        params.applicationFeeBps,
+    );
 
     const data = Buffer.concat([
         instructionDiscriminator("configure_payment_policy"),
@@ -326,11 +330,13 @@ export function buildUpdatePaymentPolicyInstruction(
         params.applicationAsset,
     );
 
-    const protocolFeeBps = Buffer.alloc(2);
-    protocolFeeBps.writeUInt16LE(params.protocolFeeBps);
+    const protocolFeeBps = encodeU16(
+        params.protocolFeeBps,
+    );
 
-    const applicationFeeBps = Buffer.alloc(2);
-    applicationFeeBps.writeUInt16LE(params.applicationFeeBps);
+    const applicationFeeBps = encodeU16(
+        params.applicationFeeBps,
+    );
 
     const data = Buffer.concat([
         instructionDiscriminator("update_payment_policy"),
@@ -428,10 +434,7 @@ export function buildRegisterMembershipInstruction(
     const data = Buffer.concat([
         instructionDiscriminator("register_membership"),
         params.member.toBuffer(),
-        Buffer.from(Uint8Array.of(
-            params.tier & 0xff,
-            (params.tier >> 8) & 0xff,
-        )),
+        encodeU16(params.tier),
         encodeU64(params.expiresAt),
         encodeBool(renewable),
         encodeBool(autoExtend),
@@ -477,10 +480,7 @@ export function buildUpdateMembershipInstruction(
         ],
         data: Buffer.concat([
             instructionDiscriminator("update_membership"),
-            Buffer.from(Uint8Array.of(
-                params.tier & 0xff,
-                (params.tier >> 8) & 0xff,
-            )),
+            encodeU16(params.tier),
             encodeEnum(params.status),
             encodeU64(params.expiresAt),
             encodeBool(params.renewable),
@@ -665,8 +665,9 @@ export interface ConfigureTokenGateInstructionParams {
 export function buildConfigureTokenGateInstruction(
     params: ConfigureTokenGateInstructionParams,
 ): TransactionInstruction {
-    const minimumTier = Buffer.alloc(2);
-    minimumTier.writeUInt16LE(params.minimumTier);
+    const minimumTier = encodeU16(
+        params.minimumTier,
+    );
 
     const data = Buffer.concat([
         instructionDiscriminator("configure_token_gate"),
@@ -963,12 +964,11 @@ export interface GateConditionInput {
 function encodeGateCondition(
     condition: GateConditionInput,
 ): Buffer {
-    const group = Buffer.from([
+    const group = encodeU8(
         condition.group,
-    ]);
+    );
 
-    const minimumTier = Buffer.alloc(2);
-    minimumTier.writeUInt16LE(
+    const minimumTier = encodeU16(
         condition.minimumTier ?? 0,
     );
 

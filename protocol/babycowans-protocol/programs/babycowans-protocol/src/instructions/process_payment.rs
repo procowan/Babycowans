@@ -70,6 +70,21 @@ fn calculate_payment_amounts(
     })
 }
 
+#[cfg(feature = "fuzzing")]
+pub(crate) fn calculate_payment_amounts_for_fuzz_bridge(
+    amount: u64,
+    protocol_fee_bps: u16,
+    application_fee_bps: u16,
+) -> Result<(u64, u64, u64)> {
+    let amounts = calculate_payment_amounts(amount, protocol_fee_bps, application_fee_bps)?;
+
+    Ok((
+        amounts.protocol_fee,
+        amounts.application_fee,
+        amounts.net_amount,
+    ))
+}
+
 #[derive(Accounts)]
 pub struct ProcessPayment<'info> {
     #[account(

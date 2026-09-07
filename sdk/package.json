@@ -16,6 +16,7 @@
     "clean": "rm -rf dist",
     "test:pda": "tsx tests/pda.test.ts",
     "test:instructions": "tsx tests/instructions.test.ts",
+    "test:numeric-boundaries": "tsx tests/numeric-boundaries.test.ts",
     "test:idl": "tsx tests/idl-consistency.test.ts",
     "test:decoder": "tsx tests/decoder-layout.test.ts",
     "test:e2e:initialize": "tsx tests/e2e-initialize.test.ts",
@@ -34,10 +35,14 @@
     "test:god:isolated": "BABYCOWANS_ISOLATED_SUITE=god tsx tests/run-e2e-isolated.ts",
     "postinstall": "node scripts/runtime-dependency-guard.cjs",
     "test:dependencies": "node scripts/runtime-dependency-guard.cjs --verify",
-    "test:audit": "node scripts/runtime-audit-gate.cjs"
+    "test:audit": "node scripts/runtime-audit-gate.cjs",
+    "test:audit:regression": "node tests/runtime-audit-gate.test.cjs",
+    "test:e2e:gate-policy": "BABYCOWANS_ISOLATED_SUITE=gate-policy tsx tests/run-e2e-isolated.ts",
+    "test:e2e:gate-policy:direct": "tsx tests/e2e-gate-policy.test.ts",
+    "test:e2e:token2022": "tsx tests/e2e-token2022-payment.test.ts",
+    "test:runtime-boundary": "tsx tests/runtime-boundary.test.ts"
   },
   "dependencies": {
-    "@anchor-lang/core": "1.0.2",
     "@solana/web3.js": "1.98.4",
     "punycode": "2.3.1"
   },
@@ -49,5 +54,18 @@
   "bin": {
     "babycowans": "dist/onboarding/DeveloperOnboarding.js"
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./onboarding": {
+      "types": "./dist/onboarding/index.d.ts",
+      "import": "./dist/onboarding/index.js",
+      "default": "./dist/onboarding/index.js"
+    },
+    "./package.json": "./package.json"
+  }
 }

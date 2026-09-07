@@ -1,115 +1,101 @@
-import {    execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 
 import {
-    Connection,
-    Keypair,
-    PublicKey,
-    sendAndConfirmTransaction,
-    Transaction,
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  Transaction,
 } from "@solana/web3.js";
 
 import {
-    BabycowansSDK,
-    CanonicalEcosystem,
-    getCanonicalEcosystem,
-    buildClaimRewardInstruction,
-    buildConfigureApplicationAssetInstruction,
-    buildConfigureApplicationConfigInstruction,
-    buildConfigurePaymentPolicyInstruction,
-    buildUpdatePaymentPolicyInstruction,
-    buildConfigureTokenGateInstruction,
-    buildCreateRewardInstruction,
-    buildInitializeProtocolInstruction,
-    buildNominateApplicationAuthorityInstruction,
-    buildAcceptApplicationAuthorityInstruction,
-    buildProcessPaymentInstruction,
-    buildRecordAuditLogInstruction,
-    buildRegisterApplicationInstruction,
-    buildRegisterAssetInstruction,
-    buildRegisterMembershipInstruction,
-    buildAssignApplicationRoleInstruction,
-    buildSetProtocolPauseInstruction,
-    buildNominateProtocolAuthorityInstruction,
-    buildAcceptProtocolAuthorityInstruction,
-    buildUpdateApplicationStatusInstruction,
-    buildVerifyGateAccessInstruction,
-    findApplicationAssetPda,
-    findApplicationConfigPda,
-    findApplicationPda,
-    findPaymentPolicyPda,
-    findApplicationRolePda,
-    findAssetConfigPda,
-    findAuditLogPda,
-    findMembershipPda,
-    findProtocolConfigPda,
-    findRewardPda,
-    findTokenGatePda,
+  BabycowansSDK,
+  CanonicalEcosystem,
+  getCanonicalEcosystem,
+  buildClaimRewardInstruction,
+  buildConfigureApplicationAssetInstruction,
+  buildConfigureApplicationConfigInstruction,
+  buildConfigurePaymentPolicyInstruction,
+  buildUpdatePaymentPolicyInstruction,
+  buildConfigureTokenGateInstruction,
+  buildCreateRewardInstruction,
+  buildInitializeProtocolInstruction,
+  buildNominateApplicationAuthorityInstruction,
+  buildAcceptApplicationAuthorityInstruction,
+  buildProcessPaymentInstruction,
+  buildRecordAuditLogInstruction,
+  buildRegisterApplicationInstruction,
+  buildRegisterAssetInstruction,
+  buildRegisterMembershipInstruction,
+  buildAssignApplicationRoleInstruction,
+  buildSetProtocolPauseInstruction,
+  buildNominateProtocolAuthorityInstruction,
+  buildAcceptProtocolAuthorityInstruction,
+  buildUpdateApplicationStatusInstruction,
+  buildVerifyGateAccessInstruction,
+  findApplicationAssetPda,
+  findApplicationConfigPda,
+  findApplicationPda,
+  findPaymentPolicyPda,
+  findApplicationRolePda,
+  findAssetConfigPda,
+  findAuditLogPda,
+  findMembershipPda,
+  findProtocolConfigPda,
+  findRewardPda,
+  findTokenGatePda,
 } from "../src/index.js";
 
-const RPC_URL =
-    process.env.BABYCOWANS_RPC_URL ??
-    "http://127.0.0.1:8899";
+const RPC_URL = process.env.BABYCOWANS_RPC_URL ?? "http://127.0.0.1:8899";
 
 const PROGRAM_ID = new PublicKey(
-    "BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp",
+  "BSZkHJyqBW19HQ2tTgooKxPc5FEehgm5uxL44Ggxjucp"
 );
 
 const PHASES = {
-    BRC: {
-        ecosystem: CanonicalEcosystem.BabyReptile,
-        fullName: "Baby Reptile Coin",
-        ticker: "$BRC",
-        assetCode: "BRC",
-        mint: new PublicKey(
-            "25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump",
-        ),
-    },
-    BEC: {
-        ecosystem: CanonicalEcosystem.BabyEagle,
-        fullName: "Baby Eagle Coin",
-        ticker: "$BEC",
-        assetCode: "BEC",
-        mint: new PublicKey(
-            "BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump",
-        ),
-    },
-    BGC: {
-        ecosystem: CanonicalEcosystem.BabyGoat,
-        fullName: "Baby Goat Coin",
-        ticker: "$BGC",
-        assetCode: "BGC",
-        mint: new PublicKey(
-            "BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump",
-        ),
-    },
-    BLC: {
-        ecosystem: CanonicalEcosystem.BabyLion,
-        fullName: "Baby Lion Coin",
-        ticker: "$BLC",
-        assetCode: "BLC",
-        mint: new PublicKey(
-            "GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump",
-        ),
-    },
-    BBC: {
-        ecosystem: CanonicalEcosystem.BabyBee,
-        fullName: "Baby Bee Coin",
-        ticker: "$BBC",
-        assetCode: "BBC",
-        mint: new PublicKey(
-            "2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump",
-        ),
-    },
-    BAC: {
-        ecosystem: CanonicalEcosystem.BabyAgent,
-        fullName: "Baby Agent Coin",
-        ticker: "$BAC",
-        assetCode: "BAC",
-        mint: new PublicKey(
-            "DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump",
-        ),
-    },
+  BRC: {
+    ecosystem: CanonicalEcosystem.BabyReptile,
+    fullName: "Baby Reptile Coin",
+    ticker: "$BRC",
+    assetCode: "BRC",
+    mint: new PublicKey("25ZEDgK2R62VRnWbqzfKXire7Gdamkopkx6hqtBwpump"),
+  },
+  BEC: {
+    ecosystem: CanonicalEcosystem.BabyEagle,
+    fullName: "Baby Eagle Coin",
+    ticker: "$BEC",
+    assetCode: "BEC",
+    mint: new PublicKey("BSf9mueWMeHMAJcbmVSY53H8jcQjwVK3oMRkmwnHpump"),
+  },
+  BGC: {
+    ecosystem: CanonicalEcosystem.BabyGoat,
+    fullName: "Baby Goat Coin",
+    ticker: "$BGC",
+    assetCode: "BGC",
+    mint: new PublicKey("BPCBXkCTYPN3JdcXJojDykmtSvPfykXTLcKnxwopump"),
+  },
+  BLC: {
+    ecosystem: CanonicalEcosystem.BabyLion,
+    fullName: "Baby Lion Coin",
+    ticker: "$BLC",
+    assetCode: "BLC",
+    mint: new PublicKey("GK1twW6K1o3JrnHjxaAk2LGfWkqRnMoBe6Vyydkpump"),
+  },
+  BBC: {
+    ecosystem: CanonicalEcosystem.BabyBee,
+    fullName: "Baby Bee Coin",
+    ticker: "$BBC",
+    assetCode: "BBC",
+    mint: new PublicKey("2aso6jnQt3r5sUicejnCFbZupvKaUhezirqVKMjbpump"),
+  },
+  BAC: {
+    ecosystem: CanonicalEcosystem.BabyAgent,
+    fullName: "Baby Agent Coin",
+    ticker: "$BAC",
+    assetCode: "BAC",
+    mint: new PublicKey("DKBBNADxPhGU4yJihzMUu9fXacibXhYHnQhSo5Wopump"),
+  },
 } as const;
 
 type PhaseCode = keyof typeof PHASES;
@@ -118,48 +104,34 @@ const phaseCode = (process.env.BABYCOWANS_PHASE ?? "BRC") as PhaseCode;
 const phase = PHASES[phaseCode];
 
 if (phase === undefined) {
-    throw new Error(
-        `Unknown God Examination phase: ${process.env.BABYCOWANS_PHASE}`,
-    );
+  throw new Error(
+    `Unknown God Examination phase: ${process.env.BABYCOWANS_PHASE}`
+  );
 }
 
 const CANONICAL_MINT = phase.mint;
 
-const x37CanonicalIdentity =
-    getCanonicalEcosystem(phase.ecosystem);
+const x37CanonicalIdentity = getCanonicalEcosystem(phase.ecosystem);
 
-if (
-    x37CanonicalIdentity.ecosystem !== phase.ecosystem
-) {
-    throw new Error(
-        "X37 canonical discovery ecosystem mismatch.",
-    );
+if (x37CanonicalIdentity.ecosystem !== phase.ecosystem) {
+  throw new Error("X37 canonical discovery ecosystem mismatch.");
 }
 
-if (
-    !x37CanonicalIdentity.tokenAddress.equals(
-        CANONICAL_MINT,
-    )
-) {
-    throw new Error(
-        "X37 canonical discovery mint mismatch.",
-    );
+if (!x37CanonicalIdentity.tokenAddress.equals(CANONICAL_MINT)) {
+  throw new Error("X37 canonical discovery mint mismatch.");
 }
 
-console.log(
-    "X37_CANONICAL_DISCOVERY_READBACK=PASS",
-);
+console.log("X37_CANONICAL_DISCOVERY_READBACK=PASS");
 
-const TOKEN_PROGRAM_ID = new PublicKey(
-    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+const LEGACY_TOKEN_PROGRAM_ID = new PublicKey(
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 );
 
 const TOKEN_2022_PROGRAM_ID = new PublicKey(
-    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 );
 
-const PAYER_KEYPAIR_PATH =
-    "/tmp/babycowans-golden-path-payer.json";
+const PAYER_KEYPAIR_PATH = "/tmp/babycowans-golden-path-payer.json";
 
 const PAYMENT_AMOUNT = 1_000_000_000n;
 const REWARD_AMOUNT = 500_000_000n;
@@ -170,184 +142,186 @@ const HOLD_AMOUNT_GATE_TYPE = 0;
 const TOKEN_GATE_MINIMUM_AMOUNT = 1_000_000n;
 
 function loadKeypair(path: string): Keypair {
-    const secretKey = Uint8Array.from(
-        JSON.parse(fs.readFileSync(path, "utf8")),
-    );
+  const secretKey = Uint8Array.from(JSON.parse(fs.readFileSync(path, "utf8")));
 
-    return Keypair.fromSecretKey(secretKey);
+  return Keypair.fromSecretKey(secretKey);
 }
 
-function runCommand(
-    command: string,
-    args: string[],
-): string {
-    return execFileSync(command, args, {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-    }).trim();
+function runCommand(command: string, args: string[]): string {
+  return execFileSync(command, args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
 }
 
 function createTokenAccount(
-    mint: PublicKey,
-    ownerPath: string,
+  mint: PublicKey,
+  ownerPath: string,
+  tokenProgram: PublicKey
 ): PublicKey {
-    let output: string;
+  let output: string;
 
-    try {
-        output = runCommand("spl-token", [
-            "create-account",
-            mint.toBase58(),
-            "--owner",
-            ownerPath,
-            "--url",
-            RPC_URL,
-        ]);
-    } catch (error: unknown) {
-        const commandError = error as {
-            stdout?: string | Buffer;
-            stderr?: string | Buffer;
-        };
+  try {
+    output = runCommand("spl-token", [
+      "create-account",
+      mint.toBase58(),
+      "--owner",
+      ownerPath,
+      "--program-id",
+      tokenProgram.toBase58(),
+      "--url",
+      RPC_URL,
+    ]);
+  } catch (error: unknown) {
+    const commandError = error as {
+      stdout?: string | Buffer;
+      stderr?: string | Buffer;
+    };
 
-        output = [
-            commandError.stdout?.toString() ?? "",
-            commandError.stderr?.toString() ?? "",
-        ].join("\n");
+    output = [
+      commandError.stdout?.toString() ?? "",
+      commandError.stderr?.toString() ?? "",
+    ].join("\n");
 
-        if (!output.includes("Account already exists")) {
-            throw error;
-        }
+    if (!output.includes("Account already exists")) {
+      throw error;
     }
+  }
 
-    const match = output.match(
-        /Creating account ([1-9A-HJ-NP-Za-km-z]+)/,
-    );
+  const match = output.match(/Creating account ([1-9A-HJ-NP-Za-km-z]+)/);
 
-    if (match === null) {
-        throw new Error(
-            `Unable to resolve token account from output:\n${output}`,
-        );
-    }
+  if (match === null) {
+    throw new Error(`Unable to resolve token account from output:\n${output}`);
+  }
 
-    return new PublicKey(match[1]);
+  return new PublicKey(match[1]);
 }
 
 function readTokenAmount(data: Buffer): bigint {
-    return data.readBigUInt64LE(64);
+  return data.readBigUInt64LE(64);
 }
 
 async function expectInstructionFailure(
-    connection: Connection,
-    instruction: ReturnType<
-        typeof buildVerifyGateAccessInstruction
-    >,
-    signers: Keypair[],
-    expectedAnchorError: string,
+  connection: Connection,
+  instruction: ReturnType<typeof buildVerifyGateAccessInstruction>,
+  signers: Keypair[],
+  expectedAnchorError: string
 ): Promise<void> {
-    try {
-        await send(connection, instruction, signers);
-    } catch (error: unknown) {
-        const logs =
-            typeof error === "object" &&
-            error !== null &&
-            "logs" in error &&
-            Array.isArray((error as { logs?: unknown[] }).logs)
-                ? (error as { logs: unknown[] }).logs
-                      .map(String)
-                      .join("\n")
-                : "";
+  try {
+    await send(connection, instruction, signers);
+  } catch (error: unknown) {
+    const logs =
+      typeof error === "object" &&
+      error !== null &&
+      "logs" in error &&
+      Array.isArray((error as { logs?: unknown[] }).logs)
+        ? (error as { logs: unknown[] }).logs.map(String).join("\n")
+        : "";
 
-        const message =
-            error instanceof Error
-                ? error.message
-                : String(error);
+    const message = error instanceof Error ? error.message : String(error);
 
-        const completeError = `${message}\n${logs}`;
+    const completeError = `${message}\n${logs}`;
 
-        if (!completeError.includes(expectedAnchorError)) {
-            throw new Error(
-                `Expected ${expectedAnchorError}, but received:\n${completeError}`,
-            );
-        }
-
-        return;
+    if (!completeError.includes(expectedAnchorError)) {
+      throw new Error(
+        `Expected ${expectedAnchorError}, but received:\n${completeError}`
+      );
     }
 
-    throw new Error(
-        `Expected transaction failure: ${expectedAnchorError}`,
-    );
+    return;
+  }
+
+  throw new Error(`Expected transaction failure: ${expectedAnchorError}`);
 }
 
 async function send(
-    connection: Connection,
-    instruction: ReturnType<
-        typeof buildInitializeProtocolInstruction
-    >,
-    signers: Keypair[],
+  connection: Connection,
+  instruction: ReturnType<typeof buildInitializeProtocolInstruction>,
+  signers: Keypair[]
 ): Promise<string> {
-    return sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(instruction),
-        signers,
-        {
-            commitment: "confirmed",
-        },
-    );
+  return sendAndConfirmTransaction(
+    connection,
+    new Transaction().add(instruction),
+    signers,
+    {
+      commitment: "confirmed",
+    }
+  );
 }
 
-const authority = loadKeypair(
-    `${process.env.HOME}/.config/solana/id.json`,
-);
+const authority = loadKeypair(`${process.env.HOME}/.config/solana/id.json`);
 
 const connection = new Connection(RPC_URL, "confirmed");
 
 const mintAccount = await connection.getAccountInfo(CANONICAL_MINT);
 
 if (mintAccount === null) {
-    throw new Error(
-        "Canonical BRC mint is missing from the local validator.",
-    );
+  throw new Error(
+    `Canonical ${phaseCode} mint is missing from the local validator.`
+  );
 }
+
+const TOKEN_PROGRAM_ID = mintAccount.owner;
+
+if (
+  !TOKEN_PROGRAM_ID.equals(LEGACY_TOKEN_PROGRAM_ID) &&
+  !TOKEN_PROGRAM_ID.equals(TOKEN_2022_PROGRAM_ID)
+) {
+  throw new Error(
+    `Unsupported canonical token program: ${TOKEN_PROGRAM_ID.toBase58()}`
+  );
+}
+
+const WRONG_TOKEN_PROGRAM_ID = TOKEN_PROGRAM_ID.equals(TOKEN_2022_PROGRAM_ID)
+  ? LEGACY_TOKEN_PROGRAM_ID
+  : TOKEN_2022_PROGRAM_ID;
+
+console.log(
+  `GOLDEN_CANONICAL_TOKEN_PROGRAM=${phaseCode}:${TOKEN_PROGRAM_ID.toBase58()}`
+);
+
+console.log(
+  `GOLDEN_WRONG_TOKEN_PROGRAM=${phaseCode}:${WRONG_TOKEN_PROGRAM_ID.toBase58()}`
+);
 
 const programAccount = await connection.getAccountInfo(PROGRAM_ID);
 
 if (programAccount === null || !programAccount.executable) {
-    throw new Error(
-        "Babycowans program is not deployed on the local validator.",
-    );
+  throw new Error("Babycowans program is not deployed on the local validator.");
 }
 
 const [protocolConfig] = findProtocolConfigPda(PROGRAM_ID);
 
 if ((await connection.getAccountInfo(protocolConfig)) === null) {
-    await send(
-        connection,
-        buildInitializeProtocolInstruction({
-            programId: PROGRAM_ID,
-            authority: authority.publicKey,
-        }),
-        [authority],
-    );
+  await send(
+    connection,
+    buildInitializeProtocolInstruction({
+      programId: PROGRAM_ID,
+      authority: authority.publicKey,
+    }),
+    [authority]
+  );
 }
 
 const applicationId = BigInt(Date.now());
 const applicationName = `God Examination ${phaseCode}`;
 
 const [application] = findApplicationPda(
-    PROGRAM_ID,
-    authority.publicKey,
-    applicationId,
+  PROGRAM_ID,
+  authority.publicKey,
+  applicationId
 );
 
 await send(
-    connection,
-    buildRegisterApplicationInstruction({
-        programId: PROGRAM_ID,
-        authority: authority.publicKey,
-        applicationId,
-        name: applicationName,
-        selectedEcosystem: phase.ecosystem,
-    }),
-    [authority],
+  connection,
+  buildRegisterApplicationInstruction({
+    programId: PROGRAM_ID,
+    authority: authority.publicKey,
+    applicationId,
+    name: applicationName,
+    selectedEcosystem: phase.ecosystem,
+  }),
+  [authority]
 );
 
 /*
@@ -364,22 +338,19 @@ await send(
  * initialized Application PDA. Anchor init must fail closed.
  */
 await expectInstructionFailure(
-    connection,
-    buildRegisterApplicationInstruction({
-        programId: PROGRAM_ID,
-        authority: authority.publicKey,
-        applicationId,
-        name: applicationName,
-        selectedEcosystem: phase.ecosystem,
-    }),
-    [authority],
-    "already in use",
+  connection,
+  buildRegisterApplicationInstruction({
+    programId: PROGRAM_ID,
+    authority: authority.publicKey,
+    applicationId,
+    name: applicationName,
+    selectedEcosystem: phase.ecosystem,
+  }),
+  [authority],
+  "already in use"
 );
 
-console.log(
-    "XRAY_X4_DUPLICATE_APPLICATION_REGISTRATION_REJECTED=PASS",
-);
-
+console.log("XRAY_X4_DUPLICATE_APPLICATION_REGISTRATION_REJECTED=PASS");
 
 /*
  * XRAY X38 — adversarial Application-name boundary.
@@ -392,55 +363,48 @@ console.log(
  * runs only during the BRC Golden Journey.
  */
 if (phaseCode === "BRC") {
-    const x38OversizedNameApplicationId =
-        applicationId + 38_000_001n;
+  const x38OversizedNameApplicationId = applicationId + 38_000_001n;
 
-    const [x38OversizedNameApplication] =
-        findApplicationPda(
-            PROGRAM_ID,
-            authority.publicKey,
-            x38OversizedNameApplicationId,
-        );
+  const [x38OversizedNameApplication] = findApplicationPda(
+    PROGRAM_ID,
+    authority.publicKey,
+    x38OversizedNameApplicationId
+  );
 
-    if (
-        await connection.getAccountInfo(
-            x38OversizedNameApplication,
-            "confirmed",
-        ) !== null
-    ) {
-        throw new Error(
-            "X38 oversized-name Application fixture already exists.",
-        );
-    }
+  if (
+    (await connection.getAccountInfo(
+      x38OversizedNameApplication,
+      "confirmed"
+    )) !== null
+  ) {
+    throw new Error("X38 oversized-name Application fixture already exists.");
+  }
 
-    await expectInstructionFailure(
-        connection,
-        buildRegisterApplicationInstruction({
-            programId: PROGRAM_ID,
-            authority: authority.publicKey,
-            applicationId:
-                x38OversizedNameApplicationId,
-            name: "x".repeat(65),
-            selectedEcosystem: phase.ecosystem,
-        }),
-        [authority],
-        "InvalidApplicationName",
+  await expectInstructionFailure(
+    connection,
+    buildRegisterApplicationInstruction({
+      programId: PROGRAM_ID,
+      authority: authority.publicKey,
+      applicationId: x38OversizedNameApplicationId,
+      name: "x".repeat(65),
+      selectedEcosystem: phase.ecosystem,
+    }),
+    [authority],
+    "InvalidApplicationName"
+  );
+
+  if (
+    (await connection.getAccountInfo(
+      x38OversizedNameApplication,
+      "confirmed"
+    )) !== null
+  ) {
+    throw new Error(
+      "X38 InvalidApplicationName rejection left an Application PDA behind."
     );
+  }
 
-    if (
-        await connection.getAccountInfo(
-            x38OversizedNameApplication,
-            "confirmed",
-        ) !== null
-    ) {
-        throw new Error(
-            "X38 InvalidApplicationName rejection left an Application PDA behind.",
-        );
-    }
-
-    console.log(
-        "X38_APPLICATION_NAME_MAX_PLUS_ONE=PASS",
-    );
+  console.log("X38_APPLICATION_NAME_MAX_PLUS_ONE=PASS");
 }
 
 /*
@@ -449,53 +413,44 @@ if (phaseCode === "BRC") {
  * ApplicationConfig has exactly one PDA per Application. The
  * second configure attempt targets the already initialized PDA.
  */
-const [x4ApplicationConfig] = findApplicationConfigPda(
-    PROGRAM_ID,
-    application,
-);
+const [x4ApplicationConfig] = findApplicationConfigPda(PROGRAM_ID, application);
 
 await send(
-    connection,
-    buildConfigureApplicationConfigInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        websiteUri: "https://babycowans.example",
-        logoUri: "https://babycowans.example/logo.png",
-        supportUri: "https://babycowans.example/support",
-        description: "Xray X4 Application invariant probe",
-        metadataUri: "https://babycowans.example/metadata.json",
-    }),
-    [authority],
+  connection,
+  buildConfigureApplicationConfigInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    websiteUri: "https://babycowans.example",
+    logoUri: "https://babycowans.example/logo.png",
+    supportUri: "https://babycowans.example/support",
+    description: "Xray X4 Application invariant probe",
+    metadataUri: "https://babycowans.example/metadata.json",
+  }),
+  [authority]
 );
 
-if (
-    (await connection.getAccountInfo(x4ApplicationConfig)) === null
-) {
-    throw new Error(
-        "XRAY_X4_APPLICATION_CONFIG_CREATION_FAILED",
-    );
+if ((await connection.getAccountInfo(x4ApplicationConfig)) === null) {
+  throw new Error("XRAY_X4_APPLICATION_CONFIG_CREATION_FAILED");
 }
 
 await expectInstructionFailure(
-    connection,
-    buildConfigureApplicationConfigInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        websiteUri: "https://duplicate.babycowans.example",
-        logoUri: "https://duplicate.babycowans.example/logo.png",
-        supportUri: "https://duplicate.babycowans.example/support",
-        description: "Duplicate Xray X4 ApplicationConfig",
-        metadataUri: "https://duplicate.babycowans.example/metadata.json",
-    }),
-    [authority],
-    "already in use",
+  connection,
+  buildConfigureApplicationConfigInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    websiteUri: "https://duplicate.babycowans.example",
+    logoUri: "https://duplicate.babycowans.example/logo.png",
+    supportUri: "https://duplicate.babycowans.example/support",
+    description: "Duplicate Xray X4 ApplicationConfig",
+    metadataUri: "https://duplicate.babycowans.example/metadata.json",
+  }),
+  [authority],
+  "already in use"
 );
 
-console.log(
-    "XRAY_X4_DUPLICATE_APPLICATION_CONFIG_REJECTED=PASS",
-);
+console.log("XRAY_X4_DUPLICATE_APPLICATION_CONFIG_REJECTED=PASS");
 
 /*
  * X4-3 — ApplicationRole unauthorized authority.
@@ -509,36 +464,34 @@ const x4RoleMember = Keypair.generate().publicKey;
 const x4UnauthorizedRoleAuthority = Keypair.generate();
 
 runCommand("solana", [
-    "airdrop",
-    "2",
-    x4UnauthorizedRoleAuthority.publicKey.toBase58(),
-    "--url",
-    RPC_URL,
+  "airdrop",
+  "2",
+  x4UnauthorizedRoleAuthority.publicKey.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
 const [x4ApplicationRole] = findApplicationRolePda(
-    PROGRAM_ID,
-    application,
-    x4RoleMember,
+  PROGRAM_ID,
+  application,
+  x4RoleMember
 );
 
 await expectInstructionFailure(
-    connection,
-    buildAssignApplicationRoleInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationRole: x4ApplicationRole,
-        member: x4RoleMember,
-        authority: x4UnauthorizedRoleAuthority.publicKey,
-        role: 1,
-    }),
-    [x4UnauthorizedRoleAuthority],
-    "ConstraintHasOne",
+  connection,
+  buildAssignApplicationRoleInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationRole: x4ApplicationRole,
+    member: x4RoleMember,
+    authority: x4UnauthorizedRoleAuthority.publicKey,
+    role: 1,
+  }),
+  [x4UnauthorizedRoleAuthority],
+  "ConstraintHasOne"
 );
 
-console.log(
-    "XRAY_X4_APPLICATION_ROLE_UNAUTHORIZED_REJECTED=PASS",
-);
+console.log("XRAY_X4_APPLICATION_ROLE_UNAUTHORIZED_REJECTED=PASS");
 
 /*
  * X4-4 — foreign/orphan ApplicationRole child.
@@ -551,55 +504,49 @@ console.log(
 const x4ForeignApplicationId = applicationId + 10_000_000n;
 
 const [x4ForeignApplication] = findApplicationPda(
-    PROGRAM_ID,
-    authority.publicKey,
-    x4ForeignApplicationId,
+  PROGRAM_ID,
+  authority.publicKey,
+  x4ForeignApplicationId
 );
 
 const [x4ForeignApplicationRole] = findApplicationRolePda(
-    PROGRAM_ID,
-    x4ForeignApplication,
-    x4RoleMember,
+  PROGRAM_ID,
+  x4ForeignApplication,
+  x4RoleMember
 );
 
 await expectInstructionFailure(
-    connection,
-    buildAssignApplicationRoleInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationRole: x4ForeignApplicationRole,
-        member: x4RoleMember,
-        authority: authority.publicKey,
-        role: 1,
-    }),
-    [authority],
-    "ConstraintSeeds",
+  connection,
+  buildAssignApplicationRoleInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationRole: x4ForeignApplicationRole,
+    member: x4RoleMember,
+    authority: authority.publicKey,
+    role: 1,
+  }),
+  [authority],
+  "ConstraintSeeds"
 );
 
-console.log(
-    "XRAY_X4_FOREIGN_APPLICATION_CHILD_REJECTED=PASS",
-);
+console.log("XRAY_X4_FOREIGN_APPLICATION_CHILD_REJECTED=PASS");
 
-const mismatchedPhase =
-    phaseCode === "BRC" ? PHASES.BEC : PHASES.BRC;
+const mismatchedPhase = phaseCode === "BRC" ? PHASES.BEC : PHASES.BRC;
 
-const [assetConfig] = findAssetConfigPda(
-    PROGRAM_ID,
-    CANONICAL_MINT,
-);
+const [assetConfig] = findAssetConfigPda(PROGRAM_ID, CANONICAL_MINT);
 
 if ((await connection.getAccountInfo(assetConfig)) === null) {
-    await send(
-        connection,
-        buildRegisterAssetInstruction({
-            programId: PROGRAM_ID,
-            authority: authority.publicKey,
-            mint: CANONICAL_MINT,
-            assetCode: phase.assetCode,
-            domain: 4,
-        }),
-        [authority],
-    );
+  await send(
+    connection,
+    buildRegisterAssetInstruction({
+      programId: PROGRAM_ID,
+      authority: authority.publicKey,
+      mint: CANONICAL_MINT,
+      assetCode: phase.assetCode,
+      domain: 4,
+    }),
+    [authority]
+  );
 }
 
 /*
@@ -609,77 +556,64 @@ if ((await connection.getAccountInfo(assetConfig)) === null) {
  * six-ecosystem runtime matrix.
  */
 if (phaseCode === "BRC") {
-    /*
-     * ----------------------------------------------------------
-     * Xray X2 — canonical asset enforcement.
-     *
-     * A valid SPL mint that is not one of the six canonical
-     * Babycowans mints must be rejected by register_asset.
-     * ----------------------------------------------------------
-     */
+  /*
+   * ----------------------------------------------------------
+   * Xray X2 — canonical asset enforcement.
+   *
+   * A valid SPL mint that is not one of the six canonical
+   * Babycowans mints must be rejected by register_asset.
+   * ----------------------------------------------------------
+   */
 
-    const nonCanonicalMintPath =
-        `/tmp/babycowans-x2-noncanonical-mint-${process.pid}.json`;
+  const nonCanonicalMintPath = `/tmp/babycowans-x2-noncanonical-mint-${process.pid}.json`;
 
-    runCommand("solana-keygen", [
-        "new",
-        "--outfile",
-        nonCanonicalMintPath,
-        "--no-bip39-passphrase",
-        "--force",
-        "--silent",
-    ]);
+  runCommand("solana-keygen", [
+    "new",
+    "--outfile",
+    nonCanonicalMintPath,
+    "--no-bip39-passphrase",
+    "--force",
+    "--silent",
+  ]);
 
-    runCommand("spl-token", [
-        "create-token",
-        nonCanonicalMintPath,
-        "--decimals",
-        "9",
-        "--mint-authority",
-        authority.publicKey.toBase58(),
-        "--url",
-        RPC_URL,
-    ]);
+  runCommand("spl-token", [
+    "create-token",
+    nonCanonicalMintPath,
+    "--decimals",
+    "9",
+    "--mint-authority",
+    authority.publicKey.toBase58(),
+    "--url",
+    RPC_URL,
+  ]);
 
-    const nonCanonicalMint = new PublicKey(
-        runCommand("solana-keygen", [
-            "pubkey",
-            nonCanonicalMintPath,
-        ]),
-    );
+  const nonCanonicalMint = new PublicKey(
+    runCommand("solana-keygen", ["pubkey", nonCanonicalMintPath])
+  );
 
-    const [nonCanonicalAssetConfig] =
-        findAssetConfigPda(
-            PROGRAM_ID,
-            nonCanonicalMint,
-        );
+  const [nonCanonicalAssetConfig] = findAssetConfigPda(
+    PROGRAM_ID,
+    nonCanonicalMint
+  );
 
-    await expectInstructionFailure(
-        connection,
-        buildRegisterAssetInstruction({
-            programId: PROGRAM_ID,
-            authority: authority.publicKey,
-            mint: nonCanonicalMint,
-            assetCode: "ZZZ",
-            domain: 4,
-        }),
-        [authority],
-        "UnsupportedMint",
-    );
+  await expectInstructionFailure(
+    connection,
+    buildRegisterAssetInstruction({
+      programId: PROGRAM_ID,
+      authority: authority.publicKey,
+      mint: nonCanonicalMint,
+      assetCode: "ZZZ",
+      domain: 4,
+    }),
+    [authority],
+    "UnsupportedMint"
+  );
 
-    if (
-        (await connection.getAccountInfo(
-            nonCanonicalAssetConfig,
-        )) !== null
-    ) {
-        throw new Error(
-            "Rejected non-canonical mint created an AssetConfig.",
-        );
-    }
+  if ((await connection.getAccountInfo(nonCanonicalAssetConfig)) !== null) {
+    throw new Error("Rejected non-canonical mint created an AssetConfig.");
+  }
 
-    console.log(
-        "NON_CANONICAL_REGISTER_ASSET_REJECTED=PASS",
-    );
+  console.log("NON_CANONICAL_REGISTER_ASSET_REJECTED=PASS");
 }
 
 /*
@@ -688,183 +622,173 @@ if (phaseCode === "BRC") {
  * Application cannot substitute another canonical ecosystem.
  */
 
-const [mismatchedAssetConfig] =
-    findAssetConfigPda(
-        PROGRAM_ID,
-        mismatchedPhase.mint,
-    );
+const [mismatchedAssetConfig] = findAssetConfigPda(
+  PROGRAM_ID,
+  mismatchedPhase.mint
+);
 
-if (
-    (await connection.getAccountInfo(
-        mismatchedAssetConfig,
-    )) === null
-) {
-    await send(
-        connection,
-        buildRegisterAssetInstruction({
-            programId: PROGRAM_ID,
-            authority: authority.publicKey,
-            mint: mismatchedPhase.mint,
-            assetCode: mismatchedPhase.assetCode,
-            domain: 4,
-        }),
-        [authority],
-    );
+if ((await connection.getAccountInfo(mismatchedAssetConfig)) === null) {
+  await send(
+    connection,
+    buildRegisterAssetInstruction({
+      programId: PROGRAM_ID,
+      authority: authority.publicKey,
+      mint: mismatchedPhase.mint,
+      assetCode: mismatchedPhase.assetCode,
+      domain: 4,
+    }),
+    [authority]
+  );
 }
 
-const mismatchedMintAccount =
-    await connection.getAccountInfo(
-        mismatchedPhase.mint,
-    );
+const mismatchedMintAccount = await connection.getAccountInfo(
+  mismatchedPhase.mint
+);
 
 if (mismatchedMintAccount === null) {
-    throw new Error(
-        "Opposite canonical mint is missing from the local validator.",
-    );
+  throw new Error(
+    "Opposite canonical mint is missing from the local validator."
+  );
 }
 
-const mismatchedTokenProgram =
-    mismatchedMintAccount.owner;
+const mismatchedTokenProgram = mismatchedMintAccount.owner;
 
 runCommand("solana-keygen", [
-    "new",
-    "--outfile",
-    PAYER_KEYPAIR_PATH,
-    "--no-bip39-passphrase",
-    "--force",
-    "--silent",
+  "new",
+  "--outfile",
+  PAYER_KEYPAIR_PATH,
+  "--no-bip39-passphrase",
+  "--force",
+  "--silent",
 ]);
 
 const payer = loadKeypair(PAYER_KEYPAIR_PATH);
 
-const unauthorizedAuthorityPath =
-    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-unauthorized.json`;
+const unauthorizedAuthorityPath = `/tmp/babycowans-god-${phaseCode.toLowerCase()}-unauthorized.json`;
 
 runCommand("solana-keygen", [
-    "new",
-    "--outfile",
-    unauthorizedAuthorityPath,
-    "--no-bip39-passphrase",
-    "--force",
-    "--silent",
+  "new",
+  "--outfile",
+  unauthorizedAuthorityPath,
+  "--no-bip39-passphrase",
+  "--force",
+  "--silent",
 ]);
 
-const unauthorizedAuthority = loadKeypair(
-    unauthorizedAuthorityPath,
-);
+const unauthorizedAuthority = loadKeypair(unauthorizedAuthorityPath);
 
 runCommand("solana", [
-    "airdrop",
-    "2",
-    unauthorizedAuthority.publicKey.toBase58(),
-    "--url",
-    RPC_URL,
+  "airdrop",
+  "2",
+  unauthorizedAuthority.publicKey.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
 runCommand("solana", [
-    "airdrop",
-    "10",
-    payer.publicKey.toBase58(),
-    "--url",
-    RPC_URL,
+  "airdrop",
+  "10",
+  payer.publicKey.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
 const destinationTokenAccount = createTokenAccount(
-    CANONICAL_MINT,
-    `${process.env.HOME}/.config/solana/id.json`,
+  CANONICAL_MINT,
+  `${process.env.HOME}/.config/solana/id.json`,
+  TOKEN_PROGRAM_ID
 );
 
-const protocolTreasuryTokenAccountPath =
-    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-protocol-treasury-token-account.json`;
+const protocolTreasuryTokenAccountPath = `/tmp/babycowans-god-${phaseCode.toLowerCase()}-protocol-treasury-token-account.json`;
 
 runCommand("solana-keygen", [
-    "new",
-    "--outfile",
-    protocolTreasuryTokenAccountPath,
-    "--no-bip39-passphrase",
-    "--force",
-    "--silent",
+  "new",
+  "--outfile",
+  protocolTreasuryTokenAccountPath,
+  "--no-bip39-passphrase",
+  "--force",
+  "--silent",
 ]);
 
 const protocolTreasuryTokenAccount = new PublicKey(
-    runCommand("solana-keygen", [
-        "pubkey",
-        protocolTreasuryTokenAccountPath,
-    ]),
+  runCommand("solana-keygen", ["pubkey", protocolTreasuryTokenAccountPath])
 );
 
 runCommand("spl-token", [
-    "create-account",
-    CANONICAL_MINT.toBase58(),
-    protocolTreasuryTokenAccountPath,
-    "--owner",
-    `${process.env.HOME}/.config/solana/id.json`,
-    "--url",
-    RPC_URL,
+  "create-account",
+  CANONICAL_MINT.toBase58(),
+  protocolTreasuryTokenAccountPath,
+  "--owner",
+  `${process.env.HOME}/.config/solana/id.json`,
+  "--program-id",
+  TOKEN_PROGRAM_ID.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
 const payerTokenAccount = createTokenAccount(
-    CANONICAL_MINT,
-    PAYER_KEYPAIR_PATH,
+  CANONICAL_MINT,
+  PAYER_KEYPAIR_PATH,
+  TOKEN_PROGRAM_ID
 );
 
 const [applicationAsset] = findApplicationAssetPda(
-    PROGRAM_ID,
+  PROGRAM_ID,
+  application,
+  CANONICAL_MINT
+);
+
+await expectInstructionFailure(
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
     application,
-    CANONICAL_MINT,
-);
-
-await expectInstructionFailure(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-        newStatus: 2,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
+    authority: unauthorizedAuthority.publicKey,
+    newStatus: 2,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
 );
 
 await send(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newStatus: 2,
-    }),
-    [authority],
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newStatus: 2,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildConfigureApplicationAssetInstruction({
-        programId: PROGRAM_ID,
-        application,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        applicationAsset,
-        paymentDestination: destinationTokenAccount,
-        authority: authority.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        paymentsEnabled: true,
-        gatingEnabled: true,
-        rewardsEnabled: true,
-    }),
-    [authority],
-    "InvalidApplication",
+  connection,
+  buildConfigureApplicationAssetInstruction({
+    programId: PROGRAM_ID,
+    application,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    applicationAsset,
+    paymentDestination: destinationTokenAccount,
+    authority: authority.publicKey,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    paymentsEnabled: true,
+    gatingEnabled: true,
+    rewardsEnabled: true,
+  }),
+  [authority],
+  "InvalidApplication"
 );
 
 await send(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newStatus: 1,
-    }),
-    [authority],
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newStatus: 1,
+  }),
+  [authority]
 );
 
 /*
@@ -877,98 +801,89 @@ await send(
  * ----------------------------------------------------------
  */
 
-const mismatchedPaymentDestination =
-    createTokenAccount(
-        mismatchedPhase.mint,
-        `${process.env.HOME}/.config/solana/id.json`,
-    );
+const mismatchedPaymentDestination = createTokenAccount(
+  mismatchedPhase.mint,
+  `${process.env.HOME}/.config/solana/id.json`,
+  mismatchedTokenProgram
+);
 
-const [mismatchedApplicationAsset] =
-    findApplicationAssetPda(
-        PROGRAM_ID,
-        application,
-        mismatchedPhase.mint,
-    );
+const [mismatchedApplicationAsset] = findApplicationAssetPda(
+  PROGRAM_ID,
+  application,
+  mismatchedPhase.mint
+);
 
 await expectInstructionFailure(
-    connection,
-    buildConfigureApplicationAssetInstruction({
-        programId: PROGRAM_ID,
-        application,
-        assetConfig: mismatchedAssetConfig,
-        mint: mismatchedPhase.mint,
-        applicationAsset:
-            mismatchedApplicationAsset,
-        paymentDestination:
-            mismatchedPaymentDestination,
-        authority: authority.publicKey,
-        tokenProgram: mismatchedTokenProgram,
-        paymentsEnabled: true,
-        gatingEnabled: true,
-        rewardsEnabled: true,
-    }),
-    [authority],
-    "InvalidAsset",
+  connection,
+  buildConfigureApplicationAssetInstruction({
+    programId: PROGRAM_ID,
+    application,
+    assetConfig: mismatchedAssetConfig,
+    mint: mismatchedPhase.mint,
+    applicationAsset: mismatchedApplicationAsset,
+    paymentDestination: mismatchedPaymentDestination,
+    authority: authority.publicKey,
+    tokenProgram: mismatchedTokenProgram,
+    paymentsEnabled: true,
+    gatingEnabled: true,
+    rewardsEnabled: true,
+  }),
+  [authority],
+  "InvalidAsset"
 );
 
-if (
-    (await connection.getAccountInfo(
-        mismatchedApplicationAsset,
-    )) !== null
-) {
-    throw new Error(
-        "Rejected cross-ecosystem configuration created an ApplicationAsset.",
-    );
+if ((await connection.getAccountInfo(mismatchedApplicationAsset)) !== null) {
+  throw new Error(
+    "Rejected cross-ecosystem configuration created an ApplicationAsset."
+  );
 }
 
-console.log(
-    "CROSS_ECOSYSTEM_APPLICATION_ASSET_REJECTED=PASS",
-);
+console.log("CROSS_ECOSYSTEM_APPLICATION_ASSET_REJECTED=PASS");
 
 runCommand("spl-token", [
-    "mint",
-    CANONICAL_MINT.toBase58(),
-    "1001",
-    payerTokenAccount.toBase58(),
-    "--url",
-    RPC_URL,
+  "mint",
+  CANONICAL_MINT.toBase58(),
+  "1001",
+  payerTokenAccount.toBase58(),
+  "--program-id",
+  TOKEN_PROGRAM_ID.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
-
 await send(
-    connection,
-    buildConfigureApplicationAssetInstruction({
-        programId: PROGRAM_ID,
-        application,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        paymentDestination: destinationTokenAccount,
-        authority: authority.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        paymentsEnabled: true,
-        gatingEnabled: true,
-        rewardsEnabled: true,
-    }),
-    [authority],
+  connection,
+  buildConfigureApplicationAssetInstruction({
+    programId: PROGRAM_ID,
+    application,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    paymentDestination: destinationTokenAccount,
+    authority: authority.publicKey,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    paymentsEnabled: true,
+    gatingEnabled: true,
+    rewardsEnabled: true,
+  }),
+  [authority]
 );
 
 await send(
-    connection,
-    buildConfigurePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 100n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
+  connection,
+  buildConfigurePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 100n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
 );
-
 
 /*
  * ==========================================================
@@ -985,26 +900,24 @@ await send(
  * fail without replacing or mutating the existing account.
  */
 await expectInstructionFailure(
-    connection,
-    buildConfigurePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 100n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
-    "already in use",
+  connection,
+  buildConfigurePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 100n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority],
+  "already in use"
 );
 
-console.log(
-    "XRAY_X5_DUPLICATE_PAYMENT_POLICY_REJECTED=PASS",
-);
+console.log("XRAY_X5_DUPLICATE_PAYMENT_POLICY_REJECTED=PASS");
 
 /*
  * X5-2 — Payer token-account wrong owner.
@@ -1014,36 +927,32 @@ console.log(
  * still signs the payment. process_payment must reject the
  * substituted account through its explicit owner invariant.
  */
-const x5WrongOwnerTokenAccount =
-    createTokenAccount(
-        CANONICAL_MINT,
-        unauthorizedAuthorityPath,
-    );
+const x5WrongOwnerTokenAccount = createTokenAccount(
+  CANONICAL_MINT,
+  unauthorizedAuthorityPath,
+  TOKEN_PROGRAM_ID
+);
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount:
-            x5WrongOwnerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount:
-            protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "InvalidAuthority",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount: x5WrongOwnerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "InvalidAuthority"
 );
 
-console.log(
-    "XRAY_X5_PAYER_WRONG_OWNER_REJECTED=PASS",
-);
+console.log("XRAY_X5_PAYER_WRONG_OWNER_REJECTED=PASS");
 
 /*
  * X5-3 — Treasury account substitution.
@@ -1052,407 +961,393 @@ console.log(
  * from the treasury persisted in ApplicationPaymentPolicy.
  */
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount:
-            x5WrongOwnerTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "InvalidPaymentDestination",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: x5WrongOwnerTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "InvalidPaymentDestination"
 );
 
-console.log(
-    "XRAY_X5_TREASURY_ACCOUNT_SUBSTITUTION_REJECTED=PASS",
-);
-
+console.log("XRAY_X5_TREASURY_ACCOUNT_SUBSTITUTION_REJECTED=PASS");
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: 99n,
-    }),
-    [payer],
-    "PaymentBelowMinimum",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: 99n,
+  }),
+  [payer],
+  "PaymentBelowMinimum"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT + 1n,
-    }),
-    [payer],
-    "PaymentAboveMaximum",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT + 1n,
+  }),
+  [payer],
+  "PaymentAboveMaximum"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: unauthorizedAuthority.publicKey,
-        minimumAmount: 100n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: unauthorizedAuthority.publicKey,
+    minimumAmount: 100n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 100n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 6_000,
-        applicationFeeBps: 5_000,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
-    "InvalidPaymentPolicy",
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 100n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 6_000,
+    applicationFeeBps: 5_000,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority],
+  "InvalidPaymentPolicy"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 100n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: new PublicKey(
-            "11111111111111111111111111111111",
-        ),
-    }),
-    [authority],
-    "InvalidPaymentDestination",
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 100n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: new PublicKey("11111111111111111111111111111111"),
+  }),
+  [authority],
+  "InvalidPaymentDestination"
 );
 
 await send(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 200n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 200n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: 199n,
-    }),
-    [payer],
-    "PaymentBelowMinimum",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: 199n,
+  }),
+  [payer],
+  "PaymentBelowMinimum"
 );
 
 await send(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 100n,
-        maximumAmount: PAYMENT_AMOUNT,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
-);
-
-
-await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: 0n,
-    }),
-    [payer],
-    "InvalidAmount",
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 100n,
+    maximumAmount: PAYMENT_AMOUNT,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_2022_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "InvalidTokenProgram",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: 0n,
+  }),
+  [payer],
+  "InvalidAmount"
 );
 
-const invalidDestinationPath =
-    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-destination.json`;
+await expectInstructionFailure(
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: WRONG_TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "InvalidTokenProgram"
+);
+
+const invalidDestinationPath = `/tmp/babycowans-god-${phaseCode.toLowerCase()}-destination.json`;
 
 runCommand("solana-keygen", [
-    "new",
-    "--outfile",
-    invalidDestinationPath,
-    "--no-bip39-passphrase",
-    "--force",
-    "--silent",
+  "new",
+  "--outfile",
+  invalidDestinationPath,
+  "--no-bip39-passphrase",
+  "--force",
+  "--silent",
 ]);
 
-const invalidDestinationOwner = loadKeypair(
-    invalidDestinationPath,
-);
+const invalidDestinationOwner = loadKeypair(invalidDestinationPath);
 
 runCommand("solana", [
-    "airdrop",
-    "2",
-    invalidDestinationOwner.publicKey.toBase58(),
-    "--url",
-    RPC_URL,
+  "airdrop",
+  "2",
+  invalidDestinationOwner.publicKey.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
 const invalidDestinationTokenAccount = createTokenAccount(
-    CANONICAL_MINT,
-    invalidDestinationPath,
+  CANONICAL_MINT,
+  invalidDestinationPath,
+  TOKEN_PROGRAM_ID
 );
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount: invalidDestinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "InvalidPaymentDestination",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount: invalidDestinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "InvalidPaymentDestination"
 );
 
-const disabledApplicationId =
-    applicationId + 1_000_000n;
+const disabledApplicationId = applicationId + 1_000_000n;
 
 const [disabledApplication] = findApplicationPda(
-    PROGRAM_ID,
-    authority.publicKey,
-    disabledApplicationId,
+  PROGRAM_ID,
+  authority.publicKey,
+  disabledApplicationId
 );
 
 await send(
-    connection,
-    buildRegisterApplicationInstruction({
-        programId: PROGRAM_ID,
-        authority: authority.publicKey,
-        applicationId: disabledApplicationId,
-        name: `Payments Disabled ${phaseCode}`,
-        selectedEcosystem: phase.ecosystem,
-    }),
-    [authority],
+  connection,
+  buildRegisterApplicationInstruction({
+    programId: PROGRAM_ID,
+    authority: authority.publicKey,
+    applicationId: disabledApplicationId,
+    name: `Payments Disabled ${phaseCode}`,
+    selectedEcosystem: phase.ecosystem,
+  }),
+  [authority]
 );
 
-const [disabledApplicationAsset] =
-    findApplicationAssetPda(
-        PROGRAM_ID,
-        disabledApplication,
-        CANONICAL_MINT,
-    );
-
-await send(
-    connection,
-    buildConfigureApplicationAssetInstruction({
-        programId: PROGRAM_ID,
-        application: disabledApplication,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        paymentDestination: destinationTokenAccount,
-        authority: authority.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        paymentsEnabled: false,
-        gatingEnabled: true,
-        rewardsEnabled: true,
-    }),
-    [authority],
+const [disabledApplicationAsset] = findApplicationAssetPda(
+  PROGRAM_ID,
+  disabledApplication,
+  CANONICAL_MINT
 );
 
 await send(
-    connection,
-    buildConfigurePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application: disabledApplication,
-        applicationAsset: disabledApplicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 1n,
-        maximumAmount: 1_000_000_000n,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
+  connection,
+  buildConfigureApplicationAssetInstruction({
+    programId: PROGRAM_ID,
+    application: disabledApplication,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    paymentDestination: destinationTokenAccount,
+    authority: authority.publicKey,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    paymentsEnabled: false,
+    gatingEnabled: true,
+    rewardsEnabled: true,
+  }),
+  [authority]
+);
+
+await send(
+  connection,
+  buildConfigurePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application: disabledApplication,
+    applicationAsset: disabledApplicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 1n,
+    maximumAmount: 1_000_000_000n,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application: disabledApplication,
-        applicationAsset: disabledApplicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "PaymentsDisabled",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application: disabledApplication,
+    applicationAsset: disabledApplicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "PaymentsDisabled"
 );
 
-const policyDisabledApplicationId =
-    applicationId + 2_000_000n;
+const policyDisabledApplicationId = applicationId + 2_000_000n;
 
 const [policyDisabledApplication] = findApplicationPda(
-    PROGRAM_ID,
-    authority.publicKey,
-    policyDisabledApplicationId,
+  PROGRAM_ID,
+  authority.publicKey,
+  policyDisabledApplicationId
 );
 
 await send(
-    connection,
-    buildRegisterApplicationInstruction({
-        programId: PROGRAM_ID,
-        authority: authority.publicKey,
-        applicationId: policyDisabledApplicationId,
-        name: `Policy Disabled ${phaseCode}`,
-        selectedEcosystem: phase.ecosystem,
-    }),
-    [authority],
+  connection,
+  buildRegisterApplicationInstruction({
+    programId: PROGRAM_ID,
+    authority: authority.publicKey,
+    applicationId: policyDisabledApplicationId,
+    name: `Policy Disabled ${phaseCode}`,
+    selectedEcosystem: phase.ecosystem,
+  }),
+  [authority]
 );
 
-const [policyDisabledApplicationAsset] =
-    findApplicationAssetPda(
-        PROGRAM_ID,
-        policyDisabledApplication,
-        CANONICAL_MINT,
-    );
-
-await send(
-    connection,
-    buildConfigureApplicationAssetInstruction({
-        programId: PROGRAM_ID,
-        application: policyDisabledApplication,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        paymentDestination: destinationTokenAccount,
-        authority: authority.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        paymentsEnabled: true,
-        gatingEnabled: true,
-        rewardsEnabled: true,
-    }),
-    [authority],
+const [policyDisabledApplicationAsset] = findApplicationAssetPda(
+  PROGRAM_ID,
+  policyDisabledApplication,
+  CANONICAL_MINT
 );
 
 await send(
-    connection,
-    buildConfigurePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application: policyDisabledApplication,
-        applicationAsset: policyDisabledApplicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 1n,
-        maximumAmount: 0n,
-        paymentsEnabled: false,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
+  connection,
+  buildConfigureApplicationAssetInstruction({
+    programId: PROGRAM_ID,
+    application: policyDisabledApplication,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    paymentDestination: destinationTokenAccount,
+    authority: authority.publicKey,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    paymentsEnabled: true,
+    gatingEnabled: true,
+    rewardsEnabled: true,
+  }),
+  [authority]
 );
 
+await send(
+  connection,
+  buildConfigurePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application: policyDisabledApplication,
+    applicationAsset: policyDisabledApplicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 1n,
+    maximumAmount: 0n,
+    paymentsEnabled: false,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
+);
 
 /*
  * X5-4 — Cross-Application PaymentPolicy substitution.
@@ -1464,235 +1359,195 @@ await send(
  * Application and prove that the on-chain PDA constraint rejects
  * the substitution.
  */
-const [x5ForeignPaymentPolicy] =
-    findPaymentPolicyPda(
-        PROGRAM_ID,
-        policyDisabledApplication,
-        policyDisabledApplicationAsset,
-    );
+const [x5ForeignPaymentPolicy] = findPaymentPolicyPda(
+  PROGRAM_ID,
+  policyDisabledApplication,
+  policyDisabledApplicationAsset
+);
 
-const x5ForeignPaymentPolicyAccount =
-    await connection.getAccountInfo(
-        x5ForeignPaymentPolicy,
-    );
+const x5ForeignPaymentPolicyAccount = await connection.getAccountInfo(
+  x5ForeignPaymentPolicy
+);
 
 if (x5ForeignPaymentPolicyAccount === null) {
-    throw new Error(
-        "XRAY_X5_FOREIGN_PAYMENT_POLICY_FIXTURE_MISSING",
-    );
+  throw new Error("XRAY_X5_FOREIGN_PAYMENT_POLICY_FIXTURE_MISSING");
 }
 
-if (
-    !x5ForeignPaymentPolicyAccount.owner.equals(
-        PROGRAM_ID,
-    )
-) {
-    throw new Error(
-        "XRAY_X5_FOREIGN_PAYMENT_POLICY_OWNER_INVALID",
-    );
+if (!x5ForeignPaymentPolicyAccount.owner.equals(PROGRAM_ID)) {
+  throw new Error("XRAY_X5_FOREIGN_PAYMENT_POLICY_OWNER_INVALID");
 }
 
 const x5CrossApplicationPaymentPolicyInstruction =
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount:
-            protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    });
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  });
 
-if (
-    x5CrossApplicationPaymentPolicyInstruction
-        .keys.length !== 11
-) {
-    throw new Error(
-        "XRAY_X5_PROCESS_PAYMENT_ACCOUNT_LAYOUT_CHANGED",
-    );
+if (x5CrossApplicationPaymentPolicyInstruction.keys.length !== 11) {
+  throw new Error("XRAY_X5_PROCESS_PAYMENT_ACCOUNT_LAYOUT_CHANGED");
 }
 
-const [x5ExpectedPrimaryPaymentPolicy] =
-    findPaymentPolicyPda(
-        PROGRAM_ID,
-        application,
-        applicationAsset,
-    );
+const [x5ExpectedPrimaryPaymentPolicy] = findPaymentPolicyPda(
+  PROGRAM_ID,
+  application,
+  applicationAsset
+);
 
 if (
-    !x5CrossApplicationPaymentPolicyInstruction
-        .keys[3]
-        .pubkey
-        .equals(
-            x5ExpectedPrimaryPaymentPolicy,
-        )
+  !x5CrossApplicationPaymentPolicyInstruction.keys[3].pubkey.equals(
+    x5ExpectedPrimaryPaymentPolicy
+  )
 ) {
-    throw new Error(
-        "XRAY_X5_PAYMENT_POLICY_ACCOUNT_INDEX_CHANGED",
-    );
+  throw new Error("XRAY_X5_PAYMENT_POLICY_ACCOUNT_INDEX_CHANGED");
 }
 
 x5CrossApplicationPaymentPolicyInstruction.keys[3] = {
-    ...x5CrossApplicationPaymentPolicyInstruction.keys[3],
-    pubkey: x5ForeignPaymentPolicy,
+  ...x5CrossApplicationPaymentPolicyInstruction.keys[3],
+  pubkey: x5ForeignPaymentPolicy,
 };
 
 await expectInstructionFailure(
-    connection,
-    x5CrossApplicationPaymentPolicyInstruction,
-    [payer],
-    "ConstraintSeeds",
+  connection,
+  x5CrossApplicationPaymentPolicyInstruction,
+  [payer],
+  "ConstraintSeeds"
 );
 
-console.log(
-    "XRAY_X5_CROSS_APPLICATION_PAYMENT_POLICY_REJECTED=PASS",
-);
-
+console.log("XRAY_X5_CROSS_APPLICATION_PAYMENT_POLICY_REJECTED=PASS");
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application: policyDisabledApplication,
-        applicationAsset: policyDisabledApplicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "PaymentsDisabled",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application: policyDisabledApplication,
+    applicationAsset: policyDisabledApplicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "PaymentsDisabled"
 );
 
-const payerBefore = await connection.getAccountInfo(
-    payerTokenAccount,
-);
+const payerBefore = await connection.getAccountInfo(payerTokenAccount);
 
 const destinationBefore = await connection.getAccountInfo(
-    destinationTokenAccount,
+  destinationTokenAccount
 );
 
 if (payerBefore === null || destinationBefore === null) {
-    throw new Error(
-        "Payment token accounts are unavailable before payment.",
-    );
+  throw new Error("Payment token accounts are unavailable before payment.");
 }
 
 const payerBalanceBefore = readTokenAmount(payerBefore.data);
-const destinationBalanceBefore = readTokenAmount(
-    destinationBefore.data,
+const destinationBalanceBefore = readTokenAmount(destinationBefore.data);
+
+await expectInstructionFailure(
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: unauthorizedAuthority.publicKey,
+    paused: true,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
+);
+
+await send(
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: authority.publicKey,
+    paused: true,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: unauthorizedAuthority.publicKey,
-        paused: true,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
-);
-
-await send(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: authority.publicKey,
-        paused: true,
-    }),
-    [authority],
-);
-
-await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "ProtocolPaused",
-);
-
-await send(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: authority.publicKey,
-        paused: false,
-    }),
-    [authority],
-);
-
-await send(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-);
-
-const payerAfter = await connection.getAccountInfo(
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
     payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "ProtocolPaused"
 );
+
+await send(
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: authority.publicKey,
+    paused: false,
+  }),
+  [authority]
+);
+
+await send(
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer]
+);
+
+const payerAfter = await connection.getAccountInfo(payerTokenAccount);
 
 const destinationAfter = await connection.getAccountInfo(
-    destinationTokenAccount,
+  destinationTokenAccount
 );
 
 if (payerAfter === null || destinationAfter === null) {
-    throw new Error(
-        "Payment token accounts are unavailable after payment.",
-    );
+  throw new Error("Payment token accounts are unavailable after payment.");
+}
+
+if (readTokenAmount(payerAfter.data) !== payerBalanceBefore - PAYMENT_AMOUNT) {
+  throw new Error("Payer balance did not decrease by the payment amount.");
 }
 
 if (
-    readTokenAmount(payerAfter.data) !==
-    payerBalanceBefore - PAYMENT_AMOUNT
+  readTokenAmount(destinationAfter.data) !==
+  destinationBalanceBefore + PAYMENT_AMOUNT
 ) {
-    throw new Error(
-        "Payer balance did not decrease by the payment amount.",
-    );
-}
-
-if (
-    readTokenAmount(destinationAfter.data) !==
-    destinationBalanceBefore + PAYMENT_AMOUNT
-) {
-    throw new Error(
-        "Destination balance did not increase by the payment amount.",
-    );
+  throw new Error(
+    "Destination balance did not increase by the payment amount."
+  );
 }
 
 /*
@@ -1710,110 +1565,79 @@ if (
  * ==========================================================
  */
 
-const [
-    x26UnsupportedGateTypeTokenGate,
-] = findTokenGatePda(
-    PROGRAM_ID,
-    policyDisabledApplication,
-    policyDisabledApplicationAsset,
+const [x26UnsupportedGateTypeTokenGate] = findTokenGatePda(
+  PROGRAM_ID,
+  policyDisabledApplication,
+  policyDisabledApplicationAsset
 );
 
 if (
-    await connection.getAccountInfo(
-        x26UnsupportedGateTypeTokenGate,
-        "confirmed",
-    ) !== null
+  (await connection.getAccountInfo(
+    x26UnsupportedGateTypeTokenGate,
+    "confirmed"
+  )) !== null
 ) {
-    throw new Error(
-        "X26 UnsupportedGateType TokenGate fixture already exists.",
-    );
+  throw new Error("X26 UnsupportedGateType TokenGate fixture already exists.");
 }
 
 await send(
-    connection,
-    buildConfigureTokenGateInstruction({
-        programId: PROGRAM_ID,
-        application:
-            policyDisabledApplication,
-        applicationAsset:
-            policyDisabledApplicationAsset,
-        tokenGate:
-            x26UnsupportedGateTypeTokenGate,
-        authority:
-            authority.publicKey,
-        gateType: 1,
-        minimumAmount:
-            TOKEN_GATE_MINIMUM_AMOUNT,
-        minimumTier: 0,
-        enabled: true,
-    }),
-    [authority],
+  connection,
+  buildConfigureTokenGateInstruction({
+    programId: PROGRAM_ID,
+    application: policyDisabledApplication,
+    applicationAsset: policyDisabledApplicationAsset,
+    tokenGate: x26UnsupportedGateTypeTokenGate,
+    authority: authority.publicKey,
+    gateType: 1,
+    minimumAmount: TOKEN_GATE_MINIMUM_AMOUNT,
+    minimumTier: 0,
+    enabled: true,
+  }),
+  [authority]
 );
 
-const x26UnsupportedGateBefore =
-    await connection.getAccountInfo(
-        x26UnsupportedGateTypeTokenGate,
-        "confirmed",
-    );
+const x26UnsupportedGateBefore = await connection.getAccountInfo(
+  x26UnsupportedGateTypeTokenGate,
+  "confirmed"
+);
 
 if (x26UnsupportedGateBefore === null) {
-    throw new Error(
-        "X26 UnsupportedGateType TokenGate fixture was not created.",
-    );
+  throw new Error("X26 UnsupportedGateType TokenGate fixture was not created.");
 }
 
-const x26UnsupportedGateBeforeData =
-    Buffer.from(
-        x26UnsupportedGateBefore.data,
-    );
+const x26UnsupportedGateBeforeData = Buffer.from(x26UnsupportedGateBefore.data);
 
 await expectInstructionFailure(
-    connection,
-    buildVerifyGateAccessInstruction({
-        programId: PROGRAM_ID,
-        application:
-            policyDisabledApplication,
-        applicationAsset:
-            policyDisabledApplicationAsset,
-        tokenGate:
-            x26UnsupportedGateTypeTokenGate,
-        wallet:
-            payer.publicKey,
-        userTokenAccount:
-            payerTokenAccount,
-    }),
-    [payer],
-    "UnsupportedGateType",
+  connection,
+  buildVerifyGateAccessInstruction({
+    programId: PROGRAM_ID,
+    application: policyDisabledApplication,
+    applicationAsset: policyDisabledApplicationAsset,
+    tokenGate: x26UnsupportedGateTypeTokenGate,
+    wallet: payer.publicKey,
+    userTokenAccount: payerTokenAccount,
+  }),
+  [payer],
+  "UnsupportedGateType"
 );
 
-const x26UnsupportedGateAfter =
-    await connection.getAccountInfo(
-        x26UnsupportedGateTypeTokenGate,
-        "confirmed",
-    );
+const x26UnsupportedGateAfter = await connection.getAccountInfo(
+  x26UnsupportedGateTypeTokenGate,
+  "confirmed"
+);
 
 if (
-    x26UnsupportedGateAfter === null
-    || !Buffer.from(
-        x26UnsupportedGateAfter.data,
-    ).equals(
-        x26UnsupportedGateBeforeData,
-    )
+  x26UnsupportedGateAfter === null ||
+  !Buffer.from(x26UnsupportedGateAfter.data).equals(
+    x26UnsupportedGateBeforeData
+  )
 ) {
-    throw new Error(
-        "X26 UnsupportedGateType rejection mutated TokenGate state.",
-    );
+  throw new Error("X26 UnsupportedGateType rejection mutated TokenGate state.");
 }
 
-console.log(
-    "X26_UNSUPPORTED_GATE_TYPE_RUNTIME=PASS",
-);
+console.log("X26_UNSUPPORTED_GATE_TYPE_RUNTIME=PASS");
 
-const [tokenGate] = findTokenGatePda(
-    PROGRAM_ID,
-    application,
-    applicationAsset,
-);
+const [tokenGate] = findTokenGatePda(PROGRAM_ID, application, applicationAsset);
 
 /*
  * XRAY X10 — TokenGate foreign PDA substitution.
@@ -1827,314 +1651,300 @@ const [tokenGate] = findTokenGatePda(
  * Anchor seed validation must reject it before account creation.
  */
 const [x10ForeignTokenGate] = findTokenGatePda(
-    PROGRAM_ID,
-    application,
-    policyDisabledApplicationAsset,
+  PROGRAM_ID,
+  application,
+  policyDisabledApplicationAsset
 );
 
 await expectInstructionFailure(
-    connection,
-    buildConfigureTokenGateInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        tokenGate: x10ForeignTokenGate,
-        authority: authority.publicKey,
-        gateType: HOLD_AMOUNT_GATE_TYPE,
-        minimumAmount: TOKEN_GATE_MINIMUM_AMOUNT,
-        minimumTier: 0,
-        enabled: true,
-    }),
-    [authority],
-    "ConstraintSeeds",
+  connection,
+  buildConfigureTokenGateInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    tokenGate: x10ForeignTokenGate,
+    authority: authority.publicKey,
+    gateType: HOLD_AMOUNT_GATE_TYPE,
+    minimumAmount: TOKEN_GATE_MINIMUM_AMOUNT,
+    minimumTier: 0,
+    enabled: true,
+  }),
+  [authority],
+  "ConstraintSeeds"
 );
 
-if (
-    await connection.getAccountInfo(x10ForeignTokenGate)
-    !== null
-) {
-    throw new Error(
-        "Rejected foreign TokenGate PDA substitution created an account.",
-    );
+if ((await connection.getAccountInfo(x10ForeignTokenGate)) !== null) {
+  throw new Error(
+    "Rejected foreign TokenGate PDA substitution created an account."
+  );
 }
 
-console.log(
-    "XRAY_X10_TOKEN_GATE_FOREIGN_PDA_REJECTED=PASS",
+console.log("XRAY_X10_TOKEN_GATE_FOREIGN_PDA_REJECTED=PASS");
+
+await send(
+  connection,
+  buildConfigureTokenGateInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    tokenGate,
+    authority: authority.publicKey,
+    gateType: HOLD_AMOUNT_GATE_TYPE,
+    minimumAmount: TOKEN_GATE_MINIMUM_AMOUNT,
+    minimumTier: 0,
+    enabled: true,
+  }),
+  [authority]
 );
 
 await send(
-    connection,
-    buildConfigureTokenGateInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        tokenGate,
-        authority: authority.publicKey,
-        gateType: HOLD_AMOUNT_GATE_TYPE,
-        minimumAmount: TOKEN_GATE_MINIMUM_AMOUNT,
-        minimumTier: 0,
-        enabled: true,
-    }),
-    [authority],
+  connection,
+  buildVerifyGateAccessInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    tokenGate,
+    wallet: payer.publicKey,
+    userTokenAccount: payerTokenAccount,
+  }),
+  [payer]
 );
 
-await send(
-    connection,
-    buildVerifyGateAccessInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        tokenGate,
-        wallet: payer.publicKey,
-        userTokenAccount: payerTokenAccount,
-    }),
-    [payer],
-);
-
-const insufficientKeypairPath =
-    `/tmp/babycowans-god-${phaseCode.toLowerCase()}-insufficient.json`;
+const insufficientKeypairPath = `/tmp/babycowans-god-${phaseCode.toLowerCase()}-insufficient.json`;
 
 runCommand("solana-keygen", [
-    "new",
-    "--outfile",
-    insufficientKeypairPath,
-    "--no-bip39-passphrase",
-    "--force",
-    "--silent",
+  "new",
+  "--outfile",
+  insufficientKeypairPath,
+  "--no-bip39-passphrase",
+  "--force",
+  "--silent",
 ]);
 
-const insufficientWallet = loadKeypair(
-    insufficientKeypairPath,
-);
+const insufficientWallet = loadKeypair(insufficientKeypairPath);
 
 runCommand("solana", [
-    "airdrop",
-    "2",
-    insufficientWallet.publicKey.toBase58(),
-    "--url",
-    RPC_URL,
+  "airdrop",
+  "2",
+  insufficientWallet.publicKey.toBase58(),
+  "--url",
+  RPC_URL,
 ]);
 
 const insufficientTokenAccount = createTokenAccount(
-    CANONICAL_MINT,
-    insufficientKeypairPath,
+  CANONICAL_MINT,
+  insufficientKeypairPath,
+  TOKEN_PROGRAM_ID
 );
 
 await expectInstructionFailure(
-    connection,
-    buildVerifyGateAccessInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        tokenGate,
-        wallet: insufficientWallet.publicKey,
-        userTokenAccount: insufficientTokenAccount,
-    }),
-    [insufficientWallet],
-    "InsufficientTokenBalance",
+  connection,
+  buildVerifyGateAccessInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    tokenGate,
+    wallet: insufficientWallet.publicKey,
+    userTokenAccount: insufficientTokenAccount,
+  }),
+  [insufficientWallet],
+  "InsufficientTokenBalance"
 );
 
 const mismatchedTokenAccount = createTokenAccount(
-    mismatchedPhase.mint,
-    PAYER_KEYPAIR_PATH,
+  mismatchedPhase.mint,
+  PAYER_KEYPAIR_PATH,
+  mismatchedTokenProgram
 );
 
 await expectInstructionFailure(
-    connection,
-    buildVerifyGateAccessInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        tokenGate,
-        wallet: payer.publicKey,
-        userTokenAccount: mismatchedTokenAccount,
-    }),
-    [payer],
-    "InvalidAsset",
+  connection,
+  buildVerifyGateAccessInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    tokenGate,
+    wallet: payer.publicKey,
+    userTokenAccount: mismatchedTokenAccount,
+  }),
+  [payer],
+  "InvalidAsset"
 );
 
 const [membership] = findMembershipPda(
-    PROGRAM_ID,
-    application,
-    payer.publicKey,
+  PROGRAM_ID,
+  application,
+  payer.publicKey
 );
 
 await send(
-    connection,
-    buildRegisterMembershipInstruction({
-        programId: PROGRAM_ID,
-        application,
-        membership,
-        authority: authority.publicKey,
-        member: payer.publicKey,
-        tier: MEMBERSHIP_TIER,
-        expiresAt: MEMBERSHIP_EXPIRES_AT,
-    }),
-    [authority],
+  connection,
+  buildRegisterMembershipInstruction({
+    programId: PROGRAM_ID,
+    application,
+    membership,
+    authority: authority.publicKey,
+    member: payer.publicKey,
+    tier: MEMBERSHIP_TIER,
+    expiresAt: MEMBERSHIP_EXPIRES_AT,
+  }),
+  [authority]
 );
 
 const GOLDEN_REWARD_ID = 0n;
 
 const [reward] = findRewardPda(
-    PROGRAM_ID,
+  PROGRAM_ID,
+  application,
+  payer.publicKey,
+  GOLDEN_REWARD_ID
+);
+
+await send(
+  connection,
+  buildCreateRewardInstruction({
+    programId: PROGRAM_ID,
     application,
-    payer.publicKey,
-    GOLDEN_REWARD_ID,
+    reward,
+    authority: authority.publicKey,
+    beneficiary: payer.publicKey,
+    rewardId: GOLDEN_REWARD_ID,
+    asset: CANONICAL_MINT,
+    amount: REWARD_AMOUNT,
+    claimableAt: 0n,
+    expiresAt: 0n,
+    category: 0,
+    reason: "golden-path",
+  }),
+  [authority]
 );
 
 await send(
-    connection,
-    buildCreateRewardInstruction({
-        programId: PROGRAM_ID,
-        application,
-        reward,
-        authority: authority.publicKey,
-        beneficiary: payer.publicKey,
-        rewardId: GOLDEN_REWARD_ID,
-        asset: CANONICAL_MINT,
-        amount: REWARD_AMOUNT,
-        claimableAt: 0n,
-        expiresAt: 0n,
-        category: 0,
-        reason: "golden-path",
-    }),
-    [authority],
-);
-
-await send(
-    connection,
-    buildClaimRewardInstruction({
-        programId: PROGRAM_ID,
-        reward,
-        beneficiary: payer.publicKey,
-    }),
-    [payer],
+  connection,
+  buildClaimRewardInstruction({
+    programId: PROGRAM_ID,
+    reward,
+    beneficiary: payer.publicKey,
+  }),
+  [payer]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildClaimRewardInstruction({
-        programId: PROGRAM_ID,
-        reward,
-        beneficiary: payer.publicKey,
-    }),
-    [payer],
-    "InvalidRewardStatus",
+  connection,
+  buildClaimRewardInstruction({
+    programId: PROGRAM_ID,
+    reward,
+    beneficiary: payer.publicKey,
+  }),
+  [payer],
+  "InvalidRewardStatus"
 );
 
 await send(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newStatus: 2,
-    }),
-    [authority],
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newStatus: 2,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "InvalidApplication",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "InvalidApplication"
 );
 
 await send(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newStatus: 1,
-    }),
-    [authority],
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newStatus: 1,
+  }),
+  [authority]
 );
-
 
 const FEE_ENGINE_AMOUNT = 10_000n;
 const EXPECTED_PROTOCOL_FEE = 100n;
 const EXPECTED_APPLICATION_FEE = 200n;
 const EXPECTED_NET_AMOUNT = 9_700n;
 const EXPECTED_APPLICATION_DESTINATION =
-    EXPECTED_NET_AMOUNT + EXPECTED_APPLICATION_FEE;
+  EXPECTED_NET_AMOUNT + EXPECTED_APPLICATION_FEE;
 
 await send(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 1n,
-        maximumAmount: 1_000_000_000n,
-        paymentsEnabled: true,
-        protocolFeeBps: 100,
-        applicationFeeBps: 200,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 1n,
+    maximumAmount: 1_000_000_000n,
+    paymentsEnabled: true,
+    protocolFeeBps: 100,
+    applicationFeeBps: 200,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
 );
 
-const feePayerBefore = await connection.getAccountInfo(
-    payerTokenAccount,
-);
+const feePayerBefore = await connection.getAccountInfo(payerTokenAccount);
 
 const feeDestinationBefore = await connection.getAccountInfo(
-    destinationTokenAccount,
+  destinationTokenAccount
 );
 
 const feeTreasuryBefore = await connection.getAccountInfo(
-    protocolTreasuryTokenAccount,
+  protocolTreasuryTokenAccount
 );
 
 if (
-    feePayerBefore === null ||
-    feeDestinationBefore === null ||
-    feeTreasuryBefore === null
+  feePayerBefore === null ||
+  feeDestinationBefore === null ||
+  feeTreasuryBefore === null
 ) {
-    throw new Error(
-        "Fee engine token accounts are unavailable before payment.",
-    );
+  throw new Error("Fee engine token accounts are unavailable before payment.");
 }
 
-const feePayerBalanceBefore =
-    readTokenAmount(feePayerBefore.data);
+const feePayerBalanceBefore = readTokenAmount(feePayerBefore.data);
 
-const feeDestinationBalanceBefore =
-    readTokenAmount(feeDestinationBefore.data);
+const feeDestinationBalanceBefore = readTokenAmount(feeDestinationBefore.data);
 
-const feeTreasuryBalanceBefore =
-    readTokenAmount(feeTreasuryBefore.data);
+const feeTreasuryBalanceBefore = readTokenAmount(feeTreasuryBefore.data);
 
 const x5PaymentEventSignature = await send(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: FEE_ENGINE_AMOUNT,
-    }),
-    [payer],
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: FEE_ENGINE_AMOUNT,
+  }),
+  [payer]
 );
 
 /*
@@ -2144,314 +1954,204 @@ const x5PaymentEventSignature = await send(
  * through the public BabycowansSDK event API and bind all
  * emitted fields back to the transaction that actually ran.
  */
-const x5PaymentEventClient =
-    new BabycowansSDK({
-        connection,
-        programId: PROGRAM_ID,
-    });
+const x5PaymentEventClient = new BabycowansSDK({
+  connection,
+  programId: PROGRAM_ID,
+});
 
-const x5DecodedPaymentEvents =
-    await x5PaymentEventClient.decodeEvents(
-        x5PaymentEventSignature,
-    );
+const x5DecodedPaymentEvents = await x5PaymentEventClient.decodeEvents(
+  x5PaymentEventSignature
+);
 
-const x5PaymentProcessedEvents =
-    x5DecodedPaymentEvents.filter(
-        (event) =>
-            event.name ===
-            "PaymentProcessed",
-    );
+const x5PaymentProcessedEvents = x5DecodedPaymentEvents.filter(
+  (event) => event.name === "PaymentProcessed"
+);
 
-if (
-    x5PaymentProcessedEvents.length !== 1
-) {
-    throw new Error(
-        `Expected exactly one PaymentProcessed event, received ${x5PaymentProcessedEvents.length}.`,
-    );
+if (x5PaymentProcessedEvents.length !== 1) {
+  throw new Error(
+    `Expected exactly one PaymentProcessed event, received ${x5PaymentProcessedEvents.length}.`
+  );
 }
 
-const x5PaymentEvent =
-    x5PaymentProcessedEvents[0]!
-        .data as {
-            application: PublicKey;
-            payer: PublicKey;
-            mint: PublicKey;
-            destination: PublicKey;
-            treasury: PublicKey;
-            amount: bigint;
-            net_amount: bigint;
-            protocol_fee: bigint;
-            application_fee: bigint;
-            timestamp: bigint;
-        };
+const x5PaymentEvent = x5PaymentProcessedEvents[0]!.data as {
+  application: PublicKey;
+  payer: PublicKey;
+  mint: PublicKey;
+  destination: PublicKey;
+  treasury: PublicKey;
+  amount: bigint;
+  net_amount: bigint;
+  protocol_fee: bigint;
+  application_fee: bigint;
+  timestamp: bigint;
+};
 
-if (
-    !x5PaymentEvent.application.equals(
-        application,
-    )
-) {
-    throw new Error(
-        "PaymentProcessed application fidelity mismatch.",
-    );
+if (!x5PaymentEvent.application.equals(application)) {
+  throw new Error("PaymentProcessed application fidelity mismatch.");
 }
 
-if (
-    !x5PaymentEvent.payer.equals(
-        payer.publicKey,
-    )
-) {
-    throw new Error(
-        "PaymentProcessed payer fidelity mismatch.",
-    );
+if (!x5PaymentEvent.payer.equals(payer.publicKey)) {
+  throw new Error("PaymentProcessed payer fidelity mismatch.");
 }
 
-if (
-    !x5PaymentEvent.mint.equals(
-        CANONICAL_MINT,
-    )
-) {
-    throw new Error(
-        "PaymentProcessed mint fidelity mismatch.",
-    );
+if (!x5PaymentEvent.mint.equals(CANONICAL_MINT)) {
+  throw new Error("PaymentProcessed mint fidelity mismatch.");
+}
+
+if (!x5PaymentEvent.destination.equals(destinationTokenAccount)) {
+  throw new Error("PaymentProcessed destination fidelity mismatch.");
+}
+
+if (!x5PaymentEvent.treasury.equals(protocolTreasuryTokenAccount)) {
+  throw new Error("PaymentProcessed treasury fidelity mismatch.");
+}
+
+if (x5PaymentEvent.amount !== FEE_ENGINE_AMOUNT) {
+  throw new Error("PaymentProcessed amount fidelity mismatch.");
+}
+
+if (x5PaymentEvent.net_amount !== EXPECTED_NET_AMOUNT) {
+  throw new Error("PaymentProcessed net_amount fidelity mismatch.");
+}
+
+if (x5PaymentEvent.protocol_fee !== EXPECTED_PROTOCOL_FEE) {
+  throw new Error("PaymentProcessed protocol_fee fidelity mismatch.");
+}
+
+if (x5PaymentEvent.application_fee !== EXPECTED_APPLICATION_FEE) {
+  throw new Error("PaymentProcessed application_fee fidelity mismatch.");
 }
 
 if (
-    !x5PaymentEvent.destination.equals(
-        destinationTokenAccount,
-    )
-) {
-    throw new Error(
-        "PaymentProcessed destination fidelity mismatch.",
-    );
-}
-
-if (
-    !x5PaymentEvent.treasury.equals(
-        protocolTreasuryTokenAccount,
-    )
-) {
-    throw new Error(
-        "PaymentProcessed treasury fidelity mismatch.",
-    );
-}
-
-if (
-    x5PaymentEvent.amount !==
-    FEE_ENGINE_AMOUNT
-) {
-    throw new Error(
-        "PaymentProcessed amount fidelity mismatch.",
-    );
-}
-
-if (
-    x5PaymentEvent.net_amount !==
-    EXPECTED_NET_AMOUNT
-) {
-    throw new Error(
-        "PaymentProcessed net_amount fidelity mismatch.",
-    );
-}
-
-if (
-    x5PaymentEvent.protocol_fee !==
-    EXPECTED_PROTOCOL_FEE
-) {
-    throw new Error(
-        "PaymentProcessed protocol_fee fidelity mismatch.",
-    );
-}
-
-if (
+  x5PaymentEvent.net_amount +
+    x5PaymentEvent.protocol_fee +
     x5PaymentEvent.application_fee !==
-    EXPECTED_APPLICATION_FEE
+  x5PaymentEvent.amount
 ) {
-    throw new Error(
-        "PaymentProcessed application_fee fidelity mismatch.",
-    );
+  throw new Error("PaymentProcessed financial conservation mismatch.");
 }
 
 if (
-    x5PaymentEvent.net_amount +
-        x5PaymentEvent.protocol_fee +
-        x5PaymentEvent.application_fee !==
-    x5PaymentEvent.amount
+  typeof x5PaymentEvent.amount !== "bigint" ||
+  typeof x5PaymentEvent.net_amount !== "bigint" ||
+  typeof x5PaymentEvent.protocol_fee !== "bigint" ||
+  typeof x5PaymentEvent.application_fee !== "bigint" ||
+  typeof x5PaymentEvent.timestamp !== "bigint"
 ) {
-    throw new Error(
-        "PaymentProcessed financial conservation mismatch.",
-    );
+  throw new Error("PaymentProcessed bigint fidelity mismatch.");
 }
 
-if (
-    typeof x5PaymentEvent.amount !==
-        "bigint" ||
-    typeof x5PaymentEvent.net_amount !==
-        "bigint" ||
-    typeof x5PaymentEvent.protocol_fee !==
-        "bigint" ||
-    typeof x5PaymentEvent.application_fee !==
-        "bigint" ||
-    typeof x5PaymentEvent.timestamp !==
-        "bigint"
-) {
-    throw new Error(
-        "PaymentProcessed bigint fidelity mismatch.",
-    );
-}
+console.log("XRAY_X5_PAYMENT_EVENT_EXACTLY_ONE=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_EXACTLY_ONE=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_APPLICATION=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_APPLICATION=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_PAYER=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_PAYER=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_MINT=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_MINT=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_DESTINATION=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_DESTINATION=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_TREASURY=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_TREASURY=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_AMOUNT=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_AMOUNT=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_NET_AMOUNT=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_NET_AMOUNT=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_PROTOCOL_FEE=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_PROTOCOL_FEE=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_APPLICATION_FEE=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_APPLICATION_FEE=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_BIGINT=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_BIGINT=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_FINANCIAL_CONSERVATION=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_FINANCIAL_CONSERVATION=PASS",
-);
+console.log("XRAY_X5_PAYMENT_EVENT_FIDELITY=PASS");
 
-console.log(
-    "XRAY_X5_PAYMENT_EVENT_FIDELITY=PASS",
-);
-
-
-const feePayerAfter = await connection.getAccountInfo(
-    payerTokenAccount,
-);
+const feePayerAfter = await connection.getAccountInfo(payerTokenAccount);
 
 const feeDestinationAfter = await connection.getAccountInfo(
-    destinationTokenAccount,
+  destinationTokenAccount
 );
 
 const feeTreasuryAfter = await connection.getAccountInfo(
-    protocolTreasuryTokenAccount,
+  protocolTreasuryTokenAccount
 );
 
 if (
-    feePayerAfter === null ||
-    feeDestinationAfter === null ||
-    feeTreasuryAfter === null
+  feePayerAfter === null ||
+  feeDestinationAfter === null ||
+  feeTreasuryAfter === null
 ) {
-    throw new Error(
-        "Fee engine token accounts are unavailable after payment.",
-    );
+  throw new Error("Fee engine token accounts are unavailable after payment.");
 }
 
 if (
-    readTokenAmount(feePayerAfter.data) !==
-    feePayerBalanceBefore - FEE_ENGINE_AMOUNT
+  readTokenAmount(feePayerAfter.data) !==
+  feePayerBalanceBefore - FEE_ENGINE_AMOUNT
 ) {
-    throw new Error(
-        "Fee engine payer debit is incorrect.",
-    );
+  throw new Error("Fee engine payer debit is incorrect.");
 }
 
 if (
-    readTokenAmount(feeDestinationAfter.data) !==
-    feeDestinationBalanceBefore +
-        EXPECTED_APPLICATION_DESTINATION
+  readTokenAmount(feeDestinationAfter.data) !==
+  feeDestinationBalanceBefore + EXPECTED_APPLICATION_DESTINATION
 ) {
-    throw new Error(
-        "Fee engine application destination credit is incorrect.",
-    );
+  throw new Error("Fee engine application destination credit is incorrect.");
 }
 
 if (
-    readTokenAmount(feeTreasuryAfter.data) !==
-    feeTreasuryBalanceBefore + EXPECTED_PROTOCOL_FEE
+  readTokenAmount(feeTreasuryAfter.data) !==
+  feeTreasuryBalanceBefore + EXPECTED_PROTOCOL_FEE
 ) {
-    throw new Error(
-        "Fee engine protocol treasury credit is incorrect.",
-    );
+  throw new Error("Fee engine protocol treasury credit is incorrect.");
 }
 
 await send(
-    connection,
-    buildUpdatePaymentPolicyInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset,
-        authority: authority.publicKey,
-        minimumAmount: 1n,
-        maximumAmount: 1_000_000_000n,
-        paymentsEnabled: true,
-        protocolFeeBps: 0,
-        applicationFeeBps: 0,
-        treasury: protocolTreasuryTokenAccount,
-    }),
-    [authority],
+  connection,
+  buildUpdatePaymentPolicyInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset,
+    authority: authority.publicKey,
+    minimumAmount: 1n,
+    maximumAmount: 1_000_000_000n,
+    paymentsEnabled: true,
+    protocolFeeBps: 0,
+    applicationFeeBps: 0,
+    treasury: protocolTreasuryTokenAccount,
+  }),
+  [authority]
 );
 
 const auditNonce = BigInt(Date.now());
 
 const [auditLog] = findAuditLogPda(
-    PROGRAM_ID,
-    application,
-    authority.publicKey,
-    auditNonce,
+  PROGRAM_ID,
+  application,
+  authority.publicKey,
+  auditNonce
 );
 
 await send(
-    connection,
-    buildRecordAuditLogInstruction({
-        programId: PROGRAM_ID,
-        application,
-        auditLog,
-        authority: authority.publicKey,
-        nonce: auditNonce,
-        action: PAYMENT_PROCESSED_ACTION,
-        category: 2,
-        severity: 0,
-        reference: reward,
-        indexedReferences: [
-            reward,
-            applicationAsset,
-            application,
-        ],
-        metadata: JSON.stringify({
-            event: "payment_processed",
-            ecosystem: phase.assetCode,
-            auditEventSchemaVersion: 1,
-        }),
+  connection,
+  buildRecordAuditLogInstruction({
+    programId: PROGRAM_ID,
+    application,
+    auditLog,
+    authority: authority.publicKey,
+    nonce: auditNonce,
+    action: PAYMENT_PROCESSED_ACTION,
+    category: 2,
+    severity: 0,
+    reference: reward,
+    indexedReferences: [reward, applicationAsset, application],
+    metadata: JSON.stringify({
+      event: "payment_processed",
+      ecosystem: phase.assetCode,
+      auditEventSchemaVersion: 1,
     }),
-    [authority],
+  }),
+  [authority]
 );
 
 /*
@@ -2461,205 +2161,127 @@ await send(
  * AuditLog created by this journey through the public
  * BabycowansSDK surface.
  */
-const x37ReadClient =
-    new BabycowansSDK({
-        connection,
-        programId: PROGRAM_ID,
-    });
+const x37ReadClient = new BabycowansSDK({
+  connection,
+  programId: PROGRAM_ID,
+});
 
-const x37Application =
-    await x37ReadClient.getApplication({
-        authority: authority.publicKey,
-        applicationId,
-    });
+const x37Application = await x37ReadClient.getApplication({
+  authority: authority.publicKey,
+  applicationId,
+});
 
 if (x37Application === null) {
-    throw new Error(
-        "X37 Application read-back returned null.",
-    );
+  throw new Error("X37 Application read-back returned null.");
 }
 
 if (!x37Application.address.equals(application)) {
-    throw new Error(
-        "X37 Application PDA mismatch.",
-    );
+  throw new Error("X37 Application PDA mismatch.");
 }
 
-if (
-    x37Application.data.selectedEcosystem !==
-    phase.ecosystem
-) {
-    throw new Error(
-        "X37 Application ecosystem mismatch.",
-    );
+if (x37Application.data.selectedEcosystem !== phase.ecosystem) {
+  throw new Error("X37 Application ecosystem mismatch.");
 }
 
-console.log(
-    "X37_APPLICATION_READBACK=PASS",
-);
+console.log("X37_APPLICATION_READBACK=PASS");
 
-const x37Membership =
-    await x37ReadClient.getMembership({
-        application,
-        member: payer.publicKey,
-    });
+const x37Membership = await x37ReadClient.getMembership({
+  application,
+  member: payer.publicKey,
+});
 
 if (x37Membership === null) {
-    throw new Error(
-        "X37 Membership read-back returned null.",
-    );
+  throw new Error("X37 Membership read-back returned null.");
 }
 
 if (!x37Membership.address.equals(membership)) {
-    throw new Error(
-        "X37 Membership PDA mismatch.",
-    );
+  throw new Error("X37 Membership PDA mismatch.");
 }
 
-if (
-    !x37Membership.data.application.equals(
-        application,
-    )
-) {
-    throw new Error(
-        "X37 Membership application mismatch.",
-    );
+if (!x37Membership.data.application.equals(application)) {
+  throw new Error("X37 Membership application mismatch.");
 }
 
-if (
-    !x37Membership.data.member.equals(
-        payer.publicKey,
-    )
-) {
-    throw new Error(
-        "X37 Membership member mismatch.",
-    );
+if (!x37Membership.data.member.equals(payer.publicKey)) {
+  throw new Error("X37 Membership member mismatch.");
 }
 
-console.log(
-    "X37_MEMBERSHIP_READBACK=PASS",
-);
+console.log("X37_MEMBERSHIP_READBACK=PASS");
 
-const x37Reward =
-    await x37ReadClient.getReward({
-        application,
-        beneficiary: payer.publicKey,
-        rewardId: GOLDEN_REWARD_ID,
-    });
+const x37Reward = await x37ReadClient.getReward({
+  application,
+  beneficiary: payer.publicKey,
+  rewardId: GOLDEN_REWARD_ID,
+});
 
 if (x37Reward === null) {
-    throw new Error(
-        "X37 Reward read-back returned null.",
-    );
+  throw new Error("X37 Reward read-back returned null.");
 }
 
 if (!x37Reward.address.equals(reward)) {
-    throw new Error(
-        "X37 Reward PDA mismatch.",
-    );
+  throw new Error("X37 Reward PDA mismatch.");
 }
 
-if (
-    !x37Reward.data.application.equals(
-        application,
-    )
-) {
-    throw new Error(
-        "X37 Reward application mismatch.",
-    );
+if (!x37Reward.data.application.equals(application)) {
+  throw new Error("X37 Reward application mismatch.");
 }
 
-if (
-    !x37Reward.data.beneficiary.equals(
-        payer.publicKey,
-    )
-) {
-    throw new Error(
-        "X37 Reward beneficiary mismatch.",
-    );
+if (!x37Reward.data.beneficiary.equals(payer.publicKey)) {
+  throw new Error("X37 Reward beneficiary mismatch.");
 }
 
-if (
-    x37Reward.data.rewardId !==
-    GOLDEN_REWARD_ID
-) {
-    throw new Error(
-        "X37 Reward ID mismatch.",
-    );
+if (x37Reward.data.rewardId !== GOLDEN_REWARD_ID) {
+  throw new Error("X37 Reward ID mismatch.");
 }
 
-console.log(
-    "X37_REWARD_READBACK=PASS",
+console.log("X37_REWARD_READBACK=PASS");
+
+const x37AuditHistory = await x37ReadClient.getAuditHistory({
+  application,
+});
+
+const x37AuditEntry = x37AuditHistory.find((entry) =>
+  entry.address.equals(auditLog)
 );
-
-const x37AuditHistory =
-    await x37ReadClient.getAuditHistory({
-        application,
-    });
-
-const x37AuditEntry =
-    x37AuditHistory.find((entry) =>
-        entry.address.equals(auditLog),
-    );
 
 if (x37AuditEntry === undefined) {
-    throw new Error(
-        "X37 written AuditLog missing from history.",
-    );
+  throw new Error("X37 written AuditLog missing from history.");
 }
 
-if (
-    !x37AuditEntry.data.application.equals(
-        application,
-    )
-) {
-    throw new Error(
-        "X37 AuditLog application mismatch.",
-    );
+if (!x37AuditEntry.data.application.equals(application)) {
+  throw new Error("X37 AuditLog application mismatch.");
 }
 
-if (
-    !x37AuditEntry.data.reference.equals(
-        reward,
-    )
-) {
-    throw new Error(
-        "X37 AuditLog reference mismatch.",
-    );
+if (!x37AuditEntry.data.reference.equals(reward)) {
+  throw new Error("X37 AuditLog reference mismatch.");
 }
 
-console.log(
-    "X37_AUDIT_HISTORY_READBACK=PASS",
-);
+console.log("X37_AUDIT_HISTORY_READBACK=PASS");
 
-console.log(
-    "X37_HIGH_LEVEL_READ_API_CLOSURE=PASS",
-);
+console.log("X37_HIGH_LEVEL_READ_API_CLOSURE=PASS");
 
 const requiredAccounts = [
-    application,
-    assetConfig,
-    applicationAsset,
-    tokenGate,
-    membership,
-    reward,
-    auditLog,
+  application,
+  assetConfig,
+  applicationAsset,
+  tokenGate,
+  membership,
+  reward,
+  auditLog,
 ];
 
 for (const accountAddress of requiredAccounts) {
-    const account = await connection.getAccountInfo(accountAddress);
+  const account = await connection.getAccountInfo(accountAddress);
 
-    if (account === null) {
-        throw new Error(
-            `Expected account is missing: ${accountAddress.toBase58()}`,
-        );
-    }
+  if (account === null) {
+    throw new Error(
+      `Expected account is missing: ${accountAddress.toBase58()}`
+    );
+  }
 
-    if (!account.owner.equals(PROGRAM_ID)) {
-        throw new Error(
-            `Unexpected account owner: ${accountAddress.toBase58()}`,
-        );
-    }
+  if (!account.owner.equals(PROGRAM_ID)) {
+    throw new Error(`Unexpected account owner: ${accountAddress.toBase58()}`);
+  }
 }
 
 /*
@@ -2678,27 +2300,25 @@ for (const accountAddress of requiredAccounts) {
  * account loading before any state mutation can occur.
  */
 await expectInstructionFailure(
-    connection,
-    buildProcessPaymentInstruction({
-        programId: PROGRAM_ID,
-        application,
-        applicationAsset: policyDisabledApplicationAsset,
-        assetConfig,
-        mint: CANONICAL_MINT,
-        payer: payer.publicKey,
-        payerTokenAccount,
-        destinationTokenAccount,
-        treasuryTokenAccount: protocolTreasuryTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        amount: PAYMENT_AMOUNT,
-    }),
-    [payer],
-    "AccountNotInitialized",
+  connection,
+  buildProcessPaymentInstruction({
+    programId: PROGRAM_ID,
+    application,
+    applicationAsset: policyDisabledApplicationAsset,
+    assetConfig,
+    mint: CANONICAL_MINT,
+    payer: payer.publicKey,
+    payerTokenAccount,
+    destinationTokenAccount,
+    treasuryTokenAccount: protocolTreasuryTokenAccount,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    amount: PAYMENT_AMOUNT,
+  }),
+  [payer],
+  "AccountNotInitialized"
 );
 
-console.log(
-    "✓ Cross-application ApplicationAsset substitution was rejected",
-);
+console.log("✓ Cross-application ApplicationAsset substitution was rejected");
 
 /*
  * PHASE13_APPLICATION_AUTHORITY_ADVERSARIAL_LIFECYCLE
@@ -2717,116 +2337,116 @@ console.log(
 const defaultAuthority = new PublicKey(new Uint8Array(32));
 
 await expectInstructionFailure(
-    connection,
-    buildNominateApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-        newAuthority: payer.publicKey,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
+  connection,
+  buildNominateApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: unauthorizedAuthority.publicKey,
+    newAuthority: payer.publicKey,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildNominateApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newAuthority: defaultAuthority,
-    }),
-    [authority],
-    "InvalidAuthority",
+  connection,
+  buildNominateApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newAuthority: defaultAuthority,
+  }),
+  [authority],
+  "InvalidAuthority"
 );
 
 await send(
-    connection,
-    buildNominateApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newAuthority: unauthorizedAuthority.publicKey,
-    }),
-    [authority],
+  connection,
+  buildNominateApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newAuthority: unauthorizedAuthority.publicKey,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-        newStatus: 2,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: unauthorizedAuthority.publicKey,
+    newStatus: 2,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildAcceptApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: payer.publicKey,
-    }),
-    [payer],
-    "InvalidAuthority",
+  connection,
+  buildAcceptApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: payer.publicKey,
+  }),
+  [payer],
+  "InvalidAuthority"
 );
 
 await send(
-    connection,
-    buildAcceptApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-    }),
-    [unauthorizedAuthority],
+  connection,
+  buildAcceptApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: unauthorizedAuthority.publicKey,
+  }),
+  [unauthorizedAuthority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildAcceptApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-    }),
-    [unauthorizedAuthority],
-    "InvalidAuthority",
+  connection,
+  buildAcceptApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: unauthorizedAuthority.publicKey,
+  }),
+  [unauthorizedAuthority],
+  "InvalidAuthority"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: authority.publicKey,
-        newStatus: 2,
-    }),
-    [authority],
-    "ConstraintHasOne",
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: authority.publicKey,
+    newStatus: 2,
+  }),
+  [authority],
+  "ConstraintHasOne"
 );
 
 await send(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-        newStatus: 2,
-    }),
-    [unauthorizedAuthority],
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: unauthorizedAuthority.publicKey,
+    newStatus: 2,
+  }),
+  [unauthorizedAuthority]
 );
 
 await send(
-    connection,
-    buildUpdateApplicationStatusInstruction({
-        programId: PROGRAM_ID,
-        application,
-        authority: unauthorizedAuthority.publicKey,
-        newStatus: 1,
-    }),
-    [unauthorizedAuthority],
+  connection,
+  buildUpdateApplicationStatusInstruction({
+    programId: PROGRAM_ID,
+    application,
+    authority: unauthorizedAuthority.publicKey,
+    newStatus: 1,
+  }),
+  [unauthorizedAuthority]
 );
 
 console.log("✓ Non-current application authority nomination was rejected");
@@ -2846,19 +2466,19 @@ console.log("✓ New application authority gained privilege");
  * independent policyDisabledApplication.
  */
 await expectInstructionFailure(
-    connection,
-    buildNominateApplicationAuthorityInstruction({
-        programId: PROGRAM_ID,
-        application: policyDisabledApplication,
-        authority: unauthorizedAuthority.publicKey,
-        newAuthority: payer.publicKey,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
+  connection,
+  buildNominateApplicationAuthorityInstruction({
+    programId: PROGRAM_ID,
+    application: policyDisabledApplication,
+    authority: unauthorizedAuthority.publicKey,
+    newAuthority: payer.publicKey,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
 );
 
 console.log(
-    "✓ Application authority cross-application nomination was rejected",
+  "✓ Application authority cross-application nomination was rejected"
 );
 
 /*
@@ -2878,116 +2498,116 @@ console.log(
  */
 
 await expectInstructionFailure(
-    connection,
-    buildNominateProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: unauthorizedAuthority.publicKey,
-        newAuthority: payer.publicKey,
-    }),
-    [unauthorizedAuthority],
-    "ConstraintHasOne",
+  connection,
+  buildNominateProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: unauthorizedAuthority.publicKey,
+    newAuthority: payer.publicKey,
+  }),
+  [unauthorizedAuthority],
+  "ConstraintHasOne"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildNominateProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: authority.publicKey,
-        newAuthority: defaultAuthority,
-    }),
-    [authority],
-    "InvalidAuthority",
+  connection,
+  buildNominateProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: authority.publicKey,
+    newAuthority: defaultAuthority,
+  }),
+  [authority],
+  "InvalidAuthority"
 );
 
 await send(
-    connection,
-    buildNominateProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: authority.publicKey,
-        newAuthority: payer.publicKey,
-    }),
-    [authority],
+  connection,
+  buildNominateProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: authority.publicKey,
+    newAuthority: payer.publicKey,
+  }),
+  [authority]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: payer.publicKey,
-        paused: true,
-    }),
-    [payer],
-    "ConstraintHasOne",
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: payer.publicKey,
+    paused: true,
+  }),
+  [payer],
+  "ConstraintHasOne"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildAcceptProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        pendingAuthority: unauthorizedAuthority.publicKey,
-    }),
-    [unauthorizedAuthority],
-    "InvalidAuthority",
+  connection,
+  buildAcceptProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    pendingAuthority: unauthorizedAuthority.publicKey,
+  }),
+  [unauthorizedAuthority],
+  "InvalidAuthority"
 );
 
 await send(
-    connection,
-    buildAcceptProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        pendingAuthority: payer.publicKey,
-    }),
-    [payer],
+  connection,
+  buildAcceptProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    pendingAuthority: payer.publicKey,
+  }),
+  [payer]
 );
 
 await expectInstructionFailure(
-    connection,
-    buildAcceptProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        pendingAuthority: payer.publicKey,
-    }),
-    [payer],
-    "InvalidAuthority",
+  connection,
+  buildAcceptProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    pendingAuthority: payer.publicKey,
+  }),
+  [payer],
+  "InvalidAuthority"
 );
 
 await expectInstructionFailure(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: authority.publicKey,
-        paused: true,
-    }),
-    [authority],
-    "ConstraintHasOne",
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: authority.publicKey,
+    paused: true,
+  }),
+  [authority],
+  "ConstraintHasOne"
 );
 
 await send(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: payer.publicKey,
-        paused: true,
-    }),
-    [payer],
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: payer.publicKey,
+    paused: true,
+  }),
+  [payer]
 );
 
 await send(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: payer.publicKey,
-        paused: false,
-    }),
-    [payer],
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: payer.publicKey,
+    paused: false,
+  }),
+  [payer]
 );
 
 /*
@@ -2996,35 +2616,35 @@ await send(
  * established baseline.
  */
 await send(
-    connection,
-    buildNominateProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: payer.publicKey,
-        newAuthority: authority.publicKey,
-    }),
-    [payer],
+  connection,
+  buildNominateProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: payer.publicKey,
+    newAuthority: authority.publicKey,
+  }),
+  [payer]
 );
 
 await send(
-    connection,
-    buildAcceptProtocolAuthorityInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        pendingAuthority: authority.publicKey,
-    }),
-    [authority],
+  connection,
+  buildAcceptProtocolAuthorityInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    pendingAuthority: authority.publicKey,
+  }),
+  [authority]
 );
 
 await send(
-    connection,
-    buildSetProtocolPauseInstruction({
-        programId: PROGRAM_ID,
-        protocolConfig,
-        authority: authority.publicKey,
-        paused: false,
-    }),
-    [authority],
+  connection,
+  buildSetProtocolPauseInstruction({
+    programId: PROGRAM_ID,
+    protocolConfig,
+    authority: authority.publicKey,
+    paused: false,
+  }),
+  [authority]
 );
 
 console.log("✓ Non-current protocol authority nomination was rejected");
@@ -3036,9 +2656,6 @@ console.log("✓ Stale protocol authority acceptance replay was rejected");
 console.log("✓ Previous protocol authority lost privilege");
 console.log("✓ New protocol authority gained privilege");
 console.log("✓ Original protocol authority was restored");
-
-
-
 
 console.log("✓ Unified Golden Path completed successfully");
 console.log("✓ Token Gate access succeeded");

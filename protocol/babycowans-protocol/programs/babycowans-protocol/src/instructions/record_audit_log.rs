@@ -35,6 +35,7 @@ pub struct RecordAuditLog<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn record_audit_log_handler(
     ctx: Context<RecordAuditLog>,
     _nonce: u64,
