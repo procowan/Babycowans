@@ -216,6 +216,7 @@ jobs:
           name: astra-runtime-evidence
           path: .astra-evidence
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 14
 
   astra_fuzz:
@@ -253,4 +254,5 @@ jobs:
           name: astra-fuzz-evidence
           path: .astra-evidence
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 14

@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   BabycowansSDK,
@@ -25,8 +27,24 @@ if (!programIdValue) {
   throw new Error("BABYCOWANS_PROGRAM_ID is required");
 }
 
-const walletPath =
-  process.env.SOLANA_WALLET ?? `${process.env.HOME}/.config/solana/id.json`;
+const walletPathValue =
+  process.env.SOLANA_WALLET ??
+  path.join(os.homedir(), ".config/solana/id.json");
+
+const walletPath = fs.realpathSync(path.resolve(walletPathValue));
+
+const walletStat = fs.statSync(walletPath);
+
+if (!walletStat.isFile()) {
+  throw new Error("SOLANA_WALLET must resolve to a regular file");
+}
+
+if (
+  typeof process.getuid === "function" &&
+  walletStat.uid !== process.getuid()
+) {
+  throw new Error("SOLANA_WALLET must be owned by the current user");
+}
 
 const authority = Keypair.fromSecretKey(
   Uint8Array.from(JSON.parse(fs.readFileSync(walletPath, "utf8")))

@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 import {
@@ -95,7 +97,9 @@ function loadKeypair(path: string): Keypair {
   );
 }
 
-const authority = loadKeypair(`${process.env.HOME}/.config/solana/id.json`);
+const authority = loadKeypair(
+  path.join(os.homedir(), ".config/solana/id.json")
+);
 
 const connection = new Connection(RPC_URL, "confirmed");
 
