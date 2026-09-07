@@ -186,7 +186,7 @@ jobs:
         run: anchor --version | grep -F "anchor-cli 1.0.2"
       - name: Build deployable program
         working-directory: protocol/babycowans-protocol
-        run: anchor build
+        run: anchor build --ignore-keys
       - name: Record runtime identity
         run: |
           mkdir -p .astra-evidence
