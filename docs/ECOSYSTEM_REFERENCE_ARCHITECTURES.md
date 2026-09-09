@@ -75,7 +75,7 @@ Reference architecture:
             +-- Membership for subscriptions or service tiers
             +-- GatePolicy for token / membership / NFT access
             +-- Rewards for application-defined incentives
-            +-- ApplicationRole for scoped operators
+            +-- ApplicationRole for application-owned role logic
             +-- AuditLog and protocol events
 
 **Babycowans responsibility:** application identity, authorized protocol
@@ -321,7 +321,7 @@ Babycowans Protocol V1.0.0 for this integration model.
 | Provide application-defined incentives | Reward |
 | Require direct token access | TokenGate |
 | Compose token, membership, and NFT access conditions | GatePolicy |
-| Delegate application-scoped authority | ApplicationRole |
+| Record application-scoped roles for application-owned authorization logic | `ApplicationRole` |
 | Record application-scoped protocol audit evidence | AuditLog |
 | Integrate protocol history | Babycowans events / Event Decoder |
 | Compose multi-instruction application flows | SDK transaction and batch builders |

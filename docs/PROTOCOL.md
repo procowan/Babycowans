@@ -92,10 +92,18 @@ Application-scoped role records are not part of that authority-transfer
 lifecycle.
 
 Authority rotation also does not automatically migrate token-account control.
-`ApplicationAsset.payment_destination` remains the configured destination
-address until application-owned configuration is deliberately changed.
-Likewise, separately configured treasury/token-account ownership remains an
-external token-account concern.
+`ApplicationAsset.payment_destination` is written when the `ApplicationAsset`
+is initialized by `configure_application_asset`. The current ABI has no
+`update_application_asset` instruction, so that stored destination address is
+fixed for the lifetime of the existing `ApplicationAsset`.
+
+That destination address is distinct from token-account ownership and from
+`ApplicationPaymentPolicy.treasury`. Token-account authority or ownership may
+change under the applicable token-program rules without changing the
+`ApplicationAsset.payment_destination` public key. Separately,
+`ApplicationPaymentPolicy.treasury` is mutable through
+`update_payment_policy`. Integrations must treat these as three different
+state/control surfaces.
 
 ### Protocol pause and Application status enforcement
 
@@ -184,6 +192,13 @@ It records:
 - rewards enabled.
 
 Several downstream operations depend on this state.
+
+`ApplicationAsset.rewards_enabled` is stored application-asset configuration.
+In the current ABI, `create_reward`, `claim_reward`, and `cancel_reward` do not
+receive an `ApplicationAsset` account and do not read or enforce
+`rewards_enabled`. Applications may consume this field as application-owned
+configuration, but it must not be interpreted as an on-chain authorization
+gate for the current Reward lifecycle instructions.
 
 ## 8. Payments
 
@@ -350,7 +365,8 @@ verification concepts and must not be conflated by integrations.
 
 ## 13. Application roles
 
-`ApplicationRole` is application-scoped authorization.
+`ApplicationRole` is an application-scoped role record intended for
+application-owned authorization logic.
 
 Identity:
 
@@ -372,6 +388,14 @@ acceptance lifecycle.
 
 An Owner/Admin role record therefore must not be treated as proof that the
 member controls the Application authority key.
+
+The current protected Babycowans instruction handlers do not consult
+`ApplicationRole` capability helpers as authorization gates. Assigning
+`Role::Owner` or `Role::Admin` therefore does not authorize a member to invoke
+handlers that require the actual Application authority signer. If an
+application wants Owner/Admin/Operator/Auditor semantics beyond the stored role
+record, that application must explicitly consume and enforce the role in its
+own integration logic.
 
 ## 14. Audit logs
 
