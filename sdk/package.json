@@ -40,7 +40,14 @@
     "test:e2e:gate-policy": "BABYCOWANS_ISOLATED_SUITE=gate-policy tsx tests/run-e2e-isolated.ts",
     "test:e2e:gate-policy:direct": "tsx tests/e2e-gate-policy.test.ts",
     "test:e2e:token2022": "tsx tests/e2e-token2022-payment.test.ts",
-    "test:runtime-boundary": "tsx tests/runtime-boundary.test.ts"
+    "test:runtime-boundary": "tsx tests/runtime-boundary.test.ts",
+    "test:high-level-client": "tsx tests/high-level-client.test.ts",
+    "test:batch": "tsx tests/batch-instructions.test.ts",
+    "test:application-experience": "tsx tests/application-experience.test.ts",
+    "test:metadata": "tsx tests/metadata.test.ts && tsx tests/metadata-identity.test.ts",
+    "test:error-model": "tsx tests/error-model.test.ts",
+    "test:property": "tsx tests/phase14-property.test.ts && tsx tests/property-based-resilience.test.ts",
+    "test:packed-consumer": "node tests/packed-consumer.test.mjs"
   },
   "dependencies": {
     "@solana/web3.js": "1.98.4",

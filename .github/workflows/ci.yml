@@ -145,6 +145,30 @@ jobs:
       - name: Test event decoder client integration
         run: yarn tsx tests/event-decoder-client.test.ts
 
+      - name: Test high-level SDK client
+        run: yarn test:high-level-client
+
+      - name: Test canonical batch composition
+        run: yarn test:batch
+
+      - name: Test application developer experience
+        run: yarn test:application-experience
+
+      - name: Test metadata and canonical identity
+        run: yarn test:metadata
+
+      - name: Test SDK error model
+        run: yarn test:error-model
+
+      - name: Test runtime boundary
+        run: yarn test:runtime-boundary
+
+      - name: Test release-relevant properties
+        run: yarn test:property
+
+      - name: Test packed SDK external consumer and tracked examples
+        run: yarn test:packed-consumer
+
       - name: Audit runtime dependencies
         run: yarn test:audit
 
