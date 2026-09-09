@@ -239,20 +239,14 @@ jobs:
       - name: Build fuzz targets
         working-directory: protocol/babycowans-protocol/programs/babycowans-protocol
         run: cargo +nightly fuzz build
-      - name: Differential payment fuzz
+      - name: Run fail-closed semantic fuzz assurance
         working-directory: protocol/babycowans-protocol/programs/babycowans-protocol
-        run: |
-          mkdir -p ../../../../.astra-evidence
-          set -o pipefail
-          cargo +nightly fuzz run payment_arithmetic -- -runs=1024 -seed=424242 2>&1 | tee ../../../../.astra-evidence/payment-differential-fuzz.log
-      - name: Remaining bounded fuzz targets
-        working-directory: protocol/babycowans-protocol/programs/babycowans-protocol
-        run: |
-          set -o pipefail
-          for target in application_config_lengths authority_state_machine canonical_identity gate_policy_structure membership_renewal pda_domain_separation reward_state_time
-          do
-            cargo +nightly fuzz run "$target" -- -runs=64 -seed=424242 2>&1 | tee -a ../../../../.astra-evidence/remaining-fuzz.log
-          done
+        env:
+          BABYCOWANS_FUZZ_EVIDENCE_DIR: ${{ github.workspace }}/.astra-evidence/fuzz-semantic
+          BABYCOWANS_FUZZ_SEED: "424242"
+          BABYCOWANS_FUZZ_MUTATED_RUNS: "512"
+          BABYCOWANS_FUZZ_PAYMENT_RUNS: "2048"
+        run: bash fuzz/semantic-gate.sh
       - name: Upload fuzz evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

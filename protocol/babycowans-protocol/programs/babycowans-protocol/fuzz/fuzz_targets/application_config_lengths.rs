@@ -22,4 +22,9 @@ fuzz_target!(|input: (u16, u16, u16, u16, u16)| {
         && usize::from(metadata) <= 256;
 
     assert_eq!(valid, expected);
+
+    eprintln!(
+        "BABYCOWANS_FUZZ target=application_config_lengths body=1 class={}",
+        if valid { "valid" } else { "invalid" }
+    );
 });

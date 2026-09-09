@@ -1,6 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
+
 use babycowans_protocol::fuzz_support::{
     calculate_payment_amounts_for_fuzz,
     calculate_payment_amounts_production_for_fuzz,
@@ -24,7 +25,7 @@ fuzz_target!(|input: (u64, u16, u16)| {
     assert_eq!(
         production,
         oracle,
-        "production payment arithmetic diverged from the independent fuzz oracle",
+        "production payment arithmetic diverged from the independent fuzz oracle"
     );
 
     if let Some(amounts) = production {
@@ -36,4 +37,9 @@ fuzz_target!(|input: (u64, u16, u16)| {
 
         assert_eq!(reconstructed, amount);
     }
+
+    eprintln!(
+        "BABYCOWANS_FUZZ target=payment_arithmetic body=1 result={} production_bridge=1",
+        if production.is_some() { "some" } else { "none" }
+    );
 });

@@ -15,6 +15,7 @@ pub struct FuzzPaymentAmounts {
     pub net_amount: u64,
 }
 
+/// Independent fuzz oracle for payment arithmetic.
 pub fn calculate_payment_amounts_for_fuzz(
     amount: u64,
     protocol_fee_bps: u16,
@@ -54,6 +55,7 @@ pub fn calculate_payment_amounts_for_fuzz(
     })
 }
 
+/// Direct fuzz bridge to the production payment arithmetic helper.
 pub fn calculate_payment_amounts_production_for_fuzz(
     amount: u64,
     protocol_fee_bps: u16,
@@ -111,6 +113,7 @@ pub struct FuzzGateCondition {
     pub minimum_tier: u16,
 }
 
+/// Fuzz-only structural model; this is not a production handler bridge.
 pub fn gate_policy_structure_valid_for_fuzz(conditions: &[FuzzGateCondition]) -> bool {
     const MAX_CONDITIONS: usize = 6;
     const MAX_GROUPS: usize = 3;
@@ -185,6 +188,7 @@ pub enum FuzzRewardStatus {
     Cancelled,
 }
 
+/// Fuzz-only reward state/time model; not a production handler bridge.
 pub fn reward_claim_allowed_for_fuzz(
     status: FuzzRewardStatus,
     now: i64,
@@ -234,6 +238,7 @@ pub enum FuzzMembershipStatus {
     Suspended,
 }
 
+/// Fuzz-only membership renewal model; not a production handler bridge.
 pub fn membership_renewal_for_fuzz(
     now: i64,
     expires_at: i64,
@@ -273,6 +278,7 @@ pub struct FuzzAuthorityState {
     pub pending: Option<[u8; 32]>,
 }
 
+/// Fuzz-only authority transition model; not a production handler bridge.
 pub fn authority_nominate_for_fuzz(
     state: FuzzAuthorityState,
     signer: [u8; 32],
@@ -302,6 +308,7 @@ pub fn authority_accept_for_fuzz(
     })
 }
 
+/// Byte-domain separation model only; this does not claim Solana PDA derivation.
 pub fn deterministic_bytes_domain_for_fuzz(
     prefix: &[u8],
     parent: &[u8; 32],
