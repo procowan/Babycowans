@@ -445,3 +445,33 @@ Do not:
 - [Architecture](ARCHITECTURE.md)
 - [Ecosystem Reference Architectures](ECOSYSTEM_REFERENCE_ARCHITECTURES.md)
 - [Integration Compatibility](MIGRATION.md)
+
+## Browser and bundler boundary
+
+The package root, `@babycowans/core-sdk`, and the Node-oriented
+`@babycowans/core-sdk/onboarding` entry point are separate exports.
+
+The onboarding subpath is intended for terminal/CLI-style developer onboarding
+and uses Node runtime facilities such as standard input, standard output, and
+TTY keypress handling. Browser applications should not import the onboarding
+subpath.
+
+The SDK declares `@solana/web3.js` as a peer dependency. A consuming
+application is responsible for providing the compatible peer dependency in its
+own dependency graph.
+
+The SDK's protocol encoding and decoding surfaces use `Buffer`. Browser
+consumers therefore need a bundler/runtime configuration in which the Buffer
+functionality required by the SDK and `@solana/web3.js` is available. The
+package does not declare a dedicated `browser` entry point and does not claim
+zero-configuration compatibility with every browser or bundler.
+
+Wallet ownership and signing remain outside the SDK. Browser wallet adapters or
+other external wallet integrations should construct/use the SDK's
+wallet-neutral transaction plan, perform signing in the consumer wallet layer,
+submit the transaction through the consumer's Solana connection, and evaluate
+the resulting receipt according to the application's confirmation/finality
+policy.
+
+Do not bundle or expose private keys, seed phrases, or secret-key material in a
+browser application. The SDK does not require custody of a wallet private key.
