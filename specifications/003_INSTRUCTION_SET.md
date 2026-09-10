@@ -1,731 +1,671 @@
-# Babycowans Protocol Instruction Set
+# Babycowans Protocol V1.0.0 Instruction Set
 
-## 1. Purpose
+This specification enumerates the complete public instruction surface exposed by the current Babycowans Protocol V1.0.0 IDL.
 
-This specification defines every public instruction exposed by the Babycowans Protocol Program.
+The current canonical surface contains exactly **29 instructions**.
 
-Each instruction specifies:
+The program source and generated IDL are authoritative for account constraints, signer/writable requirements, argument encoding, and error behavior.
 
-- required accounts
-- signer requirements
-- PDA derivation
-- account constraints
-- state mutations
-- emitted events
-- failure conditions
-- security requirements
+## 1. Canonical instruction inventory
 
-No undocumented instruction may exist inside the deployed program.
+1. `accept_application_authority`
+2. `accept_protocol_authority`
+3. `assign_application_role`
+4. `cancel_reward`
+5. `claim_reward`
+6. `configure_application_asset`
+7. `configure_application_config`
+8. `configure_gate_policy`
+9. `configure_payment_policy`
+10. `configure_token_gate`
+11. `create_reward`
+12. `initialize_protocol`
+13. `nominate_application_authority`
+14. `nominate_protocol_authority`
+15. `process_payment`
+16. `record_audit_log`
+17. `register_application`
+18. `register_asset`
+19. `register_membership`
+20. `renew_membership`
+21. `set_protocol_pause`
+22. `update_application_config`
+23. `update_application_role`
+24. `update_application_status`
+25. `update_membership`
+26. `update_payment_policy`
+27. `verify_gate_access`
+28. `verify_gate_policy`
+29. `verify_nft_membership`
 
----
+## 2. accept_application_authority
 
-## 2. Design Rules
+### Arguments
 
-Every instruction must satisfy the following principles.
+No instruction arguments.
 
-### Deterministic
+### Accounts
 
-The same inputs always produce the same result.
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | yes |
+| `authority` | yes | no |
 
-### Explicit
+## 3. accept_protocol_authority
 
-Every writable account is explicitly declared.
+### Arguments
 
-### Permissioned
+No instruction arguments.
 
-Every state mutation requires documented authorization.
+### Accounts
 
-### Canonical
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | yes |
+| `pending_authority` | yes | no |
 
-Instructions never infer accounts from client assumptions.
+## 4. assign_application_role
 
-Every PDA must be derived and validated.
+### Arguments
 
-### Upgrade Safe
+| Argument | Type |
+|---|---|
+| `role` | `Role` |
 
-Instruction interfaces must remain backward compatible within a major protocol version whenever possible.
+### Accounts
 
----
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_role` | no | yes |
+| `member` | no | no |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-## 3. Instruction Categories
+## 5. cancel_reward
 
-Version 1 contains six groups of instructions.
+### Arguments
 
-### Protocol Administration
+No instruction arguments.
 
-- initialize_protocol
-- nominate_protocol_authority
-- accept_protocol_authority
-- set_protocol_pause
+### Accounts
 
-### Canonical Asset Management
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `reward` | no | yes |
+| `authority` | yes | no |
 
-- register_asset
-- update_asset_status
+## 6. claim_reward
 
-### Application Management
+### Arguments
 
-- register_application
-- nominate_application_authority
-- accept_application_authority
-- update_application_status
+No instruction arguments.
 
-### Application Configuration
+### Accounts
+
+| Account | Signer | Writable |
+|---|---:|---:|
+| `reward` | no | yes |
+| `beneficiary` | yes | no |
 
-- configure_application_asset
-- create_gate_policy
-- update_gate_policy
-- create_reward_campaign
-- update_reward_campaign
+## 7. configure_application_asset
 
-### Payment
+### Arguments
+
+| Argument | Type |
+|---|---|
+| `payments_enabled` | `bool` |
+| `gating_enabled` | `bool` |
+| `rewards_enabled` | `bool` |
 
-- process_payment
+### Accounts
 
-### Verification
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `asset_config` | no | no |
+| `mint` | no | no |
+| `application_asset` | no | yes |
+| `payment_destination` | no | no |
+| `authority` | yes | yes |
+| `token_program` | no | no |
+| `system_program` | no | no |
+
+## 8. configure_application_config
+
+### Arguments
+
+| Argument | Type |
+|---|---|
+| `website_uri` | `string` |
+| `logo_uri` | `string` |
+| `support_uri` | `string` |
+| `description` | `string` |
+| `metadata_uri` | `string` |
+
+### Accounts
+
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_config` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
+
+## 9. configure_gate_policy
 
-- verify_gate_access
+### Arguments
 
----
+| Argument | Type |
+|---|---|
+| `conditions` | `Vec<GateCondition>` |
+| `enabled` | `bool` |
 
-## 4. Common Validation Rules
+### Accounts
 
-Every instruction performs the following validation when applicable.
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_asset` | no | no |
+| `gate_policy` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-- account ownership
-- PDA derivation
-- discriminator validation
-- signer verification
-- writable account verification
-- canonical mint validation
-- bump validation
-- duplicate account prevention
-- integer overflow protection
-- arithmetic safety
-- protocol pause validation
-- account version validation---
+## 10. configure_payment_policy
 
-## 5. initialize_protocol
+### Arguments
 
-### Purpose
+| Argument | Type |
+|---|---|
+| `minimum_amount` | `u64` |
+| `maximum_amount` | `u64` |
+| `payments_enabled` | `bool` |
+| `protocol_fee_bps` | `u16` |
+| `application_fee_bps` | `u16` |
+| `treasury` | `pubkey` |
 
-Creates the canonical ProtocolConfig account.
+### Accounts
 
-This instruction may execute exactly once.
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_asset` | no | no |
+| `payment_policy` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-### Required Accounts
+## 11. configure_token_gate
 
-- protocol_config (PDA, writable)
-- protocol_authority (signer)
-- system_program
+### Arguments
 
-### Validation
+| Argument | Type |
+|---|---|
+| `gate_type` | `GateType` |
+| `minimum_amount` | `u64` |
+| `minimum_tier` | `u16` |
+| `enabled` | `bool` |
 
-The implementation must verify:
+### Accounts
 
-- ProtocolConfig does not already exist
-- PDA is correct
-- authority signed
-- version equals 1
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_asset` | no | no |
+| `token_gate` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-### State Changes
+## 12. create_reward
 
-Creates:
+### Arguments
 
-- ProtocolConfig
+| Argument | Type |
+|---|---|
+| `beneficiary` | `pubkey` |
+| `reward_id` | `u64` |
+| `asset` | `pubkey` |
+| `amount` | `u64` |
+| `claimable_at` | `i64` |
+| `expires_at` | `i64` |
+| `category` | `u8` |
+| `reason` | `string` |
 
-Stores:
+### Accounts
 
-- protocol authority
-- protocol version
-- protocol paused = false
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `reward` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-### Events
+## 13. initialize_protocol
 
-- ProtocolInitialized
+### Arguments
 
-### Errors
+No instruction arguments.
 
-- ProtocolAlreadyInitialized
-- InvalidAuthority
-- InvalidPDA
+### Accounts
 
----
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-## 6. nominate_protocol_authority
+## 14. nominate_application_authority
 
-### Purpose
+### Arguments
 
-Begins authority transfer.
+| Argument | Type |
+|---|---|
+| `new_authority` | `pubkey` |
 
-### Required Accounts
+### Accounts
 
-- protocol_config
-- current_authority (signer)
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | yes |
+| `authority` | yes | no |
 
-### State Changes
+## 15. nominate_protocol_authority
 
-Stores:
+### Arguments
 
-- pending authority
+| Argument | Type |
+|---|---|
+| `new_authority` | `pubkey` |
 
-### Events
+### Accounts
 
-- ProtocolAuthorityNominated
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | yes |
+| `authority` | yes | no |
+
+## 16. process_payment
 
----
+### Arguments
 
-## 7. accept_protocol_authority
+| Argument | Type |
+|---|---|
+| `amount` | `u64` |
+
+### Accounts
 
-### Purpose
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | no |
+| `application` | no | no |
+| `application_asset` | no | no |
+| `payment_policy` | no | no |
+| `asset_config` | no | no |
+| `mint` | no | no |
+| `payer` | yes | yes |
+| `payer_token_account` | no | yes |
+| `destination_token_account` | no | yes |
+| `treasury_token_account` | no | yes |
+| `token_program` | no | no |
 
-Completes protocol authority transfer.
+## 17. record_audit_log
 
-### Required Accounts
+### Arguments
 
-- protocol_config
-- pending_authority (signer)
+| Argument | Type |
+|---|---|
+| `nonce` | `u64` |
+| `action` | `AuditAction` |
+| `category` | `AuditCategory` |
+| `severity` | `AuditSeverity` |
+| `reference` | `pubkey` |
+| `indexed_references` | `[pubkey; 3]` |
+| `metadata` | `string` |
 
-### Validation
+### Accounts
 
-- pending authority matches signer
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `audit_log` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-### State Changes
+## 18. register_application
 
-Updates:
+### Arguments
 
-- authority
+| Argument | Type |
+|---|---|
+| `application_id` | `u64` |
+| `name` | `string` |
+| `selected_ecosystem` | `CanonicalEcosystem` |
 
-Clears:
+### Accounts
 
-- pending authority
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | yes |
+| `application` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-### Events
+## 19. register_asset
 
-- ProtocolAuthorityTransferred
+### Arguments
 
----
+| Argument | Type |
+|---|---|
+| `asset_code` | `[u8; 3]` |
+| `domain` | `AssetDomain` |
 
-## 8. set_protocol_pause
+### Accounts
 
-### Purpose
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | yes |
+| `asset_config` | no | yes |
+| `mint` | no | no |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-Pauses or resumes protocol operations.
+## 20. register_membership
 
-### Required Accounts
+### Arguments
 
-- protocol_config
-- authority (signer)
+| Argument | Type |
+|---|---|
+| `member` | `pubkey` |
+| `tier` | `u16` |
+| `expires_at` | `i64` |
+| `renewable` | `bool` |
+| `auto_extend` | `bool` |
+| `renewal_duration` | `i64` |
+| `membership_kind` | `MembershipKind` |
+| `nft_mint` | `pubkey` |
 
-### State Changes
+### Accounts
 
-Updates:
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `membership` | no | yes |
+| `authority` | yes | yes |
+| `system_program` | no | no |
 
-- protocol paused
+## 21. renew_membership
 
-### Events
+### Arguments
 
-- ProtocolPauseChanged---
+| Argument | Type |
+|---|---|
+| `requested_expires_at` | `i64` |
 
-## 9. register_asset
+### Accounts
 
-### Purpose
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `membership` | no | yes |
+| `authority` | yes | no |
 
-Registers one canonical Babycowans asset.
+## 22. set_protocol_pause
 
-### Required Accounts
+### Arguments
 
-- protocol_config
-- asset_config (PDA, writable)
-- mint
-- authority (signer)
-- system_program
+| Argument | Type |
+|---|---|
+| `paused` | `bool` |
 
-### Validation
+### Accounts
 
-The implementation verifies:
+| Account | Signer | Writable |
+|---|---:|---:|
+| `protocol_config` | no | yes |
+| `authority` | yes | no |
 
-- protocol is initialized
-- protocol is not paused
-- signer is protocol authority
-- mint is supported
-- asset is not already registered
-- PDA is correct
-- decimals match mint
-- token program is supported
+## 23. update_application_config
 
-### State Changes
+### Arguments
 
-Creates:
+| Argument | Type |
+|---|---|
+| `website_uri` | `string` |
+| `logo_uri` | `string` |
+| `support_uri` | `string` |
+| `description` | `string` |
+| `metadata_uri` | `string` |
 
-- AssetConfig
+### Accounts
 
-### Events
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_config` | no | yes |
+| `authority` | yes | no |
 
-- AssetRegistered
+## 24. update_application_role
 
-### Errors
+### Arguments
 
-- AssetAlreadyRegistered
-- UnsupportedMint
-- InvalidMint
-- InvalidDecimals
-- InvalidPDA
+| Argument | Type |
+|---|---|
+| `role` | `Role` |
+| `active` | `bool` |
 
----
+### Accounts
 
-## 10. update_asset_status
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_role` | no | yes |
+| `authority` | yes | no |
 
-### Purpose
+## 25. update_application_status
 
-Enables or disables a canonical asset.
+### Arguments
 
-### Required Accounts
+| Argument | Type |
+|---|---|
+| `new_status` | `ApplicationStatus` |
 
-- protocol_config
-- asset_config
-- authority (signer)
+### Accounts
 
-### Validation
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | yes |
+| `authority` | yes | no |
 
-- protocol authority signed
+## 26. update_membership
 
-### State Changes
+### Arguments
 
-Updates:
+| Argument | Type |
+|---|---|
+| `tier` | `u16` |
+| `status` | `MembershipStatus` |
+| `expires_at` | `i64` |
+| `renewable` | `bool` |
+| `auto_extend` | `bool` |
+| `renewal_duration` | `i64` |
 
-- asset status
+### Accounts
 
-### Events
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `membership` | no | yes |
+| `authority` | yes | no |
 
-- AssetStatusChanged
+## 27. update_payment_policy
 
-### Errors
+### Arguments
 
-- InvalidAuthority
-- InvalidAsset---
+| Argument | Type |
+|---|---|
+| `minimum_amount` | `u64` |
+| `maximum_amount` | `u64` |
+| `payments_enabled` | `bool` |
+| `protocol_fee_bps` | `u16` |
+| `application_fee_bps` | `u16` |
+| `treasury` | `pubkey` |
 
-## 11. register_application
+### Accounts
 
-### Purpose
-
-Registers a developer application that integrates with the protocol.
-
-### Required Accounts
-
-- protocol_config
-- application (PDA, writable)
-- application_authority (signer)
-- system_program
-
-### Validation
-
-The implementation verifies:
-
-- protocol is initialized
-- protocol is not paused
-- application PDA is correct
-- application does not already exist
-- application_id is unique for the authority
-
-### State Changes
-
-Creates:
-
-- Application
-
-### Events
-
-- ApplicationRegistered
-
-### Errors
-
-- ApplicationAlreadyExists
-- InvalidApplicationId
-- InvalidPDA
-
----
-
-## 12. nominate_application_authority
-
-### Purpose
-
-Begins application ownership transfer.
-
-### Required Accounts
-
-- application
-- current_authority (signer)
-
-### State Changes
-
-Stores:
-
-- pending authority
-
-### Events
-
-- ApplicationAuthorityNominated
-
----
-
-## 13. accept_application_authority
-
-### Purpose
-
-Completes application ownership transfer.
-
-### Required Accounts
-
-- application
-- pending_authority (signer)
-
-### Validation
-
-- pending authority matches signer
-
-### State Changes
-
-Updates:
-
-- application authority
-
-Clears:
-
-- pending authority
-
-### Events
-
-- ApplicationAuthorityTransferred
-
----
-
-## 14. update_application_status
-
-### Purpose
-
-Activates or disables an application.
-
-### Required Accounts
-
-- application
-- authority (signer)
-
-### Validation
-
-- signer is application authority
-
-### State Changes
-
-Updates:
-
-- application status
-
-### Events
-
-- ApplicationStatusChanged---
-
-## 15. configure_application_asset
-
-### Purpose
-
-Associates a registered application with one canonical Babycowans asset.
-
-### Required Accounts
-
-- application
-- asset_config
-- application_asset (PDA, writable)
-- authority (signer)
-- system_program
-
-### Validation
-
-The implementation verifies:
-
-- application exists
-- asset exists
-- signer owns the application
-- configuration does not already exist
-- payment destination is valid
-
-### State Changes
-
-Creates:
-
-- ApplicationAsset
-
-### Events
-
-- ApplicationAssetConfigured
-
-### Errors
-
-- InvalidApplication
-- InvalidAsset
-- InvalidPaymentDestination
-- ConfigurationAlreadyExists
-
----
-
-## 16. create_gate_policy
-
-### Purpose
-
-Creates a token-gating policy for an application.
-
-### Required Accounts
-
-- application
-- application_asset
-- gate_policy (PDA, writable)
-- authority (signer)
-- system_program
-
-### Validation
-
-- application exists
-- application asset exists
-- signer owns application
-- gate_id is unique
-
-### State Changes
-
-Creates:
-
-- GatePolicy
-
-### Events
-
-- GatePolicyCreated
-
----
-
-## 17. update_gate_policy
-
-### Purpose
-
-Updates an existing gate policy.
-
-### Required Accounts
-
-- gate_policy
-- authority (signer)
-
-### Validation
-
-- signer owns application
-
-### State Changes
-
-Updates:
-
-- gate configuration
-
-### Events
-
-- GatePolicyUpdated---
-
-## 18. create_reward_campaign
-
-### Purpose
-
-Creates a reward distribution campaign.
-
-### Required Accounts
-
-- application
-- application_asset
-- reward_campaign (PDA, writable)
-- authority (signer)
-- system_program
-
-### Validation
-
-The implementation verifies:
-
-- application exists
-- application asset exists
-- signer owns application
-- campaign_id is unique
-- reward vault configuration is valid
-
-### State Changes
-
-Creates:
-
-- RewardCampaign
-
-### Events
-
-- RewardCampaignCreated
-
----
-
-## 19. update_reward_campaign
-
-### Purpose
-
-Updates an existing reward campaign.
-
-### Required Accounts
-
-- reward_campaign
-- authority (signer)
-
-### Validation
-
-- signer owns application
-
-### State Changes
-
-Updates:
-
-- campaign configuration
-
-### Events
-
-- RewardCampaignUpdated
-
----
-
-## 20. process_payment
-
-### Purpose
-
-Transfers a supported Babycowans asset from a payer to an application's registered payment destination.
-
-### Required Accounts
-
-- application
-- application_asset
-- asset_config
-- payer (signer)
-- payer token account
-- destination token account
-- token program
-
-### Validation
-
-The implementation verifies:
-
-- application is active
-- asset is active
-- application asset is active
-- payment amount is valid
-- token program matches asset configuration
-- destination matches registered payment destination
-
-### State Changes
-
-No protocol-owned account is modified.
-
-### Events
-
-- PaymentProcessed
-
----
-
-## 21. verify_gate_access
-
-### Purpose
-
-Verifies whether a wallet satisfies a gate policy.
-
-### Required Accounts
-
-- gate_policy
-- application_asset
-- user token account
-- asset mint
-
-### Validation
-
-The implementation verifies:
-
-- policy is active
-- application asset is active
-- asset is active
-- wallet satisfies the configured rule
-
-### State Changes
-
-None.
-
-### Events
-
-- GateAccessVerified---
-
-## 22. Error Model
-
-Every public instruction must return documented errors only.
-
-Version 1 defines:
-
-- InvalidAuthority
-- InvalidPDA
-- InvalidVersion
-- ProtocolPaused
-- UnsupportedMint
-- InvalidMint
-- InvalidDecimals
-- AssetAlreadyRegistered
-- InvalidAsset
-- ApplicationAlreadyExists
-- InvalidApplication
-- InvalidApplicationId
-- ConfigurationAlreadyExists
-- InvalidPaymentDestination
-- InvalidGate
-- InvalidCampaign
-- InvalidAmount
-- InvalidTokenProgram
-- ArithmeticOverflow
-
-No undocumented custom error may be introduced.
-
----
-
-## 23. Event Model
-
-Every successful instruction emits exactly one primary event.
-
-Events are never emitted on failure.
-
-Events are append-only and become part of the permanent protocol history.
-
----
-
-## 24. Instruction Invariants
-
-Every implementation must preserve the following invariants.
-
-1. Every PDA is deterministically derived.
-2. Every writable account is validated before mutation.
-3. Every authority transition is two-step.
-4. Every payment uses a registered canonical asset.
-5. Every application owns only its own configurations.
-6. Disabled objects cannot initiate new operations.
-7. Protocol pause blocks state-changing instructions.
-8. Verification instructions never mutate protocol state.
-9. Payments never give protocol custody of user funds.
-10. Every successful instruction emits exactly one documented event.
-
----
-
-## 25. Versioning
-
-This document defines the complete public instruction surface for Babycowans Protocol Version 1.
-
-Any future public instruction requires:
-
-- specification update
-- implementation
-- tests
-- SDK update
-- IDL regeneration
-- documentation update
-- release notes
-
-No public instruction may exist outside this specification.
-
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `payment_policy` | no | yes |
+| `authority` | yes | no |
+
+## 28. verify_gate_access
+
+### Arguments
+
+No instruction arguments.
+
+### Accounts
+
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_asset` | no | no |
+| `token_gate` | no | no |
+| `wallet` | yes | no |
+| `user_token_account` | no | no |
+
+## 29. verify_gate_policy
+
+### Arguments
+
+No instruction arguments.
+
+### Accounts
+
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `application_asset` | no | no |
+| `gate_policy` | no | no |
+| `wallet` | yes | no |
+| `hold_token_account` | no | no |
+| `membership` | no | no |
+| `nft_token_account` | no | no |
+
+## 30. verify_nft_membership
+
+### Arguments
+
+No instruction arguments.
+
+### Accounts
+
+| Account | Signer | Writable |
+|---|---:|---:|
+| `application` | no | no |
+| `membership` | no | yes |
+| `member` | yes | no |
+| `nft_token_account` | no | no |
+
+## Event surface
+
+The current IDL exposes exactly **28 event types**:
+
+- `ApplicationAssetConfigured`
+- `ApplicationAuthorityNominated`
+- `ApplicationAuthorityTransferred`
+- `ApplicationConfigConfigured`
+- `ApplicationConfigUpdated`
+- `ApplicationRegistered`
+- `ApplicationRoleAssigned`
+- `ApplicationRoleUpdated`
+- `ApplicationStatusChanged`
+- `AssetRegistered`
+- `AuditLogRecorded`
+- `GateAccessVerified`
+- `GatePolicyAccessVerified`
+- `GatePolicyConfigured`
+- `MembershipRegistered`
+- `MembershipRenewed`
+- `MembershipUpdated`
+- `NftMembershipVerified`
+- `PaymentPolicyConfigured`
+- `PaymentProcessed`
+- `ProtocolAuthorityNominated`
+- `ProtocolAuthorityTransferred`
+- `ProtocolInitialized`
+- `ProtocolPauseChanged`
+- `RewardCancelled`
+- `RewardClaimed`
+- `RewardCreated`
+- `TokenGateConfigured`
+
+## Error surface
+
+The current IDL exposes exactly **48 custom errors**:
+
+- `InvalidAuthority` (`6000`) — The provided authority is invalid.
+- `InvalidPda` (`6001`) — The provided PDA is invalid.
+- `InvalidVersion` (`6002`) — The account version is invalid.
+- `ProtocolPaused` (`6003`) — The protocol is currently paused.
+- `UnsupportedMint` (`6004`) — The provided mint is not a canonical Babycowans asset.
+- `MaximumAssetsReached` (`6005`) — The maximum number of canonical assets has been reached.
+- `InvalidApplicationName` (`6006`) — The application name is invalid or too long.
+- `InvalidApplication` (`6007`) — The application is invalid or inactive.
+- `InvalidApplicationConfig` (`6008`) — The application configuration contains an invalid or oversized field.
+- `InvalidApplicationStatusTransition` (`6009`) — The requested application status transition is invalid.
+- `InvalidAsset` (`6010`) — The asset configuration is invalid or disabled.
+- `InvalidPaymentDestination` (`6011`) — The payment destination token account is invalid.
+- `InvalidTokenProgram` (`6012`) — The token program does not match the registered asset.
+- `PaymentsDisabled` (`6013`) — Payments are disabled for this application asset.
+- `InvalidAmount` (`6014`) — The payment amount must be greater than zero.
+- `InvalidPaymentPolicy` (`6015`) — The payment policy configuration is invalid.
+- `PaymentBelowMinimum` (`6016`) — The payment amount is below the configured minimum.
+- `PaymentAboveMaximum` (`6017`) — The payment amount exceeds the configured maximum.
+- `InvalidRoleMember` (`6018`) — The role member public key is invalid.
+- `InvalidExpiration` (`6019`) — The membership expiration timestamp is invalid.
+- `InvalidMembershipConfiguration` (`6020`) — The membership configuration is invalid.
+- `MembershipNotRenewable` (`6021`) — The membership is not renewable.
+- `MembershipAutoExtendDisabled` (`6022`) — Automatic membership extension is disabled.
+- `MembershipSuspended` (`6023`) — The membership is suspended and cannot be renewed.
+- `NotNftMembership` (`6024`) — This membership is not an NFT membership.
+- `InvalidNftMint` (`6025`) — The NFT mint does not match the membership.
+- `InvalidNftOwnership` (`6026`) — The member does not own the required NFT.
+- `InvalidRewardStatus` (`6027`) — The reward status does not allow this operation.
+- `InvalidRewardSchedule` (`6028`) — The reward schedule is invalid.
+- `InvalidRewardExpiration` (`6029`) — The reward expiration timestamp is invalid.
+- `RewardNotYetClaimable` (`6030`) — The reward is not claimable yet.
+- `RewardExpired` (`6031`) — The reward has expired.
+- `RewardReasonTooLong` (`6032`) — The reward reason exceeds the maximum allowed length.
+- `GatingDisabled` (`6033`) — Token gating is disabled for this application asset.
+- `InvalidGate` (`6034`) — The token gate is invalid.
+- `GateDisabled` (`6035`) — The token gate is disabled.
+- `UnsupportedGateType` (`6036`) — This gate type is not supported by Version 1.
+- `InsufficientTokenBalance` (`6037`) — The wallet token balance is insufficient.
+- `EmptyGatePolicy` (`6038`) — The gate policy contains no conditions.
+- `TooManyGateConditions` (`6039`) — The gate policy contains too many conditions.
+- `InvalidGateConditionGroup` (`6040`) — The gate policy contains an invalid condition group.
+- `InvalidGateCondition` (`6041`) — The gate condition is invalid.
+- `MembershipGateNotSatisfied` (`6042`) — The supplied membership does not satisfy the gate condition.
+- `NftGateNotSatisfied` (`6043`) — The supplied NFT ownership proof does not satisfy the gate condition.
+- `GatePolicyNotSatisfied` (`6044`) — No gate-policy condition group was satisfied.
+- `InvalidAuditReference` (`6045`) — The audit reference public key is invalid.
+- `AuditMetadataTooLong` (`6046`) — The audit metadata exceeds the maximum allowed length.
+- `ArithmeticOverflow` (`6047`) — An arithmetic operation overflowed.
+
+## Current semantic boundaries
+
+- `configure_gate_policy` is the current composable gate-policy configuration instruction; there is no current `create_gate_policy` or `update_gate_policy` instruction.
+- `register_asset` is the current canonical asset registration instruction; there is no current `update_asset_status` instruction.
+- Rewards use `create_reward`, `claim_reward`, and `cancel_reward`; there is no current RewardCampaign instruction family.
+- Application metadata uses `configure_application_config` and `update_application_config`.
+- Application roles use `assign_application_role` and `update_application_role`.
+- Payment policy uses `configure_payment_policy` and `update_payment_policy`.
+- Membership uses `register_membership`, `update_membership`, `renew_membership`, and `verify_nft_membership`.
+- Direct token gating uses `configure_token_gate` and `verify_gate_access`.
+- Composable gate verification uses `verify_gate_policy`.
+- Structured audit state uses `record_audit_log`.
+
+## Source-of-truth boundary
+
+No instruction may be presented as part of Babycowans Protocol V1.0.0 unless it exists in the current generated IDL and program entrypoint surface.

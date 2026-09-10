@@ -1,505 +1,250 @@
-# Babycowans Protocol State Model
-
-## 1. Purpose
-
-This document defines the complete Version 1 on-chain state model of the Babycowans Protocol.
-
-The protocol stores only data required for decentralized identity, authorization, configuration, settlement validation, and security.
-
-Application metadata, descriptions, logos, analytics, and user-interface content remain off-chain.
-
----
-
-## 2. State Design Rules
-
-All protocol-owned accounts must:
-
-- use deterministic Program Derived Addresses
-- have one explicitly defined authority
-- store a schema version
-- store their PDA bump
-- use fixed-size fields where practical
-- validate all related accounts before mutation
-- avoid storing private or unnecessary user data
-- remain independently readable through the public IDL
-
-No account may contain seed phrases, private keys, personal information, or arbitrary executable data.
-
----
-
-## 3. Canonical Accounts
-
-Version 1 contains six protocol-owned account types:
-
-1. `ProtocolConfig`
-2. `AssetConfig`
-3. `Application`
-4. `ApplicationAsset`
-5. `GatePolicy`
-6. `RewardCampaign`
-
-Payments do not create permanent payment-record accounts.
-
-Successful operations emit verifiable events instead, preventing unnecessary account creation and storage costs.---
-
-## 4. ProtocolConfig
-
-### Purpose
-
-`ProtocolConfig` is the singleton configuration account for the deployed Babycowans program.
-
-### PDA
-
-```text
-["protocol"]
-```
-
-### Fields
-
-```text
-version: u16
-authority: Pubkey
-pending_authority: Option<Pubkey>
-paused: bool
-application_count: u64
-asset_count: u16
-bump: u8
-```
-
-### Authority
-
-The protocol authority may:
-
-- register or disable canonical Babycowans assets
-- pause security-sensitive instructions
-- nominate a replacement authority
-- complete documented migrations
-
-The authority may not:
-
-- transfer user tokens
-- seize application funds
-- modify user wallet balances
-- authorize payments on behalf of users
-- create undocumented fees
-
-Authority transfer must use a two-step process:
-
-1. nominate a pending authority
-2. require the pending authority to accept
-
----
-
-## 5. AssetConfig
-
-### Purpose
-
-`AssetConfig` registers one canonical Babycowans ecosystem token.
-
-Exactly six canonical asset configurations are expected for Version 1.
-
-### PDA
-
-```text
-["asset", mint]
-```
-
-### Fields
-
-```text
-version: u16
-mint: Pubkey
-token_program: Pubkey
-asset_code: [u8; 3]
-domain: AssetDomain
-decimals: u8
-enabled: bool
-registered_at: i64
-bump: u8
-```
-
-### AssetDomain
-
-```text
-ArtificialIntelligenceAndIoT
-HealthcareAndInsurance
-IntellectualPropertyAndLuxury
-TradeAndLogistics
-EntertainmentAndExperiences
-ManufacturingAndSupplyChain
-```
-
-### Validation
-
-Registration must verify:
-
-- the mint account exists
-- the mint is owned by an approved token program
-- the configured decimals equal the mint decimals
-- the mint has not already been registered
-- the three-byte asset code is unique
-- only the six approved Babycowans mints are registered as canonical assets
-
-### Token Programs
-
-An asset may use:
-
-- the original SPL Token Program
-- the Token-2022 Program
-
-The protocol must record and validate the correct token program for every asset.
-
----
-
-## 6. Application
-
-### Purpose
-
-`Application` represents an external software product or service integrating Babycowans.
-
-It may represent:
-
-- a web application
-- a mobile application
-- a game
-- an AI service
-- an IoT service
-- a marketplace
-- a bot
-- an API
-- any other software integration
-
-### PDA
-
-```text
-["application", authority, application_id]
-```
-
-### application_id
-
-`application_id` is a developer-generated 32-byte identifier.
-
-It must be unique under the application authority.
-
-Human-readable names and descriptions remain off-chain.
-
-### Fields
-
-```text
-version: u16
-application_id: [u8; 32]
-authority: Pubkey
-pending_authority: Option<Pubkey>
-status: ApplicationStatus
-created_at: i64
-updated_at: i64
-bump: u8
-```
-
-### ApplicationStatus
-
-```text
-Active
-Suspended
-Closed
-```
-
-### Authority
-
-The application authority may:
-
-- configure supported Babycowans assets
-- create gate policies
-- create reward campaigns
-- nominate a replacement application authority
-- close eligible application-owned configuration accounts
-
-Application authority transfer must use a two-step acceptance process.---
-
-## 7. ApplicationAsset
-
-### Purpose
-
-`ApplicationAsset` connects one registered application to one canonical Babycowans asset.
-
-It defines how that application uses the asset for payments and utility.
-
-### PDA
-
-```text
-["application_asset", application, mint]
-```
-
-### Fields
-
-```text
-version: u16
-application: Pubkey
-asset_config: Pubkey
-mint: Pubkey
-token_program: Pubkey
-payment_destination: Pubkey
-payments_enabled: bool
-gating_enabled: bool
-rewards_enabled: bool
-created_at: i64
-updated_at: i64
-bump: u8
-```
-
-### payment_destination
-
-`payment_destination` must be a token account that:
-
-- uses the configured mint
-- is owned by the expected Token Program
-- has an explicitly validated token-account authority
-- is approved by the application authority
-
-The protocol never stores or controls the destination wallet's private key.
-
----
-
-## 8. GatePolicy
-
-### Purpose
-
-`GatePolicy` defines a reusable token-access condition for an application.
-
-An application may create multiple gate policies.
-
-### PDA
-
-```text
-["gate", application, gate_id]
-```
-
-### gate_id
-
-`gate_id` is an application-defined 32-byte identifier.
-
-### Fields
-
-```text
-version: u16
-gate_id: [u8; 32]
-application: Pubkey
-asset_config: Pubkey
-mint: Pubkey
-minimum_amount: u64
-status: PolicyStatus
-created_at: i64
-updated_at: i64
-bump: u8
-```
-
-### PolicyStatus
-
-```text
-Active
-Disabled
-```
-
-### Verification
-
-A gate check succeeds only when:
-
-- the policy is active
-- the application is active
-- the asset is enabled
-- the supplied token account belongs to the requesting wallet
-- the supplied token account uses the configured mint
-- the token balance is greater than or equal to `minimum_amount`
-
-A gate check does not transfer or lock tokens.---
-
-## 9. RewardCampaign
-
-### Purpose
-
-`RewardCampaign` defines a controlled token-reward source for an application.
-
-An application may create multiple reward campaigns.
-
-### PDA
-
-```text
-["reward", application, campaign_id]
-```
-
-### campaign_id
-
-`campaign_id` is an application-defined 32-byte identifier.
-
-### Fields
-
-```text
-version: u16
-campaign_id: [u8; 32]
-application: Pubkey
-asset_config: Pubkey
-mint: Pubkey
-vault: Pubkey
-vault_authority: Pubkey
-distribution_authority: Pubkey
-maximum_reward_per_transfer: u64
-distributed_amount: u64
-status: CampaignStatus
-created_at: i64
-updated_at: i64
-bump: u8
-```
-
-### CampaignStatus
-
-```text
-Active
-Paused
-Closed
-```
-
-### Reward Security
-
-A reward transfer requires:
-
-- an active application
-- an enabled canonical asset
-- an active campaign
-- the authorized distribution signer
-- the correct reward vault
-- the correct recipient token account
-- an amount no greater than `maximum_reward_per_transfer`
-- checked arithmetic
-- a checked token transfer
-
-Version 1 does not implement hidden minting or arbitrary inflation.
-
-Rewards may only be distributed from an explicitly funded vault.
-
----
-
-## 10. Loyalty Model
-
-Version 1 does not create a separate on-chain user profile or proprietary points balance.
-
-Loyalty behavior is composed from:
-
-- verified payments
-- gate policies
-- reward campaigns
-- protocol events
-- application-defined off-chain rules
-
-This keeps personal activity and non-critical business logic outside the blockchain while preserving verifiable token operations on-chain.---
-
-## 11. Events Instead of Transaction Accounts
-
-The protocol emits events for successful state changes and utility operations.
-
-Version 1 events include:
-
-```text
-ProtocolInitialized
-ProtocolAuthorityNominated
-ProtocolAuthorityTransferred
-ProtocolPauseChanged
-
-AssetRegistered
-AssetStatusChanged
-
-ApplicationRegistered
-ApplicationAuthorityNominated
-ApplicationAuthorityTransferred
-ApplicationStatusChanged
-
-ApplicationAssetConfigured
-ApplicationAssetStatusChanged
-
-PaymentProcessed
-
-GatePolicyCreated
-GatePolicyUpdated
-GateAccessVerified
-
-RewardCampaignCreated
-RewardCampaignUpdated
-RewardDistributed
-```
-
-Events provide verifiable integration data without creating a permanent account for every payment, gate check, or reward.
-
----
-
-## 12. Data Excluded from On-Chain State
-
-The following data must remain off-chain:
-
-- application names
-- application descriptions
-- logos and images
-- websites and social links
-- customer personal information
-- user behavior histories
-- private analytics
-- marketing content
-- business scoring
-- arbitrary JSON documents
-- confidential commercial terms
-
-Applications may associate this data with their 32-byte identifiers through their own systems or through optional Babycowans indexing services.
-
----
-
-## 13. Account Closure
-
-An account may be closed only when:
-
-- the signer is the documented authority
-- all account relationships are validated
-- no active dependent configuration requires the account
-- closure does not give the protocol custody of user funds
-- rent is returned to the documented recipient
-
-Canonical `ProtocolConfig` and active `AssetConfig` accounts are not closable in Version 1.
-
----
-
-## 14. Versioning
-
-Every protocol-owned account begins with a schema version.
-
-Version 1 accounts use:
-
-```text
-version = 1
-```
-
-Future schema changes must provide:
-
-- a documented migration
-- backward-compatibility analysis
-- updated SDK support
-- migration tests
-- a new protocol release
-
-Public account layouts must never change silently.
-
----
-
-## 15. State Model Invariants
-
-The implementation must preserve these invariants:
-
-1. One `ProtocolConfig` exists per deployed program.
-2. One `AssetConfig` exists per canonical mint.
-3. An application is uniquely identified by its authority and `application_id`.
-4. One `ApplicationAsset` exists per application and mint pair.
-5. A gate policy belongs to exactly one application and one canonical asset.
-6. A reward campaign belongs to exactly one application and one canonical asset.
-7. Payments always settle to the registered application destination.
-8. Reward transfers always originate from the registered campaign vault.
-9. No instruction can move tokens without the required signer or PDA authority.
-10. Disabling a configuration prevents new operations but does not alter historical events.
-11. No protocol instruction stores private user information.
-12. No protocol account contains undocumented administrative behavior.
-
+# Babycowans Protocol V1.0.0 State Model
+
+This specification describes the current on-chain account model implemented by Babycowans Protocol V1.0.0.
+
+The on-chain Rust program and generated IDL are authoritative. This document must not advertise account types, fields, or lifecycle behavior absent from those sources.
+
+## 1. Canonical account surface
+
+The current IDL exposes exactly **12 protocol account types**:
+
+1. `Application`
+2. `ApplicationAsset`
+3. `ApplicationConfig`
+4. `ApplicationPaymentPolicy`
+5. `ApplicationRole`
+6. `AssetConfig`
+7. `AuditLog`
+8. `GatePolicy`
+9. `Membership`
+10. `ProtocolConfig`
+11. `Reward`
+12. `TokenGate`
+
+There is no `RewardCampaign` account in the current protocol. Rewards use the `Reward` account and the `create_reward`, `claim_reward`, and `cancel_reward` lifecycle.
+
+## 2. Application
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application_id` | `u64` |
+| `authority` | `pubkey` |
+| `pending_authority` | `Option<pubkey>` |
+| `selected_ecosystem` | `CanonicalEcosystem` |
+| `status` | `ApplicationStatus` |
+| `name` | `string` |
+| `bump` | `u8` |
+
+Stores application identity, authority lifecycle, selected canonical ecosystem, status, and name.
+
+## 3. ApplicationAsset
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `asset_config` | `pubkey` |
+| `mint` | `pubkey` |
+| `token_program` | `pubkey` |
+| `payment_destination` | `pubkey` |
+| `payments_enabled` | `bool` |
+| `gating_enabled` | `bool` |
+| `rewards_enabled` | `bool` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Binds an Application to an AssetConfig and stores payment destination and feature flags. `configure_application_asset` initializes this account; the current ABI does not expose `update_application_asset`.
+
+## 4. ApplicationConfig
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `website_uri` | `string` |
+| `logo_uri` | `string` |
+| `support_uri` | `string` |
+| `description` | `string` |
+| `metadata_uri` | `string` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Stores application metadata and is managed by `configure_application_config` and `update_application_config`.
+
+## 5. ApplicationPaymentPolicy
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `application_asset` | `pubkey` |
+| `minimum_amount` | `u64` |
+| `maximum_amount` | `u64` |
+| `payments_enabled` | `bool` |
+| `protocol_fee_bps` | `u16` |
+| `application_fee_bps` | `u16` |
+| `treasury` | `pubkey` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Stores payment bounds, enablement, fee basis points, and treasury for an ApplicationAsset.
+
+## 6. ApplicationRole
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `member` | `pubkey` |
+| `role` | `Role` |
+| `active` | `bool` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Stores an application-scoped member role. It does not replace `Application.authority` for privileged handlers that require the application authority.
+
+## 7. AssetConfig
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `mint` | `pubkey` |
+| `token_program` | `pubkey` |
+| `asset_code` | `[u8; 3]` |
+| `domain` | `AssetDomain` |
+| `decimals` | `u8` |
+| `enabled` | `bool` |
+| `registered_at` | `i64` |
+| `bump` | `u8` |
+
+Binds a supported canonical mint to token program, asset code, domain, decimals, and enabled state.
+
+## 8. AuditLog
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `event_schema_version` | `u16` |
+| `authority` | `pubkey` |
+| `application` | `pubkey` |
+| `action` | `AuditAction` |
+| `category` | `AuditCategory` |
+| `severity` | `AuditSeverity` |
+| `reference` | `pubkey` |
+| `indexed_references` | `[pubkey; 3]` |
+| `metadata` | `string` |
+| `created_at` | `i64` |
+| `bump` | `u8` |
+
+Stores structured audit evidence with action, category, severity, references, metadata, and schema version.
+
+## 9. GatePolicy
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `application_asset` | `pubkey` |
+| `conditions` | `Vec<GateCondition>` |
+| `enabled` | `bool` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Stores bounded composable gate conditions and enablement state.
+
+## 10. Membership
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `member` | `pubkey` |
+| `tier` | `u16` |
+| `status` | `MembershipStatus` |
+| `membership_kind` | `MembershipKind` |
+| `nft_mint` | `pubkey` |
+| `nft_verified` | `bool` |
+| `expires_at` | `i64` |
+| `renewable` | `bool` |
+| `auto_extend` | `bool` |
+| `renewal_duration` | `i64` |
+| `renewal_count` | `u32` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Stores membership lifecycle, tier, kind, NFT verification state, expiry, and renewal controls.
+
+## 11. ProtocolConfig
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `authority` | `pubkey` |
+| `pending_authority` | `Option<pubkey>` |
+| `paused` | `bool` |
+| `application_count` | `u64` |
+| `asset_count` | `u16` |
+| `bump` | `u8` |
+
+Stores protocol authority, pending authority, pause state, counters, and PDA bump.
+
+## 12. Reward
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `beneficiary` | `pubkey` |
+| `reward_id` | `u64` |
+| `asset` | `pubkey` |
+| `amount` | `u64` |
+| `status` | `RewardStatus` |
+| `created_at` | `i64` |
+| `claimable_at` | `i64` |
+| `expires_at` | `i64` |
+| `claimed_at` | `i64` |
+| `cancelled_at` | `i64` |
+| `category` | `u8` |
+| `reason` | `string` |
+| `bump` | `u8` |
+
+`Reward` is the current reward state model. Creation, claim, and cancellation are state lifecycle operations; the current reward instructions do not define a RewardCampaign vault model.
+
+## 13. TokenGate
+
+| Field | Type |
+|---|---|
+| `version` | `u16` |
+| `application` | `pubkey` |
+| `application_asset` | `pubkey` |
+| `gate_type` | `GateType` |
+| `minimum_amount` | `u64` |
+| `minimum_tier` | `u16` |
+| `enabled` | `bool` |
+| `created_at` | `i64` |
+| `updated_at` | `i64` |
+| `bump` | `u8` |
+
+Stores direct token-gating configuration used by `configure_token_gate` and `verify_gate_access`.
+
+## State-model invariants
+
+- Canonical ecosystem identity is selected on the Application and must resolve to repository-defined canonical ecosystem data.
+- Protocol-owned child accounts remain application-scoped.
+- Application authority transfer is a two-step nomination/acceptance lifecycle.
+- `ApplicationRole` is distinct from `Application.authority`.
+- `ApplicationAsset.payment_destination` is distinct from `ApplicationPaymentPolicy.treasury`.
+- Membership, Reward, TokenGate, GatePolicy, and AuditLog remain associated with their expected Application context.
+- Token compatibility includes SPL Token and Token-2022 where the current instruction contract supports token operations.
+- No protocol account stores wallet seed phrases or private keys.
+
+## Source-of-truth boundary
+
+If this specification conflicts with the compiled program or generated IDL, the program and IDL are authoritative and this specification must be corrected before release.
