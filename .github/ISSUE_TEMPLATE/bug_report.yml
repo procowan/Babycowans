@@ -1,0 +1,93 @@
+name: Bug report
+description: Report a reproducible defect in Babycowans Protocol V1.0.0, the SDK, documentation, examples, or developer tooling.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Babycowans Protocol V1.0.0.
+
+        Do not report security vulnerabilities here. Use GitHub Private Vulnerability Reporting as described in SECURITY.md.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      description: Select the primary surface where the defect appears.
+      options:
+        - On-chain protocol
+        - "@babycowans/core-sdk"
+        - Developer examples
+        - Documentation or specifications
+        - Local validator or developer tooling
+        - CI or repository tooling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Defect summary
+      description: Describe the observed behavior and why it appears incorrect.
+      placeholder: A concise description of the defect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest reliable sequence that reproduces the behavior.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Describe the behavior expected from the current repository contract.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include relevant Solana, Anchor, Rust, Node.js, package-manager, OS, cluster, and SDK information.
+      placeholder: |
+        Commit:
+        Solana:
+        Anchor:
+        Rust:
+        Node.js:
+        Package manager:
+        OS:
+        Cluster/RPC:
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or evidence
+      description: Add minimal logs, transaction signatures, account context, screenshots, or other non-secret evidence.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and scope confirmation
+      options:
+        - label: I have not included private keys, seed phrases, credentials, or other secrets.
+          required: true
+        - label: This report does not disclose an unremediated security vulnerability.
+          required: true
+        - label: I checked the current repository state before filing this report.
+          required: true

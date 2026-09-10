@@ -1,0 +1,67 @@
+name: Feature request
+description: Propose a compatible improvement to Babycowans Protocol V1.0.0 or its developer experience.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an improvement.
+
+        Babycowans Protocol V1.0.0 preserves six canonical ecosystem identities and the current protocol, authority, PDA, account, event, compatibility, and SDK boundaries. Proposed changes should be framed against the current repository contract.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Target surface
+      options:
+        - On-chain protocol
+        - "@babycowans/core-sdk"
+        - Developer examples
+        - Documentation or specifications
+        - Local validator or developer tooling
+        - CI or repository tooling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or developer need
+      description: Describe the concrete developer problem this proposal would solve.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      description: Describe the smallest compatible change that addresses the need.
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and protocol impact
+      description: Explain any expected effect on protocol semantics, canonical ecosystems, PDAs, accounts, events, SPL Token/Token-2022 compatibility, SDK APIs, or existing integrations.
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Suggested validation
+      description: Describe tests, examples, or evidence that should accompany the change.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: I reviewed the current repository contract before proposing this change.
+          required: true
+        - label: I understand that security vulnerabilities must be reported privately through the process in SECURITY.md.
+          required: true
