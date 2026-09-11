@@ -61,25 +61,129 @@ function runCommand(command: string, args: string[]): string {
   }).trim();
 }
 
-function createToken2022Account(mint: PublicKey, ownerPath: string): PublicKey {
-  const output = runCommand("spl-token", [
-    "create-account",
-    mint.toBase58(),
-    "--owner",
-    ownerPath,
-    "--program-id",
-    TOKEN_2022_PROGRAM_ID.toBase58(),
-    "--url",
-    RPC_URL,
-  ]);
+async function createToken2022Account(
+  connection: {
+    getAccountInfo(
+      address: PublicKey
+    ): Promise<{ owner: PublicKey; data: Buffer | Uint8Array } | null>;
+  },
+  mint: PublicKey,
+  ownerPath: string
+): Promise<PublicKey> {
+  try {
+    const output = runCommand("spl-token", [
+      "create-account",
+      mint.toBase58(),
+      "--owner",
+      ownerPath,
+      "--program-id",
+      TOKEN_2022_PROGRAM_ID.toBase58(),
+      "--url",
+      RPC_URL,
+    ]);
 
-  const match = output.match(/Creating account ([1-9A-HJ-NP-Za-km-z]+)/);
+    const match = output.match(
+      /Creating account ([1-9A-HJ-NP-Za-km-z]+)/
+    );
 
-  if (match === null) {
-    throw new Error(`Unable to resolve Token-2022 account:\n${output}`);
+    if (match === null) {
+      throw new Error(
+        `Unable to resolve Token-2022 account:\n${output}`
+      );
+    }
+
+    return new PublicKey(match[1]);
+  } catch (error) {
+    const failure = error as {
+      stdout?: string | Buffer;
+      stderr?: string | Buffer;
+      message?: string;
+    };
+
+    const stringify = (
+      value: string | Buffer | undefined
+    ): string => {
+      if (typeof value === "string") {
+        return value;
+      }
+
+      if (Buffer.isBuffer(value)) {
+        return value.toString("utf8");
+      }
+
+      return "";
+    };
+
+    const output = [
+      stringify(failure.stdout),
+      stringify(failure.stderr),
+      failure.message ?? "",
+    ].join("\n");
+
+    const existingMatch = output.match(
+      /Account already exists: ([1-9A-HJ-NP-Za-km-z]+)/
+    );
+
+    if (existingMatch === null) {
+      throw error;
+    }
+
+    const existingAccount = new PublicKey(existingMatch[1]);
+
+    const info = await connection.getAccountInfo(
+      existingAccount
+    );
+
+    if (info === null) {
+      throw new Error(
+        `Existing Token-2022 account is unavailable: ${existingAccount.toBase58()}`
+      );
+    }
+
+    if (!info.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+      throw new Error(
+        `Existing token account has wrong program owner: ${info.owner.toBase58()}`
+      );
+    }
+
+    const data = Buffer.from(info.data);
+
+    if (data.length < 64) {
+      throw new Error(
+        `Existing Token-2022 account data is too short: ${data.length}`
+      );
+    }
+
+    const existingMint = new PublicKey(
+      data.subarray(0, 32)
+    );
+
+    const existingOwner = new PublicKey(
+      data.subarray(32, 64)
+    );
+
+    const expectedOwner = loadKeypair(
+      ownerPath
+    ).publicKey;
+
+    if (!existingMint.equals(mint)) {
+      throw new Error(
+        `Existing token account mint mismatch: expected ${mint.toBase58()}, got ${existingMint.toBase58()}`
+      );
+    }
+
+    if (!existingOwner.equals(expectedOwner)) {
+      throw new Error(
+        `Existing token account owner mismatch: expected ${expectedOwner.toBase58()}, got ${existingOwner.toBase58()}`
+      );
+    }
+
+    console.log(
+      `TOKEN_2022_EXISTING_ACCOUNT_REUSED=PASS:${existingAccount.toBase58()}`
+    );
+
+    return existingAccount;
   }
-
-  return new PublicKey(match[1]);
 }
 
 function readTokenAmount(data: Buffer): bigint {
@@ -213,12 +317,14 @@ async function main(): Promise<void> {
     RPC_URL,
   ]);
 
-  const destinationTokenAccount = createToken2022Account(
+  const destinationTokenAccount = await createToken2022Account(
+    connection,
     BAC_CANONICAL_MINT,
     solanaAuthorityPath
   );
 
-  const payerTokenAccount = createToken2022Account(
+  const payerTokenAccount = await createToken2022Account(
+    connection,
     BAC_CANONICAL_MINT,
     payerPath
   );
