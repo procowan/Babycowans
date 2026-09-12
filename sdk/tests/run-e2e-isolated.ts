@@ -73,13 +73,15 @@ const isolatedSuite =
 const e2eScripts =
   isolatedSuite === "god"
     ? ["test:god"]
-    : isolatedSuite === "gate-policy"
-      ? [
-          "test:e2e:initialize",
-          "test:e2e:asset",
-          "test:e2e:gate-policy:direct",
-        ]
-      : ([
+    : isolatedSuite === "bootstrap-example"
+      ? ["test:e2e:bootstrap-example:direct"]
+      : isolatedSuite === "gate-policy"
+        ? [
+            "test:e2e:initialize",
+            "test:e2e:asset",
+            "test:e2e:gate-policy:direct",
+          ]
+        : ([
           "test:e2e:initialize",
           "test:e2e:application",
           "test:e2e:asset",
@@ -582,6 +584,7 @@ async function main(): Promise<void> {
     const testEnvironment: NodeJS.ProcessEnv = {
       ...process.env,
       BABYCOWANS_RPC_URL: rpcUrl,
+      BABYCOWANS_PROGRAM_ID: programId,
     };
 
     for (const script of e2eScripts) {

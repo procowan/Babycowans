@@ -1,1 +1,0 @@
-bac574ac7befc4a475550dbe2780458e8329f07583ccaa3e51b321bf3585edb8  babycowans-core-sdk-1.0.0-source-bound.tgz

@@ -10,17 +10,15 @@ This release-assurance surface presents the final adjudicated engineering
 state for developers, startups, integrators, auditors, security teams,
 and infrastructure operators.
 
-## Certified source checkpoint
+## Release provenance
 
-- Branch: `main`
-- Certified source HEAD before release-assurance integration: `93e041d4ff8683ec4fcaa0fe3c01ff9392977472`
-- Certified source tree: `4b0efdde2b3de135ec29c4b4ddfb8de8d40a79d2`
+The authoritative current release identity is defined only by the
+[Canonical Release Provenance](../PROVENANCE.md) model. The Scale and Security
+Assurance reports remain evidence inputs; their historical certification hashes
+do not define a parallel current source identity.
+
 - Protocol: `Babycowans Protocol V1.0.0`
 - SDK: `@babycowans/core-sdk@1.0.0`
-
-The Release Assurance integration is documentation-only. It does not
-change the certified Protocol implementation, ABI, or SDK production
-implementation.
 
 ## Final assurance status
 

@@ -1,5 +1,7 @@
 # @babycowans/core-sdk
 
+This directory is the single canonical source location for `@babycowans/core-sdk`; the repository SDK guide defines the one supported installation and consumption contract.
+
 Official TypeScript SDK for **Babycowans Protocol V1.0.0**.
 
 ## What it provides
