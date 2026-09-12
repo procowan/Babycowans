@@ -47,7 +47,9 @@
     "test:metadata": "tsx tests/metadata.test.ts && tsx tests/metadata-identity.test.ts",
     "test:error-model": "tsx tests/error-model.test.ts",
     "test:property": "tsx tests/phase14-property.test.ts && tsx tests/property-based-resilience.test.ts",
-    "test:packed-consumer": "node tests/packed-consumer.test.mjs"
+    "test:packed-consumer": "node tests/packed-consumer.test.mjs",
+    "test:e2e:bootstrap-example:direct": "tsx tests/packed-bootstrap-example.test.ts",
+    "test:e2e:bootstrap-example:isolated": "BABYCOWANS_ISOLATED_SUITE=bootstrap-example tsx tests/run-e2e-isolated.ts"
   },
   "dependencies": {
     "punycode": "2.3.1"
@@ -56,6 +58,7 @@
     "@types/node": "^26.1.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.0",
+    "esbuild": "0.28.2",
     "@solana/web3.js": "1.98.4"
   },
   "bin": {

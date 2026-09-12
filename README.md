@@ -75,7 +75,7 @@ For the complete account model, PDA model, authority boundaries, state relations
 
 **SDK package version:** `1.0.0`
 
-**SDK distribution contract:** [docs/SDK_DISTRIBUTION.md](docs/SDK_DISTRIBUTION.md) defines the authoritative source-bound SDK artifact, cryptographic digest, installation path, and historical npm artifact distinction.
+**SDK:** [`sdk/`](sdk/) is the single canonical source location for `@babycowans/core-sdk`. The [SDK guide](docs/SDK.md) defines the single supported installation and consumption contract for this release.
 
 For repository development, install and build the SDK from the tracked workspace:
 

@@ -139,6 +139,17 @@ childProcess.spawnSync =
       };
     }
 
+    if (
+      !Array.isArray(args) ||
+      args.length !== 2 ||
+      args[0] !== "audit" ||
+      args[1] !== "--json"
+    ) {
+      throw new Error(
+        "Audit invocation must cover the complete installed graph with: yarn audit --json",
+      );
+    }
+
     if (scenario === "COMPLETE_KNOWN") {
       return {
         status: 4,
@@ -268,6 +279,7 @@ try {
   run("INTERRUPTED_EMPTY", false);
   run("COMPLETE_UNKNOWN", false);
 
+  console.log("F02_AUDIT_COMPLETE_INSTALLED_GRAPH_ARGS=PASS");
   console.log("F02_RUNTIME_AUDIT_FAIL_CLOSED_REGRESSION=PASS");
 } finally {
   rmSync(tmp, {

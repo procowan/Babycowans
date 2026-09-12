@@ -35,14 +35,25 @@ try {
 
   const tarball = path.join(tmpRoot, tarballs[0]);
 
+  assert.equal(
+    path.basename(tarball),
+    "babycowans-core-sdk-1.0.0.tgz",
+    "canonical packed SDK filename must be stable",
+  );
+
+  console.log("PACKED_CANONICAL_ARTIFACT_NAME=PASS");
+
   const consumerRoot = path.join(tmpRoot, "consumer");
   fs.mkdirSync(consumerRoot);
 
   const consumerPackage = {
+    name: "babycowans-packed-consumer-assurance",
+    version: "1.0.0",
     private: true,
     type: "module",
     dependencies: {
       "@babycowans/core-sdk": `file:${tarball}`,
+      "@solana/web3.js": "1.98.4",
     },
   };
 
@@ -129,6 +140,48 @@ try {
     "PACKED_CONSUMER_DEPENDENCY_INSTALL=PASS",
   );
 
+  const installedSdkManifest = JSON.parse(
+    fs.readFileSync(
+      path.join(
+        consumerRoot,
+        "node_modules",
+        "@babycowans",
+        "core-sdk",
+        "package.json",
+      ),
+      "utf8",
+    ),
+  );
+
+  assert.equal(
+    installedSdkManifest.name,
+    "@babycowans/core-sdk",
+  );
+  assert.equal(installedSdkManifest.version, "1.0.0");
+  assert.equal(
+    installedSdkManifest.peerDependencies?.["@solana/web3.js"],
+    "1.98.4",
+  );
+
+  const installedWeb3Manifest = JSON.parse(
+    fs.readFileSync(
+      path.join(
+        consumerRoot,
+        "node_modules",
+        "@solana",
+        "web3.js",
+        "package.json",
+      ),
+      "utf8",
+    ),
+  );
+
+  assert.equal(installedWeb3Manifest.version, "1.98.4");
+
+  console.log("PACKED_SDK_IDENTITY=@babycowans/core-sdk@1.0.0");
+  console.log("PACKED_WEB3_PEER_CONTRACT=1.98.4");
+  console.log("PACKED_WEB3_RUNTIME_RESOLUTION=1.98.4");
+
   /*
    * Execute the real package lifecycle after deterministic dependency
    * resolution. This exercises @babycowans/core-sdk postinstall without
@@ -198,6 +251,8 @@ try {
       CANONICAL_ECOSYSTEMS,
       CanonicalEcosystem,
       buildApplicationBootstrapPlan,
+      createWalletNeutralTransactionPlan,
+      resolveTransactionReceipt,
       findApplicationPda,
     } from "@babycowans/core-sdk";
 
@@ -261,6 +316,39 @@ try {
     assert.equal(three.instructions.length, 3);
     assert.ok(three.applicationRole);
 
+    const walletPlan =
+      createWalletNeutralTransactionPlan(
+        authority,
+        two.instructions,
+      );
+
+    assert.equal(walletPlan.payer.toBase58(), authority.toBase58());
+    assert.equal(walletPlan.instructions.length, 2);
+
+    const receipt =
+      await resolveTransactionReceipt(
+        {
+          getSignatureStatuses: async () => ({
+            context: { slot: 77 },
+            value: [
+              {
+                slot: 77,
+                confirmations: null,
+                err: null,
+                confirmationStatus: "finalized",
+                status: { Ok: null },
+              },
+            ],
+          }),
+        },
+        "packed-browser-wallet-proof",
+      );
+
+    assert.equal(receipt.succeeded, true);
+    assert.equal(receipt.confirmationStatus, "finalized");
+
+    console.log("PACKED_WALLET_NEUTRAL_PLAN=PASS");
+    console.log("PACKED_STATUS_AWARE_RECEIPT=PASS");
     console.log("PACKED_ROOT_IMPORT=PASS");
     console.log("PACKED_ONBOARDING_SUBPATH_IMPORT=PASS");
     console.log("PACKED_CANONICAL_ECOSYSTEM_COUNT=6");
@@ -281,6 +369,122 @@ try {
       stdio: "inherit",
     },
   );
+
+  const browserEntry = path.join(
+    consumerRoot,
+    "browser-wallet-entry.mjs",
+  );
+
+  fs.writeFileSync(
+    browserEntry,
+    `
+      import {
+        createWalletNeutralTransactionPlan,
+      } from "@babycowans/core-sdk";
+
+      import {
+        PublicKey,
+        SystemProgram,
+        TransactionInstruction,
+      } from "@solana/web3.js";
+
+      const payer = new PublicKey(
+        new Uint8Array(32).fill(17),
+      );
+
+      const instruction =
+        new TransactionInstruction({
+          programId: SystemProgram.programId,
+          keys: [],
+          data: new Uint8Array(),
+        });
+
+      const plan =
+        createWalletNeutralTransactionPlan(
+          payer,
+          [instruction],
+        );
+
+      if (plan.instructions.length !== 1) {
+        throw new Error("browser wallet-neutral plan mismatch");
+      }
+
+      globalThis.__BABYCOWANS_BROWSER_WALLET__ = true;
+    `,
+  );
+
+  const browserBundle = path.join(
+    tmpRoot,
+    "browser-wallet-bundle.mjs",
+  );
+
+  const browserMeta = path.join(
+    tmpRoot,
+    "browser-wallet-meta.json",
+  );
+
+  const esbuild =
+    process.platform === "win32"
+      ? path.join(sdkRoot, "node_modules", ".bin", "esbuild.cmd")
+      : path.join(sdkRoot, "node_modules", ".bin", "esbuild");
+
+  execFileSync(
+    esbuild,
+    [
+      browserEntry,
+      "--bundle",
+      "--platform=browser",
+      "--format=esm",
+      "--target=es2022",
+      `--outfile=${browserBundle}`,
+      `--metafile=${browserMeta}`,
+      "--log-level=error",
+    ],
+    {
+      cwd: consumerRoot,
+      stdio: "inherit",
+    },
+  );
+
+  const browserBundleText =
+    fs.readFileSync(browserBundle, "utf8");
+
+  assert.ok(browserBundleText.length > 0);
+  assert.equal(
+    /node:readline|node:fs|node:child_process/u.test(
+      browserBundleText,
+    ),
+    false,
+    "browser root bundle must not pull Node-only onboarding dependencies",
+  );
+
+  const browserMetafile =
+    JSON.parse(fs.readFileSync(browserMeta, "utf8"));
+
+  const browserInputs =
+    Object.keys(browserMetafile.inputs ?? {});
+
+  assert.ok(
+    browserInputs.some((input) =>
+      input.includes(
+        "node_modules/@babycowans/core-sdk/dist/index.js",
+      ),
+    ),
+    "browser bundle must consume the packed SDK root",
+  );
+
+  assert.ok(
+    browserInputs.some((input) =>
+      input.includes(
+        "node_modules/@solana/web3.js",
+      ),
+    ),
+    "browser bundle must consume the exact Web3 peer graph",
+  );
+
+  console.log("DX01_PACKED_BROWSER_PLATFORM_BUNDLE=PASS");
+  console.log("DX01_PACKED_ROOT_NODE_ONLY_IMPORTS=ABSENT");
+  console.log("DX01_PACKED_WEB3_BROWSER_GRAPH=PASS");
 
   /*
    * Validate the actual tracked examples against the packed SDK,

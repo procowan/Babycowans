@@ -235,6 +235,11 @@ jobs:
         run: |
           set -o pipefail
           (cd sdk && yarn test:e2e) 2>&1 | tee .astra-evidence/default-e2e.log
+      - name: Canonical packed SDK application bootstrap E2E
+        run: |
+          set -o pipefail
+          (cd sdk && yarn test:e2e:bootstrap-example:isolated) 2>&1 | tee .astra-evidence/application-bootstrap.log
+
       - name: Six-ecosystem golden E2E
         run: |
           set -o pipefail

@@ -1,8 +1,54 @@
 const { spawnSync } = require("node:child_process");
 
+const fs = require("node:fs");
+
 const path = require("node:path");
 
 const sdkRoot = path.resolve(__dirname, "..");
+
+const sdkManifest = JSON.parse(
+  fs.readFileSync(path.join(sdkRoot, "package.json"), "utf8"),
+);
+
+const declaredWeb3Peer =
+  sdkManifest.peerDependencies?.["@solana/web3.js"];
+
+if (declaredWeb3Peer !== "1.98.4") {
+  console.error(
+    "BABYCOWANS_RUNTIME_AUDIT_GATE=WEB3_PEER_CONTRACT_MISMATCH",
+  );
+  process.exit(1);
+}
+
+const installedWeb3ManifestPath = path.join(
+  sdkRoot,
+  "node_modules",
+  "@solana",
+  "web3.js",
+  "package.json",
+);
+
+if (!fs.existsSync(installedWeb3ManifestPath)) {
+  console.error(
+    "BABYCOWANS_RUNTIME_AUDIT_GATE=WEB3_RUNTIME_GRAPH_MISSING",
+  );
+  process.exit(1);
+}
+
+const installedWeb3Manifest = JSON.parse(
+  fs.readFileSync(installedWeb3ManifestPath, "utf8"),
+);
+
+if (installedWeb3Manifest.version !== "1.98.4") {
+  console.error(
+    "BABYCOWANS_RUNTIME_AUDIT_GATE=WEB3_RUNTIME_VERSION_MISMATCH",
+  );
+  process.exit(1);
+}
+
+console.log("BABYCOWANS_WEB3_PEER_VERSION=1.98.4");
+console.log("BABYCOWANS_WEB3_RUNTIME_VERSION=1.98.4");
+console.log("BABYCOWANS_WEB3_AUDIT_PERIMETER=PASS");
 
 function runNode(args) {
   return spawnSync(process.execPath, args, {
@@ -55,7 +101,7 @@ for (const marker of requiredMarkers) {
 
 const yarn = process.platform === "win32" ? "yarn.cmd" : "yarn";
 
-const audit = spawnSync(yarn, ["audit", "--groups", "dependencies", "--json"], {
+const audit = spawnSync(yarn, ["audit", "--json"], {
   cwd: sdkRoot,
   encoding: "utf8",
 });

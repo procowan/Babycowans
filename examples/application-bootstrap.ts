@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   BabycowansSDK,
   CANONICAL_ECOSYSTEMS,
+  buildApplicationBootstrapPlan,
   buildInitializeProtocolInstruction,
   findProtocolConfigPda,
 } from "@babycowans/core-sdk";
@@ -16,6 +17,7 @@ import {
   Keypair,
   PublicKey,
   Transaction,
+  TransactionInstruction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
@@ -171,6 +173,12 @@ const result = await client.bootstrapApplication({
   },
 });
 
+if (result.applicationRole !== undefined) {
+  throw new Error("Two-instruction bootstrap unexpectedly created a role.");
+}
+
+console.log("T01_BOOTSTRAP_TWO_INSTRUCTION_RUNTIME=PASS");
+
 const applicationRead = await client.getApplication({
   authority: authority.publicKey,
   applicationId,
@@ -213,3 +221,188 @@ console.log(
 );
 
 console.log(`BABYCOWANS_TRANSACTION_SIGNATURE=${result.signature}`);
+
+if (process.env.BABYCOWANS_BOOTSTRAP_ASSURANCE === "1") {
+  const roleApplicationId = applicationId + 1n;
+
+  const roleResult = await client.bootstrapApplication({
+    authority,
+    applicationId: roleApplicationId,
+    name: "Babycowans Example Role",
+    selectedEcosystem: selectedIdentity.ecosystem,
+    config: {
+      websiteUri: "https://example.com/role",
+      logoUri: "https://example.com/role-logo.png",
+      supportUri: "https://example.com/role-support",
+      description: "Executable three-instruction bootstrap assurance",
+      metadataUri: "https://example.com/role-metadata.json",
+    },
+    role: {
+      member: authority.publicKey,
+      role: 1,
+    },
+  });
+
+  if (roleResult.applicationRole === undefined) {
+    throw new Error(
+      "Three-instruction bootstrap did not return an ApplicationRole PDA."
+    );
+  }
+
+  const roleAccount = await connection.getAccountInfo(
+    roleResult.applicationRole,
+    "confirmed"
+  );
+
+  if (roleAccount === null) {
+    throw new Error(
+      "Three-instruction bootstrap ApplicationRole readback returned null."
+    );
+  }
+
+  const roleApplicationRead = await client.getApplication({
+    authority: authority.publicKey,
+    applicationId: roleApplicationId,
+  });
+
+  if (
+    roleApplicationRead === null ||
+    roleApplicationRead.data.selectedEcosystem !== selectedIdentity.ecosystem
+  ) {
+    throw new Error(
+      "Three-instruction bootstrap Application readback failed."
+    );
+  }
+
+  console.log("T01_BOOTSTRAP_THREE_INSTRUCTION_RUNTIME=PASS");
+  console.log("T01_BOOTSTRAP_THREE_INSTRUCTION_READBACK=PASS");
+
+  const rollbackApplicationId = applicationId + 2n;
+
+  const rollbackPlan = buildApplicationBootstrapPlan({
+    programId,
+    authority: authority.publicKey,
+    applicationId: rollbackApplicationId,
+    name: "Babycowans Rollback Probe",
+    selectedEcosystem: selectedIdentity.ecosystem,
+    config: {
+      websiteUri: "https://example.com/rollback",
+      logoUri: "https://example.com/rollback-logo.png",
+      supportUri: "https://example.com/rollback-support",
+      description: "Atomic rollback assurance probe",
+      metadataUri: "https://example.com/rollback-metadata.json",
+    },
+  });
+
+  if (rollbackPlan.instructions.length !== 2) {
+    throw new Error(
+      "Rollback probe must use the canonical two-instruction bootstrap plan."
+    );
+  }
+
+  if (
+    (await connection.getAccountInfo(
+      rollbackPlan.application,
+      "confirmed"
+    )) !== null ||
+    (await connection.getAccountInfo(
+      rollbackPlan.applicationConfig,
+      "confirmed"
+    )) !== null
+  ) {
+    throw new Error("Rollback probe accounts unexpectedly exist before send.");
+  }
+
+  const registerInstruction = rollbackPlan.instructions[0];
+  const configureInstruction = rollbackPlan.instructions[1];
+
+  if (
+    registerInstruction === undefined ||
+    configureInstruction === undefined
+  ) {
+    throw new Error("Rollback probe instruction plan is incomplete.");
+  }
+
+  const foreignApplication = Keypair.generate().publicKey;
+
+  const poisonedConfigureInstruction =
+    new TransactionInstruction({
+      programId: configureInstruction.programId,
+      keys: configureInstruction.keys.map(
+        (meta, index) =>
+          index === 0
+            ? {
+                ...meta,
+                pubkey: foreignApplication,
+              }
+            : meta
+      ),
+      data: Buffer.from(configureInstruction.data),
+    });
+
+  let deliberateFailureObserved = false;
+
+  try {
+    await sendAndConfirmTransaction(
+      connection,
+      new Transaction().add(
+        registerInstruction,
+        poisonedConfigureInstruction
+      ),
+      [authority],
+      {
+        commitment: "confirmed",
+      }
+    );
+  } catch (error: unknown) {
+    const candidate = error as {
+      message?: string;
+      logs?: unknown[];
+    };
+
+    const failureText = [
+      candidate.message ?? String(error),
+      ...(Array.isArray(candidate.logs)
+        ? candidate.logs.map(String)
+        : []),
+    ].join("\n");
+
+    if (
+      /Unable to obtain a new blockhash|ECONN|ETIMEDOUT|fetch failed/i.test(
+        failureText
+      )
+    ) {
+      throw error;
+    }
+
+    deliberateFailureObserved = true;
+  }
+
+  if (!deliberateFailureObserved) {
+    throw new Error(
+      "Deliberate second-instruction failure unexpectedly succeeded."
+    );
+  }
+
+  console.log(
+    "T01_BOOTSTRAP_DELIBERATE_SECOND_INSTRUCTION_FAILURE=PASS"
+  );
+
+  if (
+    (await connection.getAccountInfo(
+      rollbackPlan.application,
+      "confirmed"
+    )) !== null ||
+    (await connection.getAccountInfo(
+      rollbackPlan.applicationConfig,
+      "confirmed"
+    )) !== null
+  ) {
+    throw new Error(
+      "Atomic bootstrap rollback left partial Application state behind."
+    );
+  }
+
+  console.log("T01_BOOTSTRAP_ATOMIC_ROLLBACK=PASS");
+  console.log("BABYCOWANS_BOOTSTRAP_ASSURANCE=PASS");
+}

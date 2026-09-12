@@ -1,12 +1,13 @@
 # Babycowans TypeScript SDK Guide
 
+`sdk/` is the single canonical source location for `@babycowans/core-sdk`. This document is the sole SDK installation and consumption contract for Babycowans Protocol V1.0.0.
+
 The official SDK package is:
 
 ```text
 @babycowans/core-sdk
 ```
 
-For the authoritative source-bound distributable artifact, its SHA-256 identity, installation path, and historical npm artifact distinction, see [SDK Distribution Contract](SDK_DISTRIBUTION.md).
 
 Use this guide for SDK integration patterns. For exact public method reference, use [API.md](API.md).
 

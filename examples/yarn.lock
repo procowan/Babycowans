@@ -7,12 +7,6 @@
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.29.7.tgz#12022450c45a4da6d8d8287b18a4ff2ddb23f768"
   integrity sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==
 
-"@babycowans/core-sdk@file:../sdk":
-  version "1.0.0"
-  dependencies:
-    "@solana/web3.js" "1.98.4"
-    punycode "2.3.1"
-
 "@esbuild/aix-ppc64@0.28.2":
   version "0.28.2"
   resolved "https://registry.yarnpkg.com/@esbuild/aix-ppc64/-/aix-ppc64-0.28.2.tgz#bf6e10303bcf2e7c686975fa52f937ec2728d8bc"
@@ -185,7 +179,7 @@
     chalk "^5.4.1"
     commander "^14.0.0"
 
-"@solana/web3.js@1.98.4", "@solana/web3.js@^1.98.0":
+"@solana/web3.js@1.98.4":
   version "1.98.4"
   resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.98.4.tgz#df51d78be9d865181ec5138b4e699d48e6895bbe"
   integrity sha512-vv9lfnvjUsRiq//+j5pBdXig0IQdtzA0BRZ3bXEP4KaIyF1CcaydWqgyzQgfZMNIsWNWmG+AUHwPy4AHOD6gpw==
