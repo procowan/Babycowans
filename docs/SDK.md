@@ -6,6 +6,8 @@ The official SDK package is:
 @babycowans/core-sdk
 ```
 
+For the authoritative source-bound distributable artifact, its SHA-256 identity, installation path, and historical npm artifact distinction, see [SDK Distribution Contract](SDK_DISTRIBUTION.md).
+
 Use this guide for SDK integration patterns. For exact public method reference, use [API.md](API.md).
 
 ## 1. SDK layers
