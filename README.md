@@ -209,6 +209,7 @@ For exact authority, ownership, PDA, lifecycle and protocol-security semantics, 
 - [Cookbook](docs/COOKBOOK.md) — practical application flows.
 - [Ecosystem Reference Architectures](docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md) — real-product integration boundaries for all six canonical ecosystems.
 - [Migration / Compatibility](docs/MIGRATION.md) — compatibility and migration guidance.
+- [Canonical Release Provenance](docs/PROVENANCE.md) — the single release identity and artifact-binding model.
 - [SDK package README](sdk/README.md) — package-level SDK documentation.
 
 ## Repository development

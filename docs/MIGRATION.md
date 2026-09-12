@@ -197,6 +197,8 @@ Babycowans supports an upgradeable program deployment model. The production depl
 
 ### Verifiable release provenance
 
+The single authoritative release-identity model is [Canonical Release Provenance](PROVENANCE.md). The guidance below defines the verifiable-build and deployment-verification portion of that model.
+
 For release provenance, a reviewer should be able to relate the public repository source to the program bytecode intended for deployment.
 
 The installed Anchor toolchain exposes verifiable-build and verification support. Inspect the exact options supported by the installed toolchain with:

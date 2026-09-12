@@ -7,10 +7,12 @@
 | Scale Assurance | **PASS** |
 | Security Attack Assurance | **PASS** |
 
-## Certified source checkpoint
+## Release provenance
 
-- Certified source HEAD before Release Assurance integration: `93e041d4ff8683ec4fcaa0fe3c01ff9392977472`
-- Certified source tree: `4b0efdde2b3de135ec29c4b4ddfb8de8d40a79d2`
+The authoritative current source/release identity is defined by the
+[Canonical Release Provenance](../PROVENANCE.md) model. This verdict is an
+assurance evidence input and does not establish a separate current release identity.
+
 - Protocol: **Babycowans Protocol V1.0.0**
 - SDK: **@babycowans/core-sdk@1.0.0**
 
