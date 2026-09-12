@@ -210,6 +210,7 @@ For exact authority, ownership, PDA, lifecycle and protocol-security semantics, 
 - [Ecosystem Reference Architectures](docs/ECOSYSTEM_REFERENCE_ARCHITECTURES.md) — real-product integration boundaries for all six canonical ecosystems.
 - [Migration / Compatibility](docs/MIGRATION.md) — compatibility and migration guidance.
 - [Canonical Release Provenance](docs/PROVENANCE.md) — the single release identity and artifact-binding model.
+- [Canonical Evidence Graph](docs/EVIDENCE_GRAPH.md) — the single identity-to-execution-to-output-to-evidence model.
 - [SDK package README](sdk/README.md) — package-level SDK documentation.
 
 ## Repository development

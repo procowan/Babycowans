@@ -58,6 +58,12 @@ not proof of production deployment byte equality. If production deployment is cl
 the final provenance record must include the actual target cluster and the repository-
 supported verification result for the release artifact/source.
 
+## Evidence graph
+
+Release evidence is organized by the single [Canonical Evidence Graph](EVIDENCE_GRAPH.md).
+Evidence objects, CI artifacts, assurance reports, and final examination records are
+nodes in that graph rather than competing release identities.
+
 ## Final closure condition
 
 The provenance model is PASS only when the final release evidence demonstrates:
