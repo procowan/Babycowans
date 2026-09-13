@@ -21,6 +21,10 @@ The public SDK package is:
 
 `@babycowans/core-sdk`
 
+## Canonical release-finalization override
+
+When an explicitly declared Babycowans Protocol V1.0.0 single-canonical-release finalization or freeze is active, that integrity contract supersedes the general contribution mechanics below. During such a procedure, release remediation must not create a secondary release, tag, branch, or pull request unless the governing canonical integrity contract explicitly authorizes that action.
+
 ## Pull requests
 
 A useful pull request should clearly explain:

@@ -86,7 +86,7 @@ External developers decide how these primitives are used in their products.
 
 Public instructions, account schemas, SDK methods, events, and error codes must be versioned.
 
-Breaking changes require a new major release and a documented migration path.
+Breaking changes to public instructions, account schemas, SDK methods, events, or error codes must not be introduced into Babycowans Protocol V1.0.0. Incompatible changes are outside the canonical V1.0.0 contract and must not be implemented as part of this protocol release.
 
 Internal implementation details may evolve without unnecessarily changing public developer interfaces.
 
@@ -132,4 +132,4 @@ Version 1 contains only the functionality defined in the approved specifications
 
 New ideas that are not required for Version 1 must not be added to the implementation.
 
-Future capabilities belong in later major releases.
+Capabilities outside the approved Babycowans Protocol V1.0.0 scope remain out of scope unless they are explicitly approved as compatibility-preserving refinements within the same canonical V1.0.0 contract.

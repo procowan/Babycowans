@@ -1,3 +1,5 @@
+<!-- Canonical release-finalization override: when an explicitly declared Babycowans Protocol V1.0.0 single-canonical-release finalization or freeze is active, its integrity contract supersedes this general pull-request template. -->
+
 ## Summary
 
 Describe the focused change and why it is needed.
