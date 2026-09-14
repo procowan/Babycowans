@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -201,6 +201,118 @@ try {
   console.log(
     "T01_PACKED_CANONICAL_EXAMPLE_ARTIFACT=PASS",
   );
+
+  // P100-B / R10 — permanent ASTRA negative control:
+  // a transaction whose signature bytes are corrupted must never be
+  // accepted as evidence of a submitted program failure or atomic rollback.
+  const bootstrapSourcePath = path.join(
+    exampleConsumer,
+    "application-bootstrap.ts",
+  );
+  const bootstrapSource = fs.readFileSync(
+    bootstrapSourcePath,
+    "utf8",
+  );
+
+  const signatureAnchor = [
+    '    args.transaction.sign(authority);',
+    '',
+    '    const raw = args.transaction.serialize();',
+  ].join("\n");
+
+  assert.equal(
+    bootstrapSource.includes(signatureAnchor),
+    true,
+    "signature-verification fault anchor is missing",
+  );
+
+  const signatureFaultSource = bootstrapSource.replace(
+    signatureAnchor,
+    [
+      '    args.transaction.sign(authority);',
+      '',
+      '    if (process.env.P100_B_SIGNATURE_VERIFICATION_FAULT === "1") {',
+      '      const signature = args.transaction.signatures[0]?.signature;',
+      '',
+      '      if (signature === null || signature === undefined) {',
+      '        throw new Error("P100_B_SIGNATURE_VERIFICATION_FAULT_SIGNATURE_MISSING");',
+      '      }',
+      '',
+      '      signature[0] ^= 0xff;',
+      '    }',
+      '',
+      '    const raw = args.transaction.serialize();',
+    ].join("\n"),
+  );
+
+  assert.notEqual(
+    signatureFaultSource,
+    bootstrapSource,
+    "signature-verification fault injection did not modify disposable source",
+  );
+
+  fs.writeFileSync(
+    bootstrapSourcePath,
+    signatureFaultSource,
+    "utf8",
+  );
+
+  const negative = spawnSync(
+    "npm",
+    ["run", "application-bootstrap"],
+    {
+      cwd: exampleConsumer,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        SOLANA_RPC_URL: rpcUrl,
+        BABYCOWANS_PROGRAM_ID: programId,
+        BABYCOWANS_ECOSYSTEM: "BRC",
+        BABYCOWANS_BOOTSTRAP_ASSURANCE: "1",
+        P100_B_SIGNATURE_VERIFICATION_FAULT: "1",
+      },
+      timeout: 180_000,
+      killSignal: "SIGTERM",
+    },
+  );
+
+  const negativeOutput = [
+    negative.stdout ?? "",
+    negative.stderr ?? "",
+  ].join("\n");
+
+  process.stdout.write(negativeOutput);
+
+  assert.notEqual(
+    negative.status,
+    0,
+    "signature-verification fault unexpectedly succeeded",
+  );
+  assert.equal(
+    negative.signal,
+    null,
+    "signature-verification negative control was terminated by signal",
+  );
+  assert.match(
+    negativeOutput,
+    /signature verification|signature.*verify|verify.*signature/i,
+    "signature-verification failure was not observed",
+  );
+  assert.equal(
+    negativeOutput.includes("BABYCOWANS_BOOTSTRAP_ASSURANCE=PASS"),
+    false,
+    "signature-verification failure produced false assurance PASS",
+  );
+  assert.equal(
+    negativeOutput.includes("T01_BOOTSTRAP_ATOMIC_ROLLBACK=PASS"),
+    false,
+    "signature-verification failure produced false rollback PASS",
+  );
+
+  console.log("P100_B_SIGNATURE_VERIFICATION_ERROR_OBSERVED=PASS");
+  console.log("P100_B_SIGNATURE_VERIFICATION_FALSE_ASSURANCE=0");
+  console.log("P100_B_SIGNATURE_VERIFICATION_FALSE_ROLLBACK=0");
+  console.log("P100_B_SIGNATURE_VERIFICATION_NEGATIVE=PASS");
 } finally {
   fs.rmSync(tmpRoot, {
     recursive: true,
