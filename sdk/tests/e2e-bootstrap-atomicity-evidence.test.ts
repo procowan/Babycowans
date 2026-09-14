@@ -123,9 +123,23 @@ type ProgramFailureEvidence = {
     accountKeys: string[];
 };
 
+type R10FaultMode =
+    | "transport_failure"
+    | "rpc_429"
+    | "rpc_timeout"
+    | "disconnect"
+    | "blockhash_expired";
+
 async function sendExpectedProgramFailure(
     instructions: readonly TransactionInstruction[],
+    fault?: R10FaultMode,
 ): Promise<ProgramFailureEvidence> {
+    if (fault === "blockhash_expired") {
+        throw new Error(
+            "R10_NEGATIVE_BLOCKHASH_EXPIRY: Blockhash not found: deterministic test fault",
+        );
+    }
+
     const latest = await connection.getLatestBlockhash(COMMITMENT);
 
     const tx = new Transaction({
@@ -139,6 +153,12 @@ async function sendExpectedProgramFailure(
 
     let signature: string;
     try {
+        if (fault === "transport_failure") {
+            throw new Error(
+                "ECONNRESET R10_NEGATIVE_TRANSPORT_FAILURE",
+            );
+        }
+
         signature = await connection.sendRawTransaction(
             tx.serialize(),
             {
@@ -159,6 +179,24 @@ async function sendExpectedProgramFailure(
 
     while (Date.now() < deadline) {
         try {
+            if (fault === "rpc_429") {
+                throw new Error(
+                    "429 Too Many Requests R10_NEGATIVE_RPC_429",
+                );
+            }
+
+            if (fault === "rpc_timeout") {
+                throw new Error(
+                    "ETIMEDOUT R10_NEGATIVE_RPC_TIMEOUT",
+                );
+            }
+
+            if (fault === "disconnect") {
+                throw new Error(
+                    "ECONNRESET R10_NEGATIVE_RPC_DISCONNECT",
+                );
+            }
+
             observed = await connection.getTransaction(
                 signature,
                 {
@@ -355,6 +393,87 @@ console.log(
             counterAfter: b2After.toString(),
         }),
 );
+
+async function expectFailClosedNegative(
+    label: string,
+    fault: R10FaultMode,
+    expected: RegExp,
+): Promise<void> {
+    let observedError = "";
+
+    try {
+        await sendExpectedProgramFailure(
+            b1.instructions,
+            fault,
+        );
+        assert.fail(
+            `${label} unexpectedly returned rollback evidence.`,
+        );
+    } catch (error) {
+        observedError = String(error);
+    }
+
+    assert.match(
+        observedError,
+        expected,
+        `${label} did not produce the expected failure classification.`,
+    );
+
+    assert.equal(
+        observedError.includes("R10_B3_EVIDENCE_JSON"),
+        false,
+        `${label} produced false B3 rollback evidence.`,
+    );
+
+    assert.equal(
+        observedError.includes("R10_B4_EVIDENCE_JSON"),
+        false,
+        `${label} produced false B4 rollback evidence.`,
+    );
+
+    console.log(
+        `R10_NEGATIVE_CONTROL_JSON=${JSON.stringify({
+            label,
+            fault,
+            classification: observedError,
+            rollbackProofProduced: false,
+            result: "PASS",
+        })}`,
+    );
+}
+
+await expectFailClosedNegative(
+    "RPC_429",
+    "rpc_429",
+    /R10_NEGATIVE_RPC_FAILURE.*429 Too Many Requests/i,
+);
+
+await expectFailClosedNegative(
+    "RPC_TIMEOUT",
+    "rpc_timeout",
+    /R10_NEGATIVE_RPC_FAILURE.*ETIMEDOUT/i,
+);
+
+await expectFailClosedNegative(
+    "RPC_DISCONNECT",
+    "disconnect",
+    /R10_NEGATIVE_RPC_FAILURE.*ECONNRESET/i,
+);
+
+await expectFailClosedNegative(
+    "TRANSPORT_FAILURE",
+    "transport_failure",
+    /R10_NEGATIVE_SIGNATURE_OR_TRANSPORT_FAILURE.*ECONNRESET/i,
+);
+
+await expectFailClosedNegative(
+    "BLOCKHASH_EXPIRY",
+    "blockhash_expired",
+    /R10_NEGATIVE_BLOCKHASH_EXPIRY.*Blockhash not found/i,
+);
+
+console.log("R10_NEGATIVE_RPC_TIMEOUT_DISCONNECT=PASS");
+console.log("R10_NEGATIVE_BLOCKHASH_EXPIRY=PASS");
 
 //
 // B3 — second instruction fails; first instruction must roll back.
