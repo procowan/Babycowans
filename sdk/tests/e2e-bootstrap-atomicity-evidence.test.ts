@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import assert from "node:assert/strict";
 
 import {
@@ -25,15 +27,15 @@ const RPC_URL = process.env.SOLANA_RPC_URL ?? "http://127.0.0.1:8899";
 const COMMITMENT = "confirmed" as const;
 const connection = new Connection(RPC_URL, COMMITMENT);
 
+const authorityPath = path.join(
+    os.homedir(),
+    ".config",
+    "solana",
+    "id.json",
+);
+
 const authority = Keypair.fromSecretKey(
-    Uint8Array.from(
-        JSON.parse(
-            fs.readFileSync(
-                `${process.env.HOME}/.config/solana/id.json`,
-                "utf8",
-            ),
-        ),
-    ),
+    Uint8Array.from(JSON.parse(fs.readFileSync(authorityPath, "utf8"))),
 );
 
 function readProtocolApplicationCount(data: Buffer): bigint {
