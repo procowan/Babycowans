@@ -80,7 +80,7 @@ For the complete account model, PDA model, authority boundaries, state relations
 The supported V1.0.0 consumer path uses the single official GitHub Release SDK asset. Download `babycowans-core-sdk-1.0.0.tgz` from the existing `v1.0.0` GitHub Release into the repository root and verify the exact bytes before installation:
 
 ```bash
-test "$(sha256sum babycowans-core-sdk-1.0.0.tgz | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+test "$(sha256sum babycowans-core-sdk-1.0.0.tgz | awk '{print $1}')" = "fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df"
 ```
 
 The checksum comparison must succeed before SDK installation or example execution. Do not substitute a sibling `sdk/` build, global package, path alias, or unverified tarball.

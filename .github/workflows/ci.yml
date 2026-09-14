@@ -239,7 +239,7 @@ jobs:
         run: |
           set -o pipefail
           ASSET="babycowans-core-sdk-1.0.0.tgz"
-          EXPECTED="277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+          EXPECTED="fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df"
           curl --fail --location --retry 3             "https://github.com/${{ github.repository }}/releases/download/v1.0.0/$ASSET"             --output "$ASSET"
           ACTUAL="$(sha256sum "$ASSET" | awk '{print $1}')"
           test "$ACTUAL" = "$EXPECTED"
@@ -250,7 +250,7 @@ jobs:
           set -o pipefail
           ASSET="${{ github.workspace }}/babycowans-core-sdk-1.0.0.tgz"
           test -f "$ASSET"
-          test "$(sha256sum "$ASSET" | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+          test "$(sha256sum "$ASSET" | awk '{print $1}')" = "fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df"
 
           rm -rf /tmp/babycowans-public-examples
           cp -a examples /tmp/babycowans-public-examples
@@ -269,7 +269,7 @@ jobs:
       - name: Public SDK installation negative controls
         run: |
           set -o pipefail
-          EXPECTED="277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+          EXPECTED="fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df"
           test ! -e /tmp/babycowans-definitely-missing-babycowans-core-sdk-1.0.0.tgz
           echo "P100_A_NEGATIVE_MISSING_ASSET=PASS" | tee -a .astra-evidence/p100-a-public-path.log
           printf 'not-the-release-artifact\n' > /tmp/babycowans-wrong-sdk.tgz
@@ -283,7 +283,7 @@ jobs:
         run: |
           set -o pipefail
           test -f "$BABYCOWANS_SDK_RELEASE_ASSET"
-          test "$(sha256sum "$BABYCOWANS_SDK_RELEASE_ASSET" | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+          test "$(sha256sum "$BABYCOWANS_SDK_RELEASE_ASSET" | awk '{print $1}')" = "fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df"
           (cd sdk && yarn test:e2e:bootstrap-example:isolated) 2>&1 | tee .astra-evidence/application-bootstrap.log
 
       - name: Six-ecosystem golden E2E

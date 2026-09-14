@@ -18,7 +18,7 @@ The single supported SDK distribution channel for this release is the existing G
 After downloading the asset into the root of a fresh Babycowans checkout, verify its bytes before installation:
 
 ```bash
-test "$(sha256sum babycowans-core-sdk-1.0.0.tgz | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+test "$(sha256sum babycowans-core-sdk-1.0.0.tgz | awk '{print $1}')" = "fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df"
 ```
 
 Only after that check succeeds, install it in the consuming environment. For the tracked examples:

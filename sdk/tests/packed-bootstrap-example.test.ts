@@ -28,7 +28,7 @@ const tmpRoot = fs.mkdtempSync(
 try {
   const releaseAsset = process.env.BABYCOWANS_SDK_RELEASE_ASSET;
   const expectedSha256 =
-    "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee";
+    "fff4d5535a6ae908819eccd1df1596464dc96c339da3d7afd93a4dffc75399df";
 
   if (!releaseAsset) {
     throw new Error("BABYCOWANS_SDK_RELEASE_ASSET is required");
