@@ -6,7 +6,7 @@ Official TypeScript SDK for **Babycowans Protocol V1.0.0**.
 
 ## Installation
 
-The supported V1.0.0 distribution artifact is `babycowans-core-sdk-1.0.0.tgz` from the existing `v1.0.0` GitHub Release. Verify SHA-256 `277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee` before installation. The complete consumer and tracked-example commands are defined in `docs/SDK.md`; do not use the sibling source directory as an implicit consumer fallback.
+The supported V1.0.0 distribution artifact is `babycowans-core-sdk-1.0.0.tgz` from the existing `v1.0.0` GitHub Release. Before installation, verify the downloaded artifact against the authoritative SHA-256 published by the canonical repository/release installation contract in `docs/SDK.md`. The complete consumer and tracked-example commands are defined there; do not use the sibling source directory as an implicit consumer fallback.
 
 The required `@solana/web3.js` peer is exactly `1.98.4`.
 
