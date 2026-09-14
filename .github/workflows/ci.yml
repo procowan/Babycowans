@@ -235,9 +235,55 @@ jobs:
         run: |
           set -o pipefail
           (cd sdk && yarn test:e2e) 2>&1 | tee .astra-evidence/default-e2e.log
-      - name: Canonical packed SDK application bootstrap E2E
+      - name: Download and verify canonical Release SDK
         run: |
           set -o pipefail
+          ASSET="babycowans-core-sdk-1.0.0.tgz"
+          EXPECTED="277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+          curl --fail --location --retry 3             "https://github.com/${{ github.repository }}/releases/download/v1.0.0/$ASSET"             --output "$ASSET"
+          ACTUAL="$(sha256sum "$ASSET" | awk '{print $1}')"
+          test "$ACTUAL" = "$EXPECTED"
+          echo "P100_A_RELEASE_ASSET_SHA256=$ACTUAL" | tee .astra-evidence/p100-a-public-path.log
+
+      - name: Public Release SDK fresh-checkout contract
+        run: |
+          set -o pipefail
+          ASSET="${{ github.workspace }}/babycowans-core-sdk-1.0.0.tgz"
+          test -f "$ASSET"
+          test "$(sha256sum "$ASSET" | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+
+          rm -rf /tmp/babycowans-public-examples
+          cp -a examples /tmp/babycowans-public-examples
+          rm -rf /tmp/babycowans-public-examples/node_modules
+
+          (
+            cd /tmp/babycowans-public-examples
+            yarn install --frozen-lockfile
+            yarn add --exact --no-lockfile "$ASSET"
+            RESOLVED="$(node -p "require.resolve('@babycowans/core-sdk/package.json')")"
+            test "$RESOLVED" = "/tmp/babycowans-public-examples/node_modules/@babycowans/core-sdk/package.json"
+            node -e "const p=require('./node_modules/@babycowans/core-sdk/package.json'); if(p.version!=='1.0.0'||p.peerDependencies?.['@solana/web3.js']!=='1.98.4') process.exit(1)"
+            yarn typecheck
+          ) 2>&1 | tee -a .astra-evidence/p100-a-public-path.log
+
+      - name: Public SDK installation negative controls
+        run: |
+          set -o pipefail
+          EXPECTED="277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+          test ! -e /tmp/babycowans-definitely-missing-babycowans-core-sdk-1.0.0.tgz
+          echo "P100_A_NEGATIVE_MISSING_ASSET=PASS" | tee -a .astra-evidence/p100-a-public-path.log
+          printf 'not-the-release-artifact\n' > /tmp/babycowans-wrong-sdk.tgz
+          WRONG="$(sha256sum /tmp/babycowans-wrong-sdk.tgz | awk '{print $1}')"
+          test "$WRONG" != "$EXPECTED"
+          echo "P100_A_NEGATIVE_WRONG_DIGEST=PASS" | tee -a .astra-evidence/p100-a-public-path.log
+
+      - name: Canonical Release SDK application bootstrap E2E
+        env:
+          BABYCOWANS_SDK_RELEASE_ASSET: ${{ github.workspace }}/babycowans-core-sdk-1.0.0.tgz
+        run: |
+          set -o pipefail
+          test -f "$BABYCOWANS_SDK_RELEASE_ASSET"
+          test "$(sha256sum "$BABYCOWANS_SDK_RELEASE_ASSET" | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
           (cd sdk && yarn test:e2e:bootstrap-example:isolated) 2>&1 | tee .astra-evidence/application-bootstrap.log
 
       - name: Six-ecosystem golden E2E

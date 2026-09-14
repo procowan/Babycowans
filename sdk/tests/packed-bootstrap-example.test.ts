@@ -26,32 +26,33 @@ const tmpRoot = fs.mkdtempSync(
 );
 
 try {
-  execFileSync("yarn", ["build"], {
-    cwd: sdkRoot,
-    stdio: "inherit",
-    timeout: 120_000,
-  });
+  const releaseAsset = process.env.BABYCOWANS_SDK_RELEASE_ASSET;
+  const expectedSha256 =
+    "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee";
 
-  execFileSync(
-    "npm",
-    ["pack", "--pack-destination", tmpRoot],
-    {
-      cwd: sdkRoot,
-      stdio: "inherit",
-      timeout: 60_000,
-    },
+  if (!releaseAsset) {
+    throw new Error("BABYCOWANS_SDK_RELEASE_ASSET is required");
+  }
+
+  const tarball = path.resolve(releaseAsset);
+  assert.equal(path.basename(tarball), "babycowans-core-sdk-1.0.0.tgz");
+  assert.equal(
+    fs.existsSync(tarball),
+    true,
+    "release SDK asset is missing",
   );
 
-  const tarballs = fs
-    .readdirSync(tmpRoot)
-    .filter((name) => name.endsWith(".tgz"));
+  const actualSha256 = execFileSync(
+    "sha256sum",
+    [tarball],
+    { encoding: "utf8" },
+  ).trim().split(/\s+/u)[0];
 
-  assert.deepEqual(
-    tarballs,
-    ["babycowans-core-sdk-1.0.0.tgz"],
+  assert.equal(
+    actualSha256,
+    expectedSha256,
+    "release SDK SHA-256 mismatch",
   );
-
-  const tarball = path.join(tmpRoot, tarballs[0]);
 
   const exampleConsumer = path.join(
     tmpRoot,

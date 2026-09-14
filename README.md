@@ -77,35 +77,33 @@ For the complete account model, PDA model, authority boundaries, state relations
 
 **SDK:** [`sdk/`](sdk/) is the single canonical source location for `@babycowans/core-sdk`. The [SDK guide](docs/SDK.md) defines the single supported installation and consumption contract for this release.
 
-For repository development, install and build the SDK from the tracked workspace:
+The supported V1.0.0 consumer path uses the single official GitHub Release SDK asset. Download `babycowans-core-sdk-1.0.0.tgz` from the existing `v1.0.0` GitHub Release into the repository root and verify the exact bytes before installation:
 
 ```bash
-(
-  cd sdk &&
-  yarn install --frozen-lockfile &&
-  yarn build
-)
+test "$(sha256sum babycowans-core-sdk-1.0.0.tgz | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
 ```
 
-Then initialize the high-level client using the exact setup documented in the [SDK Guide](docs/SDK.md).
+The checksum comparison must succeed before SDK installation or example execution. Do not substitute a sibling `sdk/` build, global package, path alias, or unverified tarball.
 
 ## Build Your First Application
 
-The repository includes an executable application-bootstrap flow. It is the fastest source-backed path from a fresh checkout to a real Babycowans Application flow.
-
-From the repository root, install the tracked examples workspace after building the SDK:
+From a fresh checkout, after the verified Release asset is present in the repository root, install the tracked examples workspace and then install that exact SDK artifact:
 
 ```bash
 (
   cd examples &&
-  yarn install --frozen-lockfile
+  yarn install --frozen-lockfile &&
+  yarn add --exact --no-lockfile "../babycowans-core-sdk-1.0.0.tgz"
 )
 
 export BABYCOWANS_PROGRAM_ID="$(sed -n 's/.*declare_id!("\([^"]*\)").*/\1/p' protocol/babycowans-protocol/programs/babycowans-protocol/src/lib.rs | head -n1)"
 
 cd examples
+yarn typecheck
 yarn application-bootstrap
 ```
+
+`@solana/web3.js` remains pinned to `1.98.4` by the tracked examples manifest. The SDK must resolve from `examples/node_modules/@babycowans/core-sdk`; the sibling `sdk/` directory is not an installation fallback.
 
 **Fresh local validator:** `application-bootstrap` checks the global `ProtocolConfig` PDA before registering the Application. When that PDA is absent on the repository-owned local validator, the example initializes it once with the configured local wallet as protocol authority. On a non-local RPC endpoint the example fails closed; the deployment/operator flow must initialize `ProtocolConfig` first.
 

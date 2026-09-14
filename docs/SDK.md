@@ -11,6 +11,28 @@ The official SDK package is:
 
 Use this guide for SDK integration patterns. For exact public method reference, use [API.md](API.md).
 
+## Official V1.0.0 installation contract
+
+The single supported SDK distribution channel for this release is the existing GitHub Release asset `babycowans-core-sdk-1.0.0.tgz` attached to `v1.0.0`.
+
+After downloading the asset into the root of a fresh Babycowans checkout, verify its bytes before installation:
+
+```bash
+test "$(sha256sum babycowans-core-sdk-1.0.0.tgz | awk '{print $1}')" = "277cf70db8fbbbaeedf126b51c4abae226ffafdaa10f5af84b13f042350accee"
+```
+
+Only after that check succeeds, install it in the consuming environment. For the tracked examples:
+
+```bash
+(
+  cd examples &&
+  yarn install --frozen-lockfile &&
+  yarn add --exact --no-lockfile "../babycowans-core-sdk-1.0.0.tgz"
+)
+```
+
+The consumer must provide `@solana/web3.js` exactly `1.98.4`; the tracked examples already pin that version. A sibling `sdk/` source tree, global package, path alias, or unverified tarball is not a supported substitute. A missing asset or checksum mismatch is a hard stop.
+
 ## 1. SDK layers
 
 The SDK exposes:
