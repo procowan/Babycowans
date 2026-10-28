@@ -168,12 +168,12 @@ verifyUuidRuntimePath(jayson);
 
 const streamJson = packageFrom(jayson.requireFrom, "stream-json");
 
-exactVersion(streamJson, "1.9.1");
+exactVersion(streamJson, "3.6.0");
 
-if (jayson.data.dependencies?.["stream-json"] !== "^1.9.1") {
+if (jayson.data.dependencies?.["stream-json"] !== "^3.6.0") {
   fail(
     "JAYSON_STREAM_JSON_RANGE_MISMATCH:" +
-      `EXPECTED=^1.9.1:` +
+      `EXPECTED=^3.6.0:` +
       `ACTUAL=${jayson.data.dependencies?.["stream-json"]}`
   );
 }
